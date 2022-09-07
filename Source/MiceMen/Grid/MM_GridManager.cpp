@@ -29,8 +29,7 @@ void AMM_GridManager::SetupGrid()
 	for (int x = 0; x < GridSize.X; x++)
 	{
 		TArray<UMM_GridInfo*> NewGridCollumn;
-		Grid.Add(NewGridCollumn);
-		for (int y = 0; x < GridSize.Y; y++)
+		for (int y = 0; y < GridSize.Y; y++)
 		{
 			UMM_GridInfo* NewGridObject = NewObject<UMM_GridInfo>(UMM_GridInfo::StaticClass());
 			if (!NewGridObject)
@@ -41,6 +40,7 @@ void AMM_GridManager::SetupGrid()
 			NewGridObject->SetupGridInfo(FIntVector(x, y, 0));
 			NewGridCollumn.Add(NewGridObject);
 		}
+		Grid.Add(NewGridCollumn);
 	}
 }
 
@@ -48,13 +48,14 @@ void AMM_GridManager::PopulateGrid()
 {
 	for (int x = 0; x < Grid.Num(); x++)
 	{
-		for (int y = 0; x < Grid[x].Num(); y++)
+		for (int y = 0; y < Grid[x].Num(); y++)
 		{
 			FTransform GridElementTransform = GetActorTransform();
 			FVector NewRelativeLocation = FVector::Zero();
-			NewRelativeLocation.X -= (GridSize.X / 2) * GridElementWidth;
-			NewRelativeLocation.X += x * GridElementWidth;
-			NewRelativeLocation.Y += y * GridElementHeight;
+			// X is forward, so horizontal axis is Y, and vertical axis is Z
+			NewRelativeLocation.Y -= (GridSize.X / 2) * GridElementWidth;
+			NewRelativeLocation.Y += x * GridElementWidth;
+			NewRelativeLocation.Z += y * GridElementHeight;
 			// NEEDS TO BE RELATIVE LOCATION TO TRANSFORM
 			GridElementTransform.SetLocation(NewRelativeLocation);
 			if (FMath::RandBool())
