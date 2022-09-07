@@ -26,17 +26,23 @@ void AMM_GridManager::BeginPlay()
 
 void AMM_GridManager::SetupGrid()
 {
+	// For each collumn
 	for (int x = 0; x < GridSize.X; x++)
 	{
+		// Create new collumn array
 		TArray<UMM_GridInfo*> NewGridCollumn;
+
+		// For each row, add to collumn array
 		for (int y = 0; y < GridSize.Y; y++)
 		{
+			// Create new Grid info object and add to collumn array
 			UMM_GridInfo* NewGridObject = NewObject<UMM_GridInfo>(UMM_GridInfo::StaticClass());
 			if (!NewGridObject)
 			{
 				UE_LOG(LogTemp, Error, TEXT("Failed to create Grid Object!"));
 				continue;
 			}
+			// Setup and store
 			NewGridObject->SetupGridInfo(FIntVector(x, y, 0));
 			NewGridCollumn.Add(NewGridObject);
 		}
@@ -50,14 +56,19 @@ void AMM_GridManager::PopulateGrid()
 	{
 		for (int y = 0; y < Grid[x].Num(); y++)
 		{
+			// Initial variables
 			FTransform GridElementTransform = GetActorTransform();
 			FVector NewRelativeLocation = FVector::Zero();
+
 			// X is forward, so horizontal axis is Y, and vertical axis is Z
 			NewRelativeLocation.Y -= (GridSize.X / 2) * GridElementWidth;
 			NewRelativeLocation.Y += x * GridElementWidth;
 			NewRelativeLocation.Z += y * GridElementHeight;
+
 			// NEEDS TO BE RELATIVE LOCATION TO TRANSFORM
 			GridElementTransform.SetLocation(NewRelativeLocation);
+
+			// Initial testing random bool for placement
 			if (FMath::RandBool())
 			{
 				AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);
