@@ -1,0 +1,47 @@
+Naming
+- MM_
+- BP_MM
+- MM_UI
+- BP_MM_UI
+
+
+Grid - Collumns by rows
+Map <vec2, cheese>
+Map <vec2, mouse>
+
+map <vec2, struct>
+
+array<array<struct>>
+
+
+Gamemode
+- Handles turns
+- Handles Grid
+- Creates random grid
+
+Gameplay Elements
+- Cheese/Block Actor
+- Mouse Actor - Not a pawn/character
+
+Player Controller
+- UI control
+- View
+- Local player per side
+- Begin Turn function
+
+UI
+- Base in code, bind widgets
+
+To Plan:
+- Switching turns change between local players?
+- Moving row interaction
+- Turn Display/indicator
+- Environment/Background
+- Music
+- AI?
+
+Stretch:
+- Mouse Characters
+- Jump/walk animations
+- Timeline visuals for blocks moving
+- Idle/fidget animations
