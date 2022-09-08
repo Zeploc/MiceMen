@@ -25,3 +25,14 @@ void AMM_Mouse::Tick(float DeltaTime)
 
 }
 
+void AMM_Mouse::SetupMouse(int _iTeam, FIntVector _Coords)
+{
+	iTeam = _iTeam;
+	Coords = _Coords;
+}
+
+void AMM_Mouse::MoveAlongPath(TArray<FVector> _Path)
+{
+	BI_MoveAlongPath(_Path);
+}
+

@@ -19,6 +19,11 @@ void UMM_GridInfo::SetGridBlock(AMM_GridBlock* _Block)
 	Block = _Block;
 }
 
+void UMM_GridInfo::SetMouse(class AMM_Mouse* _Mouse)
+{
+	Mouse = _Mouse;
+}
+
 bool UMM_GridInfo::IsEmpty()
 {
 	if (IsValid(Mouse))

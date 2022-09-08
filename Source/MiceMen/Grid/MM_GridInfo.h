@@ -20,6 +20,7 @@ public:
 	void SetupGridInfo(FIntVector _GridCoordinates);
 
 	void SetGridBlock(class AMM_GridBlock* _Block);
+	void SetMouse(class AMM_Mouse* _Mouse);
 
 protected:
 

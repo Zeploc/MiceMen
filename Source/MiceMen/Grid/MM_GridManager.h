@@ -29,19 +29,29 @@ protected:
 	void PopulateGridBlocks();
 	void PopulateMice();
 
+	bool FindFreeSlotInDirection(FIntVector& _CurrentPosition, FIntVector _Direction);
+	bool FindFreeSlotBelow(FIntVector& _CurrentPosition);
+	bool FindFreeSlotAhead(FIntVector& _CurrentPosition, int _Direction);
+	TArray<FIntVector> GetValidPath(FIntVector _StartingPosition, int _iHorizontalDirection = 1);
+	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector> _CoordPath);
+
 	int CoordToIndex(int _X, int _Y);
 
-	FTransform GetWorldTransformFromCoord(int _X, int _Y);
-	FIntVector GetRandomGridCoord();
-	FIntVector GetRandomGridCoordInColumnRange(int _MinX, int _MaxX);
-	FIntVector GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY);
+	FTransform GetWorldTransformFromCoord(FIntVector _Coords);
+	FIntVector GetRandomGridCoord(bool _bFreeSlot = true);
+	FIntVector GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true);
+	FIntVector GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot = true);
+
+	void ProcessMice();
 
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		FIntVector GridSize;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<class AMM_GridBlock> GridBlockClass;
+		TSubclassOf<class AMM_GridBlock> GridBlockClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		TSubclassOf<class AMM_Mouse> MouseClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementWidth = 100.0f;
@@ -55,6 +65,11 @@ protected:
 	 * One dimensional array for two dimensional grid
 	 */
 	TArray<class UMM_GridInfo*> Grid;
+
+	/**
+	 * Active list of mice.
+	 */
+	TArray<class AMM_Mouse*> Mice;
 
 	/**
 	 * Coord to index position.

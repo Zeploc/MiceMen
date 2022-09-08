@@ -18,12 +18,29 @@ public:
 	// Sets default values for this actor's properties
 	AMM_Mouse();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	void SetupMouse(int _iTeam, FIntVector _Coords);
+	void MoveAlongPath(TArray<FVector> _Path);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BI_MoveAlongPath(const TArray<FVector>& _Path);
+
+
+	int GetTeam() {
+		return  iTeam;
+	};
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(BlueprintReadOnly)
+		FIntVector Coords;
+protected:
+	UPROPERTY(BlueprintReadOnly)
+		int iTeam = -1;
 };
