@@ -26,7 +26,15 @@ protected:
 	virtual void BeginPlay() override;
 
 	void SetupGrid();
-	void PopulateGrid();
+	void PopulateGridBlocks();
+	void PopulateMice();
+
+	int CoordToIndex(int _X, int _Y);
+
+	FTransform GetWorldTransformFromCoord(int _X, int _Y);
+	FIntVector GetRandomGridCoord();
+	FIntVector GetRandomGridCoordInColumnRange(int _MinX, int _MaxX);
+	FIntVector GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY);
 
 
 public:
@@ -39,11 +47,27 @@ public:
 		float GridElementWidth = 100.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementHeight = 100.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		int InitialMiceCount = 12;
 
 protected:
 	/**
-	 * Note: If optimisation was a focus, would look into using a one dimensional array, with look up and helper utils
+	 * One dimensional array for two dimensional grid
 	 */
-	TArray<TArray<class UMM_GridInfo*>> Grid;
+	TArray<class UMM_GridInfo*> Grid;
 
+	/**
+	 * Coord to index position.
+	 * Used as lookup, updated when a change in the grid occurs
+	 * Could store key as array index, but storing as coords
+	 * removes a need to run an operation to calculate from index to coord
+	 */
+	TMap<FIntVector, int> FreeSlots;
+
+	/**
+	 * Generated from FreeSlots to have array to remove keys generation.
+	 * This is to remove the GenerateKeys() from the map, created an extra iteration
+	 * This is based on CPU being prioritised over memory
+	 */
+	TArray<FIntVector> FreeSlotKeys;
 };
