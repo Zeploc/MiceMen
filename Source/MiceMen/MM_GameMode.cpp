@@ -18,6 +18,11 @@ AMM_GameMode::AMM_GameMode()
 	DefaultPawnClass = AMM_GameViewPawn::StaticClass();
 }
 
+class AMM_GridManager* AMM_GameMode::GetGridManager()
+{
+	return GridManager;
+}
+
 void AMM_GameMode::BeginPlay()
 {
 	Super::BeginPlay();

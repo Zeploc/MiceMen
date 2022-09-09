@@ -17,6 +17,9 @@ class MICEMEN_API AMM_GameMode : public AGameModeBase
 public:
 	AMM_GameMode();
 
+	UFUNCTION(BlueprintPure)
+		class AMM_GridManager* GetGridManager();
+
 protected:
 	virtual void BeginPlay() override;
 

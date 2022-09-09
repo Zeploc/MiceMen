@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Grid/MM_GridElement.h"
 #include "MM_Mouse.generated.h"
 
 /**
  * The mouse actor
  */
 UCLASS()
-class MICEMEN_API AMM_Mouse : public AActor
+class MICEMEN_API AMM_Mouse : public AMM_GridElement
 {
 	GENERATED_BODY()
 	
@@ -21,7 +21,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetupMouse(int _iTeam, FIntVector _Coords);
+	void SetupMouse(int _iTeam);
 	void MoveAlongPath(TArray<FVector> _Path);
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -38,8 +38,6 @@ protected:
 
 public:	
 
-	UPROPERTY(BlueprintReadOnly)
-		FIntVector Coords;
 protected:
 	UPROPERTY(BlueprintReadOnly)
 		int iTeam = -1;

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "MM_GridElement.h"
 #include "MM_GridBlock.generated.h"
 
 /**
  * A blocked grid item where nothing else can go through
  */
 UCLASS()
-class MICEMEN_API AMM_GridBlock : public AActor
+class MICEMEN_API AMM_GridBlock : public AMM_GridElement
 {
 	GENERATED_BODY()
 	

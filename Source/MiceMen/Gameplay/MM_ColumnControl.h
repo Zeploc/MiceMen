@@ -23,6 +23,10 @@ public:
 
 	void SetupColumn(int _ColumnID, class AMM_GridManager* _GridManager);
 
+	void BeginGrab();
+	void UpdatePreviewLocation(FVector _NewLocation);
+	void EndGrab();
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -30,12 +34,27 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+	void MoveColumnBackToOriginalPosition();
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float LerpSpeed = 10.0f;
 
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	class AMM_GridManager* GridManager;
 
+	UPROPERTY(BlueprintReadOnly)
+		float MaxPullAmount = 100.0f;
+	UPROPERTY(BlueprintReadOnly)
+		float SnapSize = 40.0f;
+
 	int ControllingColumn = -1;
+
+	bool bGrabbed = false;
+	bool bLerp = false;
+	FVector PreviewLocation;
+	FVector OriginalColumnLocation;
+	float ColumnHeight;
 };

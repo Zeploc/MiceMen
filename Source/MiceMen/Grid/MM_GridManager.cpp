@@ -5,7 +5,7 @@
 
 #include "Kismet/GameplayStatics.h"
 
-#include "MM_GridInfo.h"
+#include "MM_GridElement.h"
 #include "MM_GridBlock.h"
 #include "Gameplay/MM_Mouse.h"
 #include "Gameplay/MM_ColumnControl.h"
@@ -16,7 +16,7 @@ AMM_GridManager::AMM_GridManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	GridSize = FIntVector(19, 13, 0);
+	GridSize = FIntVector2D(19, 13);
 	GridBlockClass = AMM_GridBlock::StaticClass();
 	MouseClass = AMM_Mouse::StaticClass();
 	ColumnControlClass = AMM_ColumnControl::StaticClass();
@@ -36,12 +36,11 @@ void AMM_GridManager::RebuildGrid()
 	GridCleanUp();
 
 	SetupGrid();
-	PopulateGridBlocks();
 	PopulateMice();
 }
 void AMM_GridManager::GridCleanUp()
 {
-	for (UMM_GridInfo* GridInfo : Grid)
+	for (AMM_GridElement* GridInfo : Grid)
 	{
 		GridInfo->CleanUp();
 	}
@@ -63,60 +62,28 @@ void AMM_GridManager::SetupGrid()
 	// Team size is the amount without the gap, halved
 	TeamSize = (GridSize.X - GapSize) / 2;
 
+	Grid.SetNumZeroed(GridSize.X * GridSize.Y);
 
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
 		// Check class is valid
-		if (ColumnControlClass)
+		if (!ColumnControlClass)
 		{
-			FTransform GridElementTransform = GetWorldTransformFromCoord(FIntVector(x, 0, 0));
-			AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActor<AMM_ColumnControl>(ColumnControlClass, GridElementTransform);
-			NewColumnControl->SetupColumn(x, this);
-			ColumnControls.Add(NewColumnControl);
+			ColumnControlClass = AMM_ColumnControl::StaticClass();
 		}
+		FTransform ColumnTransform = GetWorldTransformFromCoord(FIntVector2D(x, 0));
+		AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActor<AMM_ColumnControl>(ColumnControlClass, ColumnTransform);
+		NewColumnControl->SetupColumn(x, this);
+		ColumnControls.Add(x, NewColumnControl);
 		
 
 		// For each row, add to column array
 		for (int y = 0; y < GridSize.Y; y++)
 		{
-			// Create new Grid info object and add to column array
-			UMM_GridInfo* NewGridObject = NewObject<UMM_GridInfo>(UMM_GridInfo::StaticClass());
-			if (!NewGridObject)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Failed to create Grid Object!"));
-				// Insert empty
-				// NOTE: Could instead add once at the end, instead of two points of adding to the array
-				Grid.Add(nullptr);
-				continue;
-			}
-			// Setup and store
-			FIntVector NewPosition = FIntVector(x, y, 0);
-			NewGridObject->SetupGridInfo(NewPosition);
-			Grid.Add(NewGridObject);
-
-			// Update FreeSlots map
-			FreeSlots.Add(NewPosition, CoordToIndex(x, y));
-		}
-	}
-
-	// Update FreeSlots array
-	FreeSlots.GenerateKeyArray(FreeSlotKeys);
-}
-
-void AMM_GridManager::PopulateGridBlocks()
-{
-	// Map is incorrect size
-	if (Grid.Num() != GridSize.X * GridSize.Y)
-		return;
-
-	// For each grid slot
-	for (int x = 0; x < GridSize.X; x++)
-	{
-		for (int y = 0; y < GridSize.Y; y++)
-		{
 			// Initial variables
-			FTransform GridElementTransform = GetWorldTransformFromCoord(FIntVector(x, y, 0));
+			FIntVector2D NewPosition = FIntVector2D(x, y);
+			FTransform GridElementTransform = GetWorldTransformFromCoord(NewPosition);
 
 			// Prepare center pieces
 			// TODO: Change from hardcode
@@ -136,11 +103,25 @@ void AMM_GridManager::PopulateGridBlocks()
 			// Initial testing random bool for placement
 			if ((FMath::RandBool() && !IsPresetCenterBlock) || isPresetBlockFilled)
 			{
+				// Create new Grid block object and add to column array
 				AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);
-				Grid[CoordToIndex(x, y)]->SetGridBlock(NewGridBlock);
+				if (!NewGridBlock)
+				{
+					UE_LOG(LogTemp, Error, TEXT("Failed to create Grid Block!"));
+					continue;
+				}
+				NewGridBlock->SetupGridInfo(NewPosition);
+				NewGridBlock->AttachToActor(NewColumnControl, FAttachmentTransformRules::KeepWorldTransform);
+				SetGridElement(FIntVector2D(x, y), NewGridBlock);
 
+				// TODO: NOT NEEDED? Safety?
 				// Update FreeSlots map
-				FreeSlots.Remove(FIntVector(x, y, 0));
+				//FreeSlots.Remove(NewPosition);
+			}
+			else
+			{
+				// Update FreeSlots map
+				FreeSlots.Add(NewPosition, CoordToIndex(x, y));
 			}
 		}
 	}
@@ -151,19 +132,19 @@ void AMM_GridManager::PopulateGridBlocks()
 
 void AMM_GridManager::PopulateMice()
 {
-	FIntVector TeamRanges[] = {
-		FIntVector(0, TeamSize - 1, 0),
-		FIntVector(TeamSize + GapSize, GridSize.X - 1, 0)
+	FIntVector2D TeamRanges[] = {
+		FIntVector2D(0, TeamSize - 1),
+		FIntVector2D(TeamSize + GapSize, GridSize.X - 1)
 	};
 
 	for (int iTeam = 0; iTeam < 2; iTeam++)
 	{
 		for (int iMouse = 0; iMouse < InitialMiceCount; iMouse++)
 		{
-			FIntVector NewRandomMousePosition = GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
+			FIntVector2D NewRandomMousePosition = GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
 
 			// Move to final position
-			TArray<FIntVector> ValidPath = GetValidPath(NewRandomMousePosition, iTeam == 0 ? 1 : -1);
+			TArray<FIntVector2D> ValidPath = GetValidPath(NewRandomMousePosition, iTeam == 0 ? 1 : -1);
 			NewRandomMousePosition = ValidPath.Last();
 
 			// Get coords in world
@@ -171,12 +152,14 @@ void AMM_GridManager::PopulateMice()
 
 			// Setup new Mouse
 			AMM_Mouse* NewMouse = GetWorld()->SpawnActorDeferred<AMM_Mouse>(MouseClass, GridElementTransform);
-			NewMouse->SetupMouse(iTeam, NewRandomMousePosition);
+			NewMouse->SetupGridInfo(NewRandomMousePosition);
+			NewMouse->SetupMouse(iTeam);
 			UGameplayStatics::FinishSpawningActor(NewMouse, GridElementTransform);
+			NewMouse->AttachToActor(ColumnControls[NewRandomMousePosition.X], FAttachmentTransformRules::KeepWorldTransform);
 			Mice.Add(NewMouse);
 
 			// TODO: Can either use math to calc from coord to index, or use free slots map by hash
-			Grid[CoordToIndex(NewRandomMousePosition.X, NewRandomMousePosition.Y)]->SetMouse(NewMouse);
+			SetGridElement(NewRandomMousePosition, NewMouse);
 
 			// Update FreeSlots map
 			FreeSlots.Remove(NewRandomMousePosition);
@@ -189,10 +172,10 @@ void AMM_GridManager::PopulateMice()
 }
 
 
-bool AMM_GridManager::FindFreeSlotInDirection(FIntVector& _CurrentPosition, FIntVector _Direction)
+bool AMM_GridManager::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction)
 {
 	// Test against next coords
-	FIntVector TestCoords = _CurrentPosition;
+	FIntVector2D TestCoords = _CurrentPosition;
 	TestCoords += _Direction;
 
 	// If no slot free, use last valid position
@@ -206,7 +189,7 @@ bool AMM_GridManager::FindFreeSlotInDirection(FIntVector& _CurrentPosition, FInt
 	return true;
 }
 
-bool AMM_GridManager::FindFreeSlotBelow(FIntVector& _CurrentPosition)
+bool AMM_GridManager::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 {
 	bool FoundFreeSlot = false;
 
@@ -214,7 +197,7 @@ bool AMM_GridManager::FindFreeSlotBelow(FIntVector& _CurrentPosition)
 	while (_CurrentPosition.Y > 0)
 	{
 		// Check if free slot below
-		if (FindFreeSlotInDirection(_CurrentPosition, FIntVector(0, -1, 0)))
+		if (FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(0, -1)))
 			FoundFreeSlot = true;
 		// No free slot below, exit loop
 		else
@@ -224,16 +207,16 @@ bool AMM_GridManager::FindFreeSlotBelow(FIntVector& _CurrentPosition)
 	return FoundFreeSlot;
 }
 
-bool AMM_GridManager::FindFreeSlotAhead(FIntVector& _CurrentPosition, int _Direction)
+bool AMM_GridManager::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, int _Direction)
 {
-	return FindFreeSlotInDirection(_CurrentPosition, FIntVector(_Direction, 0, 0));
+	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(_Direction, 0));
 }
 
-TArray<FIntVector> AMM_GridManager::GetValidPath(FIntVector _StartingPosition, int _iHorizontalDirection /*= 1*/)
+TArray<FIntVector2D> AMM_GridManager::GetValidPath(FIntVector2D _StartingPosition, int _iHorizontalDirection /*= 1*/)
 {
 	// Setup initial variables
-	TArray<FIntVector> Path = { _StartingPosition };
-	FIntVector LastPosition = _StartingPosition;
+	TArray<FIntVector2D> Path = { _StartingPosition};
+	FIntVector2D LastPosition = _StartingPosition;
 
 	auto colour = FLinearColor::MakeRandomColor();
 
@@ -244,12 +227,12 @@ TArray<FIntVector> AMM_GridManager::GetValidPath(FIntVector _StartingPosition, i
 		// Set initial valid move to false
 		HasMove = false;
 		// Start at last position
-		FIntVector NewPosition = LastPosition;
+		FIntVector2D NewPosition = LastPosition;
 		// If valid move either ahead or down, has valid move can be set to true
 		if (FindFreeSlotBelow(NewPosition))
 		{
 			Path.Add(NewPosition);
-			UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(NewPosition).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)Path.Num() / (float)10) + 5), colour, FRotator::ZeroRotator, 100000, 3);
+			UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(NewPosition).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)Path.Num() / (float)10) + 5), colour, FRotator::ZeroRotator, 5, 3);
 			HasMove = true;
 		}
 		if (FindFreeSlotAhead(NewPosition, _iHorizontalDirection))
@@ -262,21 +245,34 @@ TArray<FIntVector> AMM_GridManager::GetValidPath(FIntVector _StartingPosition, i
 			LastPosition = NewPosition;
 			Path.Add(NewPosition);
 
-			UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(NewPosition).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)Path.Num() / (float)10) + 5), colour, FRotator::ZeroRotator, 100000, 3);
+			UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(NewPosition).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)Path.Num() / (float)10) + 5), colour, FRotator::ZeroRotator, 5, 3);
 
 		}
 	}
 	return Path;
 }
 
-TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector> _CoordPath)
+TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath)
 {
 	TArray<FVector> NewWorldPath;
-	for (FIntVector _Coord : _CoordPath)
+	for (FIntVector2D _Coord : _CoordPath)
 	{		
 		NewWorldPath.Add(GetWorldTransformFromCoord(_Coord).GetLocation());
 	}
 	return NewWorldPath;
+}
+
+AMM_GridElement* AMM_GridManager::GetGridElement(FIntVector2D _Coord)
+{
+	// Not in grid range
+	if (_Coord.X >= GridSize.X || _Coord.Y >= GridSize.Y)
+		return nullptr;
+
+	// Check grid size is correct 
+	if (Grid.Num() != GridSize.X * GridSize.Y)
+		return nullptr;
+
+	return Grid[CoordToIndex(_Coord.X, _Coord.Y)];
 }
 
 int AMM_GridManager::CoordToIndex(int _X, int _Y)
@@ -284,8 +280,32 @@ int AMM_GridManager::CoordToIndex(int _X, int _Y)
 	return _X * GridSize.Y + _Y;
 }
 
-// TODO: Change to vec2
-FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector _Coords)
+bool AMM_GridManager::SetGridElement(FIntVector2D _Coord, class AMM_GridElement* _GridElement)
+{
+	// Not in grid range
+	if (_Coord.X >= GridSize.X || _Coord.Y >= GridSize.Y)
+		return false;
+
+	// Check grid size is correct 
+	if (Grid.Num() != GridSize.X * GridSize.Y)
+		return false;
+
+	Grid[CoordToIndex(_Coord.X, _Coord.Y)] = _GridElement;
+
+	// Update grid element if valid/not empty
+	// Update FreeSlots map
+	if (_GridElement)
+	{
+		_GridElement->UpdateGridPosition(_Coord);
+		FreeSlots.Remove(_Coord);
+	}
+	else
+		FreeSlots.Add(_Coord);
+
+	return true;
+}
+
+FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector2D _Coords)
 {
 	FTransform GridElementTransform = GetActorTransform();
 	FVector NewRelativeLocation = FVector::Zero();
@@ -301,17 +321,17 @@ FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector _Coords)
 	return GridElementTransform;
 }
 
-FIntVector AMM_GridManager::GetRandomGridCoord(bool _bFreeSlot /*= true*/)
+FIntVector2D AMM_GridManager::GetRandomGridCoord(bool _bFreeSlot /*= true*/)
 {
 	return GetRandomGridCoordInRange(0, GridSize.X, 0, GridSize.Y, _bFreeSlot);
 }
 
-FIntVector AMM_GridManager::GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot /*= true*/)
+FIntVector2D AMM_GridManager::GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot /*= true*/)
 {
 	return GetRandomGridCoordInRange(_MinX, _MaxX, 0, GridSize.Y, _bFreeSlot);
 }
 
-FIntVector AMM_GridManager::GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot /*= true*/)
+FIntVector2D AMM_GridManager::GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot /*= true*/)
 {
 	// Clamp ranges
 	int ClampedMinX = FMath::Clamp(_MinX, 0, GridSize.X);
@@ -323,12 +343,12 @@ FIntVector AMM_GridManager::GetRandomGridCoordInRange(int _MinX, int _MaxX, int 
 	int RandY = 0;
 	if (_bFreeSlot)
 	{
-		TArray<FIntVector> TempFreeSlots = FreeSlotKeys;
+		TArray<FIntVector2D> TempFreeSlots = FreeSlotKeys;
 		while (TempFreeSlots.Num() > 0)
 		{
 			// Get random free slot
 			int RandIndex = FMath::RandRange(0, TempFreeSlots.Num() - 1);
-			FIntVector NewRandCoord = TempFreeSlots[RandIndex];
+			FIntVector2D NewRandCoord = TempFreeSlots[RandIndex];
 
 			// Check within range
 			// TODO: In range function?
@@ -357,7 +377,7 @@ FIntVector AMM_GridManager::GetRandomGridCoordInRange(int _MinX, int _MaxX, int 
 		RandY = FMath::RandRange(ClampedMinY, ClampedMaxY);
 	}
 
-	return FIntVector(RandX, RandY, 0);
+	return FIntVector2D(RandX, RandY);
 }
 
 void AMM_GridManager::ProcessMice()
@@ -365,10 +385,16 @@ void AMM_GridManager::ProcessMice()
 	for (AMM_Mouse* Mouse : Mice)
 	{
 		// Get Path
-		TArray<FIntVector> ValidPath = GetValidPath(Mouse->Coords, Mouse->GetTeam() == 0 ? 1 : -1);
+		TArray<FIntVector2D> ValidPath = GetValidPath(Mouse->GetCoordinates(), Mouse->GetTeam() == 0 ? 1 : -1);
 
 		// Make movement
 		Mouse->MoveAlongPath(PathFromCoordToWorld(ValidPath));		
+		SetGridElement(Mouse->GetCoordinates(), nullptr);
+		SetGridElement(ValidPath.Last(), Mouse);
+
+
+		// Update FreeSlots array
+		FreeSlots.GenerateKeyArray(FreeSlotKeys);
 	}
 }
 
@@ -377,5 +403,77 @@ void AMM_GridManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	return;
+
+	// DEBUG FOR GRID VALUES
+	// For each column
+	for (int x = 0; x < GridSize.X; x++)
+	{
+
+		// For each row, add to column array
+		for (int y = 0; y < GridSize.Y; y++)
+		{
+			AMM_GridElement* gridElement = GetGridElement({ x, y });
+			auto color = FLinearColor::White;
+			if (gridElement)
+			{
+				color = FLinearColor::Yellow;
+				if (gridElement->IsA(AMM_Mouse::StaticClass()))
+					color = FLinearColor::Green;
+			}
+			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), GetWorldTransformFromCoord({ x, y }).GetLocation() + FVector(-100, 0, 50), 25.0f, 6, color, 0.5, 3);
+		}
+	}
+
+}
+
+void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
+{
+	FIntVector2D LastColumnCoord = { _Column, 0 };
+	if (_Direction > 0)
+		LastColumnCoord = { _Column, GridSize.Y - 1 };
+
+	// Find Last element and remove from grid
+	AMM_GridElement* LastElement = GetGridElement(LastColumnCoord);
+	SetGridElement(LastColumnCoord, nullptr);
+
+	// Slot the last element into the first slot in the loop
+	AMM_GridElement* NextElement = LastElement;
+
+	for (int i = 0; i < GridSize.Y; i++)
+	{
+		// y based on direction
+		// if direction is negative/down, will start at the top and go down
+		// Otherwise will start at 0 and go up
+		int y = i;
+		if (_Direction < 0)
+			y = GridSize.Y - 1 - i;
+
+		// Store current element
+		FIntVector2D CurrentSlot = { _Column, y };
+		AMM_GridElement* CurrentElement = GetGridElement(CurrentSlot);
+
+		// Set current slot to next element stored previously
+		SetGridElement(CurrentSlot, NextElement);
+
+		// Save current element for next
+		NextElement = CurrentElement;
+
+		// First element set to last
+		if (i == 0)
+		{
+			// TODO: Animate/visual
+			// Update world position
+			if (LastElement)
+				LastElement->SetActorLocation(GetWorldTransformFromCoord(CurrentSlot).GetLocation());
+		}
+
+	}
+
+	// Update FreeSlots array
+	FreeSlots.GenerateKeyArray(FreeSlotKeys);
+
+	ProcessMice();
 }
 
