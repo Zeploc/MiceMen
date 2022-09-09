@@ -4,20 +4,24 @@ Naming
 - MM_UI
 - BP_MM_UI
 
+Structure/Layout
+ Class declarations at the top?
+ 
 
-Grid - Collumns by rows
-Map <vec2, cheese>
-Map <vec2, mouse>
-
-map <vec2, struct>
-
-array<array<struct>>
 
 
 Gamemode
 - Handles turns
-- Handles Grid
-- Creates random grid
+- Setup grid Manager
+
+Grid Manager
+- Grid - Array<GridInfo> Collumns by rows (x by y)
+- Creates grid Elements
+- Handles & Updates Grid
+- Store free slots as map, updated on change (reduce iteration)
+- Grid Cleanup
+- Grid Rebuild
+
 
 Gameplay Elements
 - Cheese/Block Actor

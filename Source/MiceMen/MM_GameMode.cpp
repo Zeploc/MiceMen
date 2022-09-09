@@ -4,16 +4,18 @@
 #include "MM_GameMode.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 
 #include "MM_PlayerController.h"
 #include "Grid/MM_GridManager.h"
 #include "Grid/MM_GridTransform.h"
-#include "Engine/World.h"
+#include "MM_GameViewPawn.h"
 
 AMM_GameMode::AMM_GameMode()
 {	
 	GridManagerClass = AMM_GridManager::StaticClass();
 	PlayerControllerClass = AMM_PlayerController::StaticClass();
+	DefaultPawnClass = AMM_GameViewPawn::StaticClass();
 }
 
 void AMM_GameMode::BeginPlay()

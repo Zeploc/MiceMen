@@ -24,6 +24,26 @@ void UMM_GridInfo::SetMouse(class AMM_Mouse* _Mouse)
 	Mouse = _Mouse;
 }
 
+void UMM_GridInfo::CleanUp()
+{
+	DestroyMouse();
+	DestroyGridBlock();
+}
+
+void UMM_GridInfo::DestroyMouse()
+{
+	if (IsValid(Mouse))
+		Mouse->Destroy();
+	Mouse = nullptr;
+}
+
+void UMM_GridInfo::DestroyGridBlock()
+{
+	if (IsValid(Block))
+		Block->Destroy();
+	Block = nullptr;
+}
+
 bool UMM_GridInfo::IsEmpty()
 {
 	if (IsValid(Mouse))

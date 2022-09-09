@@ -22,8 +22,11 @@ public:
 	void SetGridBlock(class AMM_GridBlock* _Block);
 	void SetMouse(class AMM_Mouse* _Mouse);
 
+	void CleanUp();
 protected:
 
+	void DestroyMouse();
+	void DestroyGridBlock();
 
 public:
 	UFUNCTION(BlueprintPure)

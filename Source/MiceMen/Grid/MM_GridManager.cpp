@@ -3,11 +3,12 @@
 
 #include "Grid/MM_GridManager.h"
 
+#include "Kismet/GameplayStatics.h"
+
 #include "MM_GridInfo.h"
 #include "MM_GridBlock.h"
 #include "Gameplay/MM_Mouse.h"
-
-#include "Kismet/GameplayStatics.h"
+#include "Gameplay/MM_ColumnControl.h"
 
 // Sets default values
 AMM_GridManager::AMM_GridManager()
@@ -18,26 +19,64 @@ AMM_GridManager::AMM_GridManager()
 	GridSize = FIntVector(19, 13, 0);
 	GridBlockClass = AMM_GridBlock::StaticClass();
 	MouseClass = AMM_Mouse::StaticClass();
+	ColumnControlClass = AMM_ColumnControl::StaticClass();
 }
 
 // Called when the game starts or when spawned
 void AMM_GridManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	RebuildGrid();
+
+}
+
+void AMM_GridManager::RebuildGrid()
+{
+	GridCleanUp();
+
 	SetupGrid();
 	PopulateGridBlocks();
 	PopulateMice();
-
-	// TODO: Temp
-	//ProcessMice();
+}
+void AMM_GridManager::GridCleanUp()
+{
+	for (UMM_GridInfo* GridInfo : Grid)
+	{
+		GridInfo->CleanUp();
+	}
+	Grid.Empty();
+	FreeSlots.Empty();
+	FreeSlotKeys.Empty();
 }
 
 void AMM_GridManager::SetupGrid()
 {
+	if (GridSize.X < 2 || GridSize.Y < 2)
+	{
+		UE_LOG(LogTemp, Error, TEXT("GRID TOO SMALL, CANNOT SETUP"));
+		return;
+	}
+
+	// Remainder of divide by 2, either 0 or 1
+	GapSize = GridSize.X % 2;
+	// Team size is the amount without the gap, halved
+	TeamSize = (GridSize.X - GapSize) / 2;
+
+
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
+		// Check class is valid
+		if (ColumnControlClass)
+		{
+			FTransform GridElementTransform = GetWorldTransformFromCoord(FIntVector(x, 0, 0));
+			AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActor<AMM_ColumnControl>(ColumnControlClass, GridElementTransform);
+			NewColumnControl->SetupColumn(x, this);
+			ColumnControls.Add(NewColumnControl);
+		}
+		
+
 		// For each row, add to column array
 		for (int y = 0; y < GridSize.Y; y++)
 		{
@@ -112,11 +151,6 @@ void AMM_GridManager::PopulateGridBlocks()
 
 void AMM_GridManager::PopulateMice()
 {
-	// Remainder of divide by 2, either 0 or 1
-	int GapSize = GridSize.X % 2;
-	// Team size is the amount without the gap, halved
-	int TeamSize = (GridSize.X - GapSize) / 2;
-
 	FIntVector TeamRanges[] = {
 		FIntVector(0, TeamSize - 1, 0),
 		FIntVector(TeamSize + GapSize, GridSize.X - 1, 0)
@@ -153,6 +187,7 @@ void AMM_GridManager::PopulateMice()
 	}
 
 }
+
 
 bool AMM_GridManager::FindFreeSlotInDirection(FIntVector& _CurrentPosition, FIntVector _Direction)
 {
@@ -214,6 +249,7 @@ TArray<FIntVector> AMM_GridManager::GetValidPath(FIntVector _StartingPosition, i
 		if (FindFreeSlotBelow(NewPosition))
 		{
 			Path.Add(NewPosition);
+			UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(NewPosition).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)Path.Num() / (float)10) + 5), colour, FRotator::ZeroRotator, 100000, 3);
 			HasMove = true;
 		}
 		if (FindFreeSlotAhead(NewPosition, _iHorizontalDirection))

@@ -25,9 +25,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void RebuildGrid();
+	void GridCleanUp();
 	void SetupGrid();
 	void PopulateGridBlocks();
 	void PopulateMice();
+
 
 	bool FindFreeSlotInDirection(FIntVector& _CurrentPosition, FIntVector _Direction);
 	bool FindFreeSlotBelow(FIntVector& _CurrentPosition);
@@ -52,6 +55,8 @@ public:
 		TSubclassOf<class AMM_GridBlock> GridBlockClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TSubclassOf<class AMM_Mouse> MouseClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		TSubclassOf<class AMM_ColumnControl> ColumnControlClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementWidth = 100.0f;
@@ -72,6 +77,11 @@ protected:
 	TArray<class AMM_Mouse*> Mice;
 
 	/**
+	 * Interactable controls for each column.
+	 */
+	TArray<class AMM_ColumnControl*> ColumnControls;
+
+	/**
 	 * Coord to index position.
 	 * Used as lookup, updated when a change in the grid occurs
 	 * Could store key as array index, but storing as coords
@@ -85,4 +95,7 @@ protected:
 	 * This is based on CPU being prioritised over memory
 	 */
 	TArray<FIntVector> FreeSlotKeys;
+
+	int GapSize;
+	int TeamSize;
 };
