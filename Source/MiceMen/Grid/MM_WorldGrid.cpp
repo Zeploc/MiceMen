@@ -1,25 +1,26 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
 
-#include "Grid/MM_GridTransform.h"
+#include "Grid/MM_WorldGrid.h"
 
 // Sets default values
-AMM_GridTransform::AMM_GridTransform()
+AMM_WorldGrid::AMM_WorldGrid()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
 
+	GridSize = FIntVector2D(19, 13);
 }
 
 // Called when the game starts or when spawned
-void AMM_GridTransform::BeginPlay()
+void AMM_WorldGrid::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AMM_GridTransform::Tick(float DeltaTime)
+void AMM_WorldGrid::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

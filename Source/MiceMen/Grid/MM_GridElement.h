@@ -18,7 +18,7 @@ class MICEMEN_API AMM_GridElement : public AActor
 public:
 	AMM_GridElement();
 
-	void SetupGridInfo(FIntVector2D _GridCoordinates);
+	void SetupGridInfo(class AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
 
 	void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
 
@@ -38,5 +38,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		FIntVector2D Coordinates;
 
+	UPROPERTY(BlueprintReadOnly)
+	class AMM_ColumnControl* CurrentColumn;
+
+	UPROPERTY(BlueprintReadOnly)
+		class AMM_GridManager* GridManager;
 
 };

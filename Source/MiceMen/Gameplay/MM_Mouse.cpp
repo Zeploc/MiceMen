@@ -35,3 +35,9 @@ void AMM_Mouse::MoveAlongPath(TArray<FVector> _Path)
 	BI_MoveAlongPath(_Path);
 }
 
+void AMM_Mouse::MouseComplete()
+{
+	bMouseComplete = true;
+	BI_MouseComplete();
+}
+

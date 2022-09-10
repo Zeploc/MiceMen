@@ -8,7 +8,7 @@
 
 #include "MM_PlayerController.h"
 #include "Grid/MM_GridManager.h"
-#include "Grid/MM_GridTransform.h"
+#include "Grid/MM_WorldGrid.h"
 #include "MM_GameViewPawn.h"
 
 AMM_GameMode::AMM_GameMode()
@@ -39,16 +39,24 @@ bool AMM_GameMode::SetupGridManager()
 	if (!GridManagerClass)
 		GridManagerClass = AMM_GridManager::StaticClass();
 
+	FIntVector2D NewGridSize = DefaultGridSize;
+
 	// Default Spawn grid at world zero
 	FTransform SpawnTransform = FTransform::Identity;
 
-	// Try find GridTransform for override transform
-	AActor* FoundGridTransform = UGameplayStatics::GetActorOfClass(GetWorld(), AMM_GridTransform::StaticClass());
-	if (FoundGridTransform)
-		SpawnTransform = FoundGridTransform->GetActorTransform();
+	// Try find GridTransform for overrides such as transform and grid size
+	AActor* FoundWorldGrid = UGameplayStatics::GetActorOfClass(GetWorld(), AMM_WorldGrid::StaticClass());
+	if (AMM_WorldGrid* WorldGrid = Cast<AMM_WorldGrid>(FoundWorldGrid))
+	{
+		SpawnTransform = WorldGrid->GetActorTransform();
+		NewGridSize = WorldGrid->GridSize;
+	}
+
 
 	// Spawn Grid manager
-	GridManager = GetWorld()->SpawnActor<AMM_GridManager>(GridManagerClass, SpawnTransform);
+	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
+	GridManager->SetupGrid(NewGridSize);
+	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
 	if (!GridManager)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to spawn Grid Manager!"));

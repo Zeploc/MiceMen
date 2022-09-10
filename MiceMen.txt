@@ -9,18 +9,20 @@ Structure/Layout
  
 
 
-
 Gamemode
 - Handles turns
 - Setup grid Manager
 
 Grid Manager
-- Grid - Array<GridInfo> Collumns by rows (x by y)
 - Creates grid Elements
+- Grid Rebuild
+- Grid interaction with gameplay elements
+
+Grid object
+- Grid - Array<GridInfo> Collumns by rows (x by y)
 - Handles & Updates Grid
 - Store free slots as map, updated on change (reduce iteration)
 - Grid Cleanup
-- Grid Rebuild
 
 
 Gameplay Elements
@@ -36,6 +38,19 @@ Player Controller
 UI
 - Base in code, bind widgets
 
+Visual/Gameplay
+- Highlight collumns on players turn
+- Yellow for moveable, red for collumn which can't be moved
+- Green when held
+- Arrows on top and bottom show when hover
+- Arrows change when snapping to new position (hide/ only show other direction)
+
+UI/Game loop
+- Difficulty - easy/hard
+- AI vs local player
+- Grid Size (default, custom sliders)
+- Sandbox mode, single player move grid around
+
 To Plan:
 - Switching turns change between local players?
 - Moving row interaction
@@ -49,3 +64,15 @@ Stretch:
 - Jump/walk animations
 - Timeline visuals for blocks moving
 - Idle/fidget animations
+
+Fun Ides to expand on:
+- Mice/player can have abilities/power ups (like worms) such as
+	- borrow through a cheese block
+	- Jump up a cheese block
+	- Teleport through
+	- Swap places with another mice? Might be counter intuitive
+	- Move a collumn more than 1 slot
+	- Move more than one collumn
+	- Skip a players turn
+- Larger/smaller maps
+- 

@@ -27,8 +27,14 @@ public:
 	void UpdatePreviewLocation(FVector _NewLocation);
 	void EndGrab();
 
+	void UpdateCollumn();
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	FVector GetOriginalColumnLocation() {
+		return OriginalColumnLocation;			
+	}
 
 protected:
 	// Called when the game starts or when spawned

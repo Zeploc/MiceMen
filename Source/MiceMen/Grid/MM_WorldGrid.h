@@ -4,23 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MM_GridTransform.generated.h"
+#include "IntVector2D.h"
+#include "MM_WorldGrid.generated.h"
 
 UCLASS()
-class MICEMEN_API AMM_GridTransform : public AActor
+class MICEMEN_API AMM_WorldGrid : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AMM_GridTransform();
+	AMM_WorldGrid();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+		FIntVector2D GridSize;
 
+protected:
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Grid/IntVector2D.h"
 #include "MM_GameMode.generated.h"
 
 /**
@@ -30,9 +31,12 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class AMM_GridManager> GridManagerClass;
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	class AMM_GridManager* GridManager;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+		FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
 };
 

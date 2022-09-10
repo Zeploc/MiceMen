@@ -24,8 +24,8 @@ public:
 	void SetupMouse(int _iTeam);
 	void MoveAlongPath(TArray<FVector> _Path);
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void BI_MoveAlongPath(const TArray<FVector>& _Path);
+	void MouseComplete();
+
 
 
 	int GetTeam() {
@@ -36,9 +36,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_MoveAlongPath(const TArray<FVector>& _Path);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_MouseComplete();
 public:	
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
 		int iTeam = -1;
+	UPROPERTY(BlueprintReadOnly)
+		bool bMouseComplete = false;
 };

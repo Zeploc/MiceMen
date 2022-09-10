@@ -55,7 +55,7 @@ void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager
 	ControllingColumn = _ColumnID;
 	GridManager = _GridManager;
 
-	ColumnHeight = _GridManager->GridElementHeight * _GridManager->GridSize.Y;
+	ColumnHeight = _GridManager->GridElementHeight * _GridManager->GetGridSize().Y;
 	FVector BoxSize = FVector(50, _GridManager->GridElementWidth / 2.0f, ColumnHeight / 2.0);
 	
 	GrabbableBox->SetBoxExtent(BoxSize);
@@ -66,6 +66,10 @@ void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager
 
 void AMM_ColumnControl::BeginGrab()
 {
+	// Cannnot grab while in movement
+	if (bGrabbed || bLerp)
+		return;
+
 	bGrabbed = true;
 	bLerp = true;
 	OriginalColumnLocation = GetActorLocation();
@@ -91,30 +95,40 @@ void AMM_ColumnControl::EndGrab()
 {
 	bGrabbed = false;
 
-	int DirectionChange = 0;
-
-	// Find out which snapping point is closest to
+	// Find out which snapping point is closest to to lerp to
 	if (abs(PreviewLocation.Z - OriginalColumnLocation.Z - MaxPullAmount) < SnapSize)
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z + MaxPullAmount;
-		DirectionChange = 1;
 	}
 	else if (abs(PreviewLocation.Z - OriginalColumnLocation.Z + MaxPullAmount) < SnapSize)
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z - MaxPullAmount;
-		DirectionChange = -1;
 	}
 	else
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z;
 	}
+}
+
+void AMM_ColumnControl::UpdateCollumn()
+{
+	int DirectionChange = 0;
+
+	// Find out which snapping point is closest to for adjusting column
+	if (abs(PreviewLocation.Z - OriginalColumnLocation.Z - MaxPullAmount) < SnapSize)
+	{
+		DirectionChange = 1;
+	}
+	else if (abs(PreviewLocation.Z - OriginalColumnLocation.Z + MaxPullAmount) < SnapSize)
+	{
+		DirectionChange = -1;
+	}
 
 	// New direction chosen, update grid manager
 	if (DirectionChange != 0)
 	{
+		MoveColumnBackToOriginalPosition();
 		GridManager->AdjustColumn(ControllingColumn, DirectionChange);
-
-		//MoveColumnBackToOriginalPosition();
 	}
 }
 
@@ -123,11 +137,12 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// If collumn has been released but is still lerping, check if close enough to snap
+	// If column has been released but is still lerping, check if close enough to snap
 	if (!bGrabbed && bLerp && abs(GetActorLocation().Z - PreviewLocation.Z) < 1.0f)
 	{
-		bLerp = false;
 		SetActorLocation(PreviewLocation);
+		bLerp = false;
+		UpdateCollumn();
 	}
 
 	// Grabbed or lerp on

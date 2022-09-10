@@ -22,9 +22,21 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+	void SetupGrid(FIntVector2D _GridSize);
 	void AdjustColumn(int _Column, int _Direction);
 
-	class AMM_GridElement* GetGridElement(FIntVector2D _Coord);
+	UFUNCTION(BlueprintPure)
+		TMap<int, class AMM_ColumnControl*> GetColumnControls() {
+		return ColumnControls;
+	}
+	UFUNCTION(BlueprintPure)
+		FIntVector2D GetGridSize() { return GridSize; }
+
+	UFUNCTION(BlueprintCallable)
+		void SetDebugVisualGrid(bool _Enabled);
+	UFUNCTION(BlueprintCallable)
+		void ToggleDebugVisualGrid();
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,30 +44,22 @@ protected:
 
 	void RebuildGrid();
 	void GridCleanUp();
-	void SetupGrid();
+	void PopulateGrid();
+
+	void PlaceBlock(FIntVector2D _NewCoord, class AMM_ColumnControl* NewColumnControl);
+
 	void PopulateMice();
-
-
-	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction);
-	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition);
-	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, int _Direction);
-	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, int _iHorizontalDirection = 1);
-	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath);
-
-	int CoordToIndex(int _X, int _Y);
-	bool SetGridElement(FIntVector2D _Coord, class AMM_GridElement* _GridElement);
-
-	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords);
-	FIntVector2D GetRandomGridCoord(bool _bFreeSlot = true);
-	FIntVector2D GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true);
-	FIntVector2D GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot = true);
 
 	void ProcessMice();
 
+	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath);
+
+	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords);
+
+	void DebugVisualiseGrid();
+
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		FIntVector2D GridSize;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TSubclassOf<class AMM_GridBlock> GridBlockClass;
@@ -72,10 +76,8 @@ public:
 		int InitialMiceCount = 12;
 
 protected:
-	/**
-	 * One dimensional array for two dimensional grid
-	 */
-	TArray<class AMM_GridElement*> Grid;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		FIntVector2D GridSize;
 
 	/**
 	 * Active list of mice.
@@ -83,27 +85,21 @@ protected:
 	TArray<class AMM_Mouse*> Mice;
 
 	/**
+	 * Active list of mice per team.
+	 * The key is the team, the value is the array
+	 */
+	TMap<int, TArray<class AMM_Mouse*>> TeamMice;
+
+	/**
 	 * Interactable controls for each column.
 	 */
 	TMap<int, class AMM_ColumnControl*> ColumnControls;
 
-	/**
-	 * Coord to index position.
-	 * Used as lookup, updated when a change in the grid occurs
-	 * Could store key as array index, but storing as coords
-	 * removes a need to run an operation to calculate from index to coord
-	 */
-	TMap<FIntVector2D, int> FreeSlots; 
 
-
-
-	/**
-	 * Generated from FreeSlots to have array to remove keys generation.
-	 * This is to remove the GenerateKeys() from the map, created an extra iteration
-	 * This is based on CPU being prioritised over memory
-	 */
-	TArray<FIntVector2D> FreeSlotKeys;
+	class UMM_GridObject* GridObject;
 
 	int GapSize;
 	int TeamSize;
+
+	bool bDebugGridEnabled = false;
 };
