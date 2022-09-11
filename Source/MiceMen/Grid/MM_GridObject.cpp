@@ -4,6 +4,7 @@
 #include "Grid/MM_GridObject.h"
 
 #include "MM_GridElement.h"
+#include "MiceMen.h"
 
 void UMM_GridObject::SetupGrid(FIntVector2D _GridSize)
 {
@@ -31,11 +32,17 @@ AMM_GridElement* UMM_GridObject::GetGridElement(FIntVector2D _Coord)
 {
 	// Not in grid range
 	if (_Coord.X >= GridSize.X || _Coord.Y >= GridSize.Y)
-		return nullptr;
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | %s not in range of %s"), *_Coord.ToString(), *GridSize.ToString());
+		return false;
+	}
 
 	// Check grid size is correct 
 	if (Grid.Num() != GridSize.X * GridSize.Y)
-		return nullptr;
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | Grid size incorrect %i is not equal to %i"), Grid.Num(), GridSize.X * GridSize.Y);
+		return false;
+	}
 
 	return Grid[CoordToIndex(_Coord.X, _Coord.Y)];
 }
@@ -47,30 +54,49 @@ int UMM_GridObject::CoordToIndex(int _X, int _Y)
 
 bool UMM_GridObject::SetGridElement(FIntVector2D _Coord, class AMM_GridElement* _GridElement)
 {
+
+#if !UE_BUILD_SHIPPING
+	FString ElementDisplay = "none";
+	if (_GridElement)
+		ElementDisplay = _GridElement->GetName();
+	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | %s to %s"), *_Coord.ToString(), *ElementDisplay);
+#endif
+
 	// Not in grid range
 	if (_Coord.X >= GridSize.X || _Coord.Y >= GridSize.Y)
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::SetGridElement | %s not in range of %s"), *_Coord.ToString(), *GridSize.ToString());
 		return false;
+	}
 
 	// Check grid size is correct 
 	if (Grid.Num() != GridSize.X * GridSize.Y)
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::SetGridElement | Grid size incorrect %i is not equal to %i"), Grid.Num(), GridSize.X * GridSize.Y);
 		return false;
+	}
 
 	Grid[CoordToIndex(_Coord.X, _Coord.Y)] = _GridElement;
 
 	// Update grid element if valid/not empty and update FreeSlots map
 	if (_GridElement)
 	{
+
 		// Only update if a change in coordinates occurred
 		if (_GridElement->GetCoordinates() != _Coord)
 			_GridElement->UpdateGridPosition(_Coord);
 
 		// Update Free slots to no longer have this element
 		FreeSlots.Remove(_Coord);
+
+		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot removed at %s"), *_Coord.ToString());
 	}
 	else
 	{
 		// No element (nullptr), add this coord to free slots
 		FreeSlots.Add(_Coord);
+
+		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot added at %s"), *_Coord.ToString());
 	}
 
 	return true;
@@ -133,7 +159,7 @@ FIntVector2D UMM_GridObject::GetRandomGridCoordInRange(int _MinX, int _MaxX, int
 		// TODO: Failsafe resolve
 		if (TempFreeSlots.Num() <= 0)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to find free slot in grid"));
+			UE_LOG(MiceMenEventLog, Error, TEXT("Failed to find free slot in grid"));
 		}
 	}
 	else

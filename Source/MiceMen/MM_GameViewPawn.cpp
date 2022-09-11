@@ -10,6 +10,7 @@
 #include "Gameplay/MM_ColumnControl.h"
 #include "MM_GameMode.h"
 #include "Grid/MM_GridManager.h"
+#include "MiceMen.h"
 
 // Sets default values
 AMM_GameViewPawn::AMM_GameViewPawn()
@@ -17,7 +18,11 @@ AMM_GameViewPawn::AMM_GameViewPawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
+	SetRootComponent(SceneRoot);
+
 	GameCamera = CreateDefaultSubobject<UCineCameraComponent>(TEXT("Game Camera"));
+	GameCamera->SetupAttachment(RootComponent);
 }
 
 // Called to bind functionality to input
@@ -35,7 +40,8 @@ void AMM_GameViewPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
+	// Check gamemode is set
+	GetGamemode();
 }
 
 void AMM_GameViewPawn::PossessedBy(AController* _NewController)
@@ -45,17 +51,46 @@ void AMM_GameViewPawn::PossessedBy(AController* _NewController)
 	MMPlayerController = Cast<AMM_PlayerController>(_NewController);
 }
 
+void AMM_GameViewPawn::BeginTurn()
+{
+	bTurnActive = true;
+
+	// Store available columns
+	if (GetGridManager() && MMPlayerController)
+	{
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Beginning turn for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+
+		// Get available column indexes for this player
+		TArray<int> AvailableColumns = GridManager->GetTeamColumns(MMPlayerController->GetCurrentTeam());
+		// Get all columns
+		TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
+
+		// For each available column
+		for (int Column : AvailableColumns)
+		{
+			// Check column controls has the index and that it is a valid pointer
+			if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
+			{
+				// Display column as grabbable and store
+				AllColumnControls[Column]->DisplayGrabbable(true, MMPlayerController->GetCurrentTeam());
+				CurrentColumnControls.Add(AllColumnControls[Column]);
+			}
+		}
+	}
+}
+
 // Called every frame
 void AMM_GameViewPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	HandleGrab();
+	if (bTurnActive)
+		HandleGrab();
 }
 
 void AMM_GameViewPawn::BeginGrab()
 {
-	if (!MMPlayerController)
+	if (!MMPlayerController || !bTurnActive)
 		return;
 
 	// Deproject mouse cursor to world
@@ -73,15 +108,23 @@ void AMM_GameViewPawn::BeginGrab()
 	CurrentColumn = Cast<AMM_ColumnControl>(InteractHit.GetActor());
 	if (CurrentColumn)
 	{
-		CurrentColumn->BeginGrab();
-		HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
+		// Check valid column
+		if (CurrentColumnControls.Contains(CurrentColumn))// GetGridManager() && GridManager->IsTeamInColumn(CurrentColumn->GetControllingColumn(), MMPlayerController->GetCurrentTeam()))
+		{
+			CurrentColumn->BeginGrab();
+			HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
+		}
 	}
 }
 
 void AMM_GameViewPawn::EndGrab()
 {
 	if (CurrentColumn)
+	{
 		CurrentColumn->EndGrab();
+		CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::TurnEnded);
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+	}
 	CurrentColumn = nullptr;
 }
 
@@ -106,16 +149,50 @@ void AMM_GameViewPawn::HandleGrab()
 	CurrentColumn->UpdatePreviewLocation(NewLocation);
 }
 
+void AMM_GameViewPawn::TurnEnded()
+{
+	bTurnActive = false;
+
+	for (AMM_ColumnControl* Column : CurrentColumnControls)
+	{
+		if (Column)
+		{
+			Column->DisplayGrabbable(false);
+			Column->AdjustCompleteDelegate.RemoveAll(this);
+		}
+	}
+
+	CurrentColumnControls.Empty();
+
+
+	if (MMPlayerController)
+	{
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::TurnEnded | Turn ended for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+
+		MMPlayerController->EndTurn();
+	}
+}
+
 AMM_GridManager* AMM_GameViewPawn::GetGridManager()
 {
 	if (GridManager)
 		return GridManager;
 
-	if (!MMGameMode)
+	if (!GetGamemode())
 		return nullptr;
 
 	GridManager = MMGameMode->GetGridManager();
 
 
 	return GridManager;
+}
+
+AMM_GameMode* AMM_GameViewPawn::GetGamemode()
+{
+	if (MMGameMode)
+		return MMGameMode;
+
+	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
+
+	return MMGameMode;
 }

@@ -5,6 +5,7 @@
 
 #include "MM_GridManager.h"
 #include "Gameplay/MM_ColumnControl.h"
+#include "MiceMen.h"
 
 AMM_GridElement::AMM_GridElement()
 {
@@ -18,6 +19,8 @@ void AMM_GridElement::SetupGridInfo(AMM_GridManager* _GridManager, FIntVector2D 
 
 void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
 {
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *_NewGridCoordiantes.ToString());
+
 	Coordinates = _NewGridCoordiantes;
 
 	// TODO: Add catch to find grid manager
@@ -39,6 +42,8 @@ void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
 		if (NewColumn)
 			AttachToActor(NewColumn, FAttachmentTransformRules::KeepWorldTransform);
 		CurrentColumn = NewColumn;
+
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Switching to collumn %i"), Coordinates.X);
 	}
 }
 

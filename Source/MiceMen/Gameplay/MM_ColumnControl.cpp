@@ -62,6 +62,7 @@ void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager
 	GrabbableBox->SetRelativeLocation(FVector(0, 0, ColumnHeight / 2));
 
 	MaxPullAmount = GridManager->GridElementHeight;
+
 }
 
 void AMM_ColumnControl::BeginGrab()
@@ -74,6 +75,8 @@ void AMM_ColumnControl::BeginGrab()
 	bLerp = true;
 	OriginalColumnLocation = GetActorLocation();
 	PreviewLocation = OriginalColumnLocation;
+
+	BI_BeginGrab();
 }
 
 void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
@@ -108,6 +111,8 @@ void AMM_ColumnControl::EndGrab()
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z;
 	}
+
+	BI_EndGrab();
 }
 
 void AMM_ColumnControl::UpdateCollumn()
@@ -129,7 +134,14 @@ void AMM_ColumnControl::UpdateCollumn()
 	{
 		MoveColumnBackToOriginalPosition();
 		GridManager->AdjustColumn(ControllingColumn, DirectionChange);
+
+		AdjustCompleteDelegate.Broadcast();
 	}
+}
+
+void AMM_ColumnControl::DisplayGrabbable(bool _bGrabbable, int _Team /* = -1*/)
+{
+	BI_DisplayGrabbable(_bGrabbable, _Team);
 }
 
 // Called every frame

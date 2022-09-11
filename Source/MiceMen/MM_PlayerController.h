@@ -17,6 +17,30 @@ class MICEMEN_API AMM_PlayerController : public APlayerController
 public:
 	AMM_PlayerController();
 
+	virtual void OnPossess(APawn* _Pawn) override;
 
-	
+	void SetupPlayer(int _Team);
+
+	void BeginTurn();
+
+	void EndTurn();
+
+	UFUNCTION(BlueprintPure)
+	int GetCurrentTeam() { return CurrentTeam; }
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+
+protected:
+	UPROPERTY(BlueprintReadOnly)
+		class AMM_GameViewPawn* MMPawn;
+
+	UPROPERTY(BlueprintReadOnly)
+		class AMM_GameMode* MMGameMode;
+
+	UPROPERTY(BlueprintReadOnly)
+		int CurrentTeam = -1;
 };

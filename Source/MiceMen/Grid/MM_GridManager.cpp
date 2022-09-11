@@ -10,6 +10,9 @@
 #include "Gameplay/MM_Mouse.h"
 #include "Gameplay/MM_ColumnControl.h"
 #include "MM_GridObject.h"
+#include "MiceMen.h"
+#include "MM_GameMode.h"
+#include "MM_PlayerController.h"
 
 // Sets default values
 AMM_GridManager::AMM_GridManager()
@@ -27,6 +30,8 @@ AMM_GridManager::AMM_GridManager()
 void AMM_GridManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
 
 	RebuildGrid();
 
@@ -52,7 +57,7 @@ void AMM_GridManager::RebuildGrid()
 
 	if (GridSize.X < 2 || GridSize.Y < 2)
 	{
-		UE_LOG(LogTemp, Error, TEXT("GRID TOO SMALL, CANNOT SETUP"));
+		UE_LOG(MiceMenEventLog, Error, TEXT("GRID TOO SMALL, CANNOT SETUP"));
 		return;
 	}
 
@@ -96,10 +101,15 @@ void AMM_GridManager::PopulateGrid()
 			ColumnControlClass = AMM_ColumnControl::StaticClass();
 		}
 		FTransform ColumnTransform = GetWorldTransformFromCoord(FIntVector2D(x, 0));
-		AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActor<AMM_ColumnControl>(ColumnControlClass, ColumnTransform);
+		AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActorDeferred<AMM_ColumnControl>(ColumnControlClass, ColumnTransform);
 		NewColumnControl->SetupColumn(x, this);
+		UGameplayStatics::FinishSpawningActor(NewColumnControl, ColumnTransform);
 		ColumnControls.Add(x, NewColumnControl);
-		
+
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateGrid | Adding collumn at %i"), x);
+
+		MouseColumns.Add(x, TArray<AMM_Mouse*>());
+		AvailableColumnTeams.Add(x, TArray<int>());
 
 		// For each row, add to column array
 		for (int y = 0; y < GridSize.Y; y++)
@@ -140,13 +150,15 @@ void AMM_GridManager::PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewC
 		AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);
 		if (!NewGridBlock)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to create Grid Block!"));
+			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::PlaceBlock | Failed to create Grid Block!"));
 			return;
 		}
 		NewGridBlock->SetupGridInfo(this, _NewCoord);
 		if (NewColumnControl)
 			NewGridBlock->AttachToActor(NewColumnControl, FAttachmentTransformRules::KeepWorldTransform);
 		GridObject->SetGridElement(_NewCoord, NewGridBlock);
+
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PlaceBlock | Adding grid block at %s"), *_NewCoord.ToString());
 	}
 	else
 	{
@@ -166,6 +178,8 @@ void AMM_GridManager::PopulateMice()
 	{
 		// Add initial team array
 		TeamMice.Add(iTeam, TArray<AMM_Mouse*>());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateMice | Adding mice for team %i"), iTeam);
+
 		// Add mice for team
 		for (int iMouse = 0; iMouse < InitialMiceCount; iMouse++)
 		{
@@ -186,9 +200,11 @@ void AMM_GridManager::PopulateMice()
 			NewMouse->AttachToActor(ColumnControls[NewRandomMousePosition.X], FAttachmentTransformRules::KeepWorldTransform);
 			Mice.Add(NewMouse);
 			TeamMice[iTeam].Add(NewMouse);
+			AddMouseToColumn(NewRandomMousePosition.X, NewMouse);
 
 			GridObject->SetGridElement(NewRandomMousePosition, NewMouse);
 
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateMice | Adding mice for team %i at %s"), iTeam, *NewRandomMousePosition.ToString());
 
 			// Update FreeSlots array
 			GridObject->RegenerateFreeSlots();
@@ -229,8 +245,13 @@ void AMM_GridManager::ProcessMice()
 {
 	TArray<int> OrderedTeamsToProcess;
 	// TODO Link to whos turn
-	OrderedTeamsToProcess.Add(0);
-	OrderedTeamsToProcess.Add(1);
+	if (MMGameMode && MMGameMode->GetCurrentPlayer())
+	{
+		int CurrentPlayerTeam = MMGameMode->GetCurrentPlayer()->GetCurrentTeam();
+		OrderedTeamsToProcess.Add(CurrentPlayerTeam);
+		// TODO: TEMP JANK
+		OrderedTeamsToProcess.Add(CurrentPlayerTeam == 0 ? 1 : 0);
+	}
 
 
 	for (int iTeam : OrderedTeamsToProcess)
@@ -239,6 +260,8 @@ void AMM_GridManager::ProcessMice()
 		if (!TeamMice.Contains(iTeam))
 			continue;
 
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Processing mice for team %i"), iTeam);
+
 		TArray<AMM_Mouse*> CompletedTeamMice;
 
 		for (AMM_Mouse* Mouse : TeamMice[iTeam])
@@ -246,12 +269,15 @@ void AMM_GridManager::ProcessMice()
 			// Get Path
 			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(Mouse->GetCoordinates(), Mouse->GetTeam() == 0 ? 1 : -1);
 
+#if !UE_BUILD_SHIPPING
 			// TODO: DEBUG
 			auto colour = FLinearColor::MakeRandomColor();
 			for (int i = 0; i < ValidPath.Num(); i++)
 			{
 				UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(ValidPath[i]).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)i / (float)10) + 5), colour, FRotator::ZeroRotator, 5, 3);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Current path %i: %s"), i, *ValidPath[i].ToString());
 			}
+#endif
 
 			// TODO: Change to event based, ie one mouse goes at a time, Should solve below problem
 			// TODO: Order could have one mouse be blocked by another that can move
@@ -260,6 +286,9 @@ void AMM_GridManager::ProcessMice()
 			// Make movement
 			Mouse->MoveAlongPath(PathFromCoordToWorld(ValidPath));
 			GridObject->SetGridElement(Mouse->GetCoordinates(), nullptr);
+			RemoveMouseFromColumn(Mouse->GetCoordinates().X, Mouse);
+
+
 			FIntVector2D FinalPosition = ValidPath.Last();
 
 			// If the mouse is at the end
@@ -267,10 +296,15 @@ void AMM_GridManager::ProcessMice()
 			{
 				Mouse->MouseComplete();
 				CompletedTeamMice.Add(Mouse);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Mouse complete for team %i at %s"), iTeam, *FinalPosition.ToString());
 			}
 			// Not at the end, set coordinates to end path position
 			else
+			{
 				GridObject->SetGridElement(FinalPosition, Mouse);
+				AddMouseToColumn(FinalPosition.X, Mouse);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
+			}
 
 			// Update FreeSlots array
 			GridObject->RegenerateFreeSlots();
@@ -286,6 +320,40 @@ void AMM_GridManager::ProcessMice()
 }
 
 
+void AMM_GridManager::RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse)
+{
+	MouseColumns[_Column].Remove(_Mouse);
+	
+	// Check the column for this mouse's team
+	int TeamToCheck = _Mouse->GetTeam();
+	// Remove from available list initially
+	AvailableColumnTeams[_Column].Remove(TeamToCheck);
+
+	// Check through all mice in this column
+	for (AMM_Mouse* ColumnMouse : MouseColumns[_Column])
+	{
+		// If a mouse in this column is the team to check
+		if (ColumnMouse->GetTeam() == TeamToCheck)
+		{
+			// Add team to available column list for this column
+			AvailableColumnTeams[_Column].Add(TeamToCheck);
+			break;
+		}
+	}
+	
+}
+
+void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
+{
+	MouseColumns[_Column].Add(_Mouse);
+
+	// Check the column for this mouse's team
+	int TeamToCheck = _Mouse->GetTeam();
+
+	// Add team id if not already in array for this column
+	AvailableColumnTeams[_Column].AddUnique(TeamToCheck);
+}
+
 void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 {
 	FIntVector2D LastColumnCoord = { _Column, 0 };
@@ -295,6 +363,8 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 	// Find Last element and remove from grid
 	AMM_GridElement* LastElement = GridObject->GetGridElement(LastColumnCoord);
 	GridObject->SetGridElement(LastColumnCoord, nullptr);
+
+	// TODO: Change from iteration to displacing array??
 
 	// Slot the last element into the first slot in the loop
 	AMM_GridElement* NextElement = LastElement;
@@ -315,6 +385,16 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 		// Set current slot to next element stored previously
 		GridObject->SetGridElement(CurrentSlot, NextElement);
 
+#if !UE_BUILD_SHIPPING
+		FString NextElementDisplay = "none";
+		if (NextElement)
+			NextElementDisplay = NextElement->GetName();
+		FString CurrentElementDisplay = "none";
+		if (CurrentElement)
+			CurrentElementDisplay = CurrentElement->GetName();
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Setting element %s at %s which was previously %s"), *NextElementDisplay, *CurrentSlot.ToString(), *CurrentElementDisplay);
+#endif
+
 		// Save current element for next
 		NextElement = CurrentElement;
 
@@ -331,6 +411,8 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 					NewLocation.Z += ColumnControls[_Column]->GetActorLocation().Z - GetActorLocation().Z;
 				}
 				LastElement->SetActorLocation(NewLocation);
+
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Moving last element %s to %s"), *LastElement->GetName(), *CurrentSlot.ToString());
 			}
 		}
 
@@ -353,6 +435,27 @@ void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
 void AMM_GridManager::ToggleDebugVisualGrid()
 {
 	SetDebugVisualGrid(!bDebugGridEnabled);
+}
+
+bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
+{
+	if (!AvailableColumnTeams.Contains(_Column))
+		return false;
+
+	return AvailableColumnTeams[_Column].Contains(_Team);
+}
+
+TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
+{
+	TArray<int> AvailableColumns;
+	// For each column
+	for (int x = 0; x < GridSize.X; x++)
+	{
+		// If team is available in this column, add it
+		if (AvailableColumnTeams[x].Contains(_Team))
+			AvailableColumns.Add(x);
+	}
+	return AvailableColumns;
 }
 
 void AMM_GridManager::DebugVisualiseGrid()

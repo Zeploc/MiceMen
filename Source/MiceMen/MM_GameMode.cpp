@@ -10,6 +10,7 @@
 #include "Grid/MM_GridManager.h"
 #include "Grid/MM_WorldGrid.h"
 #include "MM_GameViewPawn.h"
+#include "MiceMen.h"
 
 AMM_GameMode::AMM_GameMode()
 {	
@@ -23,11 +24,42 @@ class AMM_GridManager* AMM_GameMode::GetGridManager()
 	return GridManager;
 }
 
+void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
+{
+	// Was not the players current turn
+	if (_Player != CurrentPlayer)
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::TurnEnded | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+		return;
+	}
+	
+	// Get next player, wrap around if at the end
+	int NextPlayer = AllPlayers.Find(_Player);
+	NextPlayer++;
+	if (NextPlayer > AllPlayers.Num() - 1)
+		NextPlayer = 0;
+
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed players turn with %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+
+	SwitchTurns(AllPlayers[NextPlayer]);
+
+}
+
 void AMM_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//SetupGridManager();
+}
+
+void AMM_GameMode::BeginGame()
+{
+	if (AllPlayers.Num() < 2)
+		return;
+
 	SetupGridManager();
+
+	SwitchTurns(AllPlayers[0]);
 }
 
 bool AMM_GameMode::SetupGridManager()
@@ -64,4 +96,46 @@ bool AMM_GameMode::SetupGridManager()
 	}
 
 	return true;
+}
+
+void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
+{
+	Super::PostLogin(_NewPlayer);
+
+	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
+	{
+		// Current length is next index
+		MMController->SetupPlayer(AllPlayers.Num());
+		AllPlayers.Add(MMController);
+
+		// Currently only requires two players
+		if (AllPlayers.Num() >= 2)
+		{
+			BeginGame();
+		}
+	}
+}
+
+void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
+{
+	if (!_Player)
+		return;
+
+	// Store local player
+	ULocalPlayer* LocalPlayer = _Player->GetLocalPlayer();
+	if (CurrentPlayer)
+		LocalPlayer = CurrentPlayer->GetLocalPlayer();
+
+	// Begin player turn
+	CurrentPlayer = _Player;
+	CurrentPlayer->BeginTurn();
+
+	// Since this is local, set the new player to active input
+	// Note: In a network situation this would not be necessary as each client has their own input
+	// And would send events to the server
+	LocalPlayer->SwitchController(CurrentPlayer);
+
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+
+	BI_OnSwitchTurns(CurrentPlayer);
 }

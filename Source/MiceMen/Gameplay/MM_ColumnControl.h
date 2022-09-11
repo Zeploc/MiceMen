@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "MM_ColumnControl.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FColumnAdjustCompleteDelegate);
+
 UCLASS()
 class MICEMEN_API AMM_ColumnControl : public AActor
 {
@@ -29,11 +31,16 @@ public:
 
 	void UpdateCollumn();
 
+	void DisplayGrabbable(bool _bGrabbable, int _Team = -1);
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	FVector GetOriginalColumnLocation() {
 		return OriginalColumnLocation;			
+	}
+	int GetControllingColumn() {
+		return ControllingColumn;
 	}
 
 protected:
@@ -42,9 +49,18 @@ protected:
 
 	void MoveColumnBackToOriginalPosition();
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_DisplayGrabbable(bool _bGrabbable, int _Team);
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_BeginGrab();
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_EndGrab();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float LerpSpeed = 10.0f;
+
+	FColumnAdjustCompleteDelegate AdjustCompleteDelegate;
 
 
 protected:

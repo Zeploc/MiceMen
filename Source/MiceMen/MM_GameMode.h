@@ -7,6 +7,10 @@
 #include "Grid/IntVector2D.h"
 #include "MM_GameMode.generated.h"
 
+class APlayerController;
+class AMM_PlayerController;
+class AMM_GridManager;
+
 /**
  * Control for the main gameplay, grid systems and players
  */
@@ -21,16 +25,29 @@ public:
 	UFUNCTION(BlueprintPure)
 		class AMM_GridManager* GetGridManager();
 
+	void PlayerTurnComplete(AMM_PlayerController* _Player);
+
+	AMM_PlayerController* GetCurrentPlayer() { return CurrentPlayer; }
+
 protected:
 	virtual void BeginPlay() override;
+
+	void BeginGame();
 
 	/** Creates grid and basic setup */
 	bool SetupGridManager();
 
+	virtual void PostLogin(APlayerController* _NewPlayer) override;
+
+	void SwitchTurns(AMM_PlayerController* _Player);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
+
 
 public:
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<class AMM_GridManager> GridManagerClass;
+		TSubclassOf<AMM_GridManager> GridManagerClass;
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -38,5 +55,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 		FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
+
+	UPROPERTY(BlueprintReadOnly)
+		TArray<AMM_PlayerController*> AllPlayers;
+
+	UPROPERTY(BlueprintReadOnly)
+		AMM_PlayerController* CurrentPlayer;
 };
 

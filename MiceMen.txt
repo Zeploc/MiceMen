@@ -4,10 +4,19 @@ Naming
 - MM_UI
 - BP_MM_UI
 
+
 Structure/Layout
  Class declarations at the top?
- 
+ Setup event log for debugging
 
+Store colour and retrieve (not multi define)
+
+To put in readme:
+- Controls
+- Logging system
+- Debug methods
+- Controller/local player setup
+- Further decisions for if networked
 
 Gamemode
 - Handles turns
@@ -29,9 +38,12 @@ Gameplay Elements
 - Cheese/Block Actor
 - Mouse Actor - Not a pawn/character
 
+Pawn
+- Gameplay Interaction
+- View
+
 Player Controller
 - UI control
-- View
 - Local player per side
 - Begin Turn function
 
@@ -44,6 +56,7 @@ Visual/Gameplay
 - Green when held
 - Arrows on top and bottom show when hover
 - Arrows change when snapping to new position (hide/ only show other direction)
+- Platform that the mouse falls through when getting a point (overlay with physics based visual)
 
 UI/Game loop
 - Difficulty - easy/hard

@@ -7,6 +7,12 @@
 #include "Grid/IntVector2D.h"
 #include "MM_GridManager.generated.h"
 
+class AMM_ColumnControl;
+class AMM_Mouse;
+class AMM_GridBlock;
+class UMM_GridObject; 
+class AMM_GameMode;
+
 /**
  * Handles the main grid operations, such as setup and moving blocks
  */
@@ -27,7 +33,7 @@ public:
 	void AdjustColumn(int _Column, int _Direction);
 
 	UFUNCTION(BlueprintPure)
-		TMap<int, class AMM_ColumnControl*> GetColumnControls() {
+		TMap<int, AMM_ColumnControl*> GetColumnControls() {
 		return ColumnControls;
 	}
 	UFUNCTION(BlueprintPure)
@@ -38,6 +44,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ToggleDebugVisualGrid();
 
+	UFUNCTION(BlueprintPure)
+		bool IsTeamInColumn(int _Column, int _Team);
+	UFUNCTION(BlueprintPure)
+		TArray<int> GetTeamColumns(int _Team);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -46,11 +57,14 @@ protected:
 	void GridCleanUp();
 	void PopulateGrid();
 
-	void PlaceBlock(FIntVector2D _NewCoord, class AMM_ColumnControl* NewColumnControl);
+	void PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
 
 	void PopulateMice();
 
 	void ProcessMice();
+
+	void RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse);
+	void AddMouseToColumn(int _Column, AMM_Mouse* _Mouse);
 
 	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath);
 
@@ -62,11 +76,11 @@ protected:
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<class AMM_GridBlock> GridBlockClass;
+		TSubclassOf<AMM_GridBlock> GridBlockClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<class AMM_Mouse> MouseClass;
+		TSubclassOf<AMM_Mouse> MouseClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<class AMM_ColumnControl> ColumnControlClass;
+		TSubclassOf<AMM_ColumnControl> ColumnControlClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementWidth = 100.0f;
@@ -82,21 +96,36 @@ protected:
 	/**
 	 * Active list of mice.
 	 */
-	TArray<class AMM_Mouse*> Mice;
+	TArray<AMM_Mouse*> Mice;
 
 	/**
 	 * Active list of mice per team.
 	 * The key is the team, the value is the array
 	 */
-	TMap<int, TArray<class AMM_Mouse*>> TeamMice;
+	TMap<int, TArray<AMM_Mouse*>> TeamMice;
+
+	/**
+	 * Active list of all the mice per column.
+	 * The key is the column, the value is the array of mice
+	 */
+	TMap<int, TArray<AMM_Mouse*>> MouseColumns;
+
+	/**
+	 * Active list of teams per column.
+	 * The key is the column, the value is the array of teams on that column
+	 */
+	TMap<int, TArray<int>> AvailableColumnTeams;
 
 	/**
 	 * Interactable controls for each column.
 	 */
-	TMap<int, class AMM_ColumnControl*> ColumnControls;
+	TMap<int, AMM_ColumnControl*> ColumnControls;
 
 
-	class UMM_GridObject* GridObject;
+	UMM_GridObject* GridObject;
+
+	UPROPERTY(BlueprintReadOnly)
+	AMM_GameMode* MMGameMode;
 
 	int GapSize;
 	int TeamSize;
