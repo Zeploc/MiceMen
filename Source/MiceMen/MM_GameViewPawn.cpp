@@ -203,12 +203,12 @@ void AMM_GameViewPawn::TurnEnded()
 	CurrentColumnControls.Empty();
 
 
-	if (MMPlayerController)
+	/*if (MMPlayerController)
 	{
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::TurnEnded | Turn ended for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 		MMPlayerController->EndTurn();
-	}
+	}*/
 }
 
 AMM_GridManager* AMM_GameViewPawn::GetGridManager()

@@ -23,7 +23,7 @@ public:
 
 	void BeginTurn();
 
-	void EndTurn();
+	void TurnEnded();
 
 	UFUNCTION(BlueprintPure)
 	int GetCurrentTeam() { return CurrentTeam; }

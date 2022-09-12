@@ -7,6 +7,7 @@
 #include "Components/BoxComponent.h"
 
 #include "Grid/MM_GridManager.h"
+#include "MiceMen.h"
 
 // Sets default values
 AMM_ColumnControl::AMM_ColumnControl()
@@ -133,7 +134,12 @@ void AMM_ColumnControl::UpdateCollumn()
 	if (DirectionChange != 0)
 	{
 		MoveColumnBackToOriginalPosition();
-		GridManager->AdjustColumn(ControllingColumn, DirectionChange);
+		if (GridManager)
+			GridManager->AdjustColumn(ControllingColumn, DirectionChange);
+		else
+		{
+			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_ColumnControl::UpdateCollumn | Grid Manager null for %i as %s"), ControllingColumn, *GetName());
+		}
 
 	}
 

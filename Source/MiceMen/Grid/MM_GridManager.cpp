@@ -61,7 +61,7 @@ void AMM_GridManager::RebuildGrid()
 		return;
 	}
 
-	GridObject = NewObject<UMM_GridObject>(UMM_GridObject::StaticClass());
+	GridObject = NewObject<UMM_GridObject>(this, UMM_GridObject::StaticClass());
 	GridObject->SetupGrid(GridSize);
 
 	// Remainder of divide by 2, either 0 or 1
@@ -244,15 +244,15 @@ FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector2D _Coords)
 void AMM_GridManager::BeginProcessMice()
 {
 	TArray<int> OrderedTeamsToProcess;
-	// TODO Link to whos turn
+
 	if (MMGameMode && MMGameMode->GetCurrentPlayer())
 	{
+		// Link to who's turn it is, so their mice move first
 		int CurrentPlayerTeam = MMGameMode->GetCurrentPlayer()->GetCurrentTeam();
 		OrderedTeamsToProcess.Add(CurrentPlayerTeam);
-		// TODO: TEMP JANK
+		// TODO: Improve logic to get other team
 		OrderedTeamsToProcess.Add(CurrentPlayerTeam == 0 ? 1 : 0);
 	}
-
 
 	for (int iTeam : OrderedTeamsToProcess)
 	{
@@ -262,11 +262,55 @@ void AMM_GridManager::BeginProcessMice()
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::BeginProcessMice | Processing mice for team %i"), iTeam);
 
-		for (AMM_Mouse* Mouse : TeamMice[iTeam])
-		{
-			MiceToProcessMovement.Add(Mouse);
+		// TODO: Order need to be more "forward/lower" players, would use more iteration/processing
+		// ie FIRST lower players go first, so that higher players fall and can move after
+		// THEN forward players go first so they don't block other mice
 
+		TArray<AMM_Mouse*> CurrentTeamMiceToProcess;
+
+		// TODO: Improve Logic
+		// NOTE: Storing the Mice and checking/inserting in order, is more efficient than iterating through the whole 
+		for (AMM_Mouse* TeamMouse : TeamMice[iTeam])
+		{
+			// Add first one without iteration
+			if (CurrentTeamMiceToProcess.Num() <= 0)
+			{
+				CurrentTeamMiceToProcess.Add(TeamMouse);
+				continue;
+			}
+			
+			FIntVector2D Coordinates = TeamMouse->GetCoordinates();
+			for (int i = 0; i < CurrentTeamMiceToProcess.Num(); i++)
+			{
+				AMM_Mouse* OrderedMouse = CurrentTeamMiceToProcess[i];
+				if (Coordinates.Y <= OrderedMouse->GetCoordinates().Y)
+				{
+					// Check is same row, that the current mouse is more forward
+					if (Coordinates.Y == OrderedMouse->GetCoordinates().Y)
+					{
+						// Check if the mouse is more forward, based on the team
+						bool isMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
+						// Team is going left
+						if (iTeam == 1)
+							isMoreForward = Coordinates.X < OrderedMouse->GetCoordinates().X;
+						// Mouse is not more forward, go to next
+						if (!isMoreForward)
+							continue;
+					}
+
+					// Insert at current
+					CurrentTeamMiceToProcess.Insert(TeamMouse, i);
+					break;
+				}
+
+				// Not added before any existing, append to end 
+				if (i == CurrentTeamMiceToProcess.Num() - 1)
+					CurrentTeamMiceToProcess.Add(TeamMouse);
+
+			}
 		}
+
+		MiceToProcessMovement.Append(CurrentTeamMiceToProcess);
 	}
 
 	// Start processing, nullptr will ignore cleanup
@@ -284,7 +328,21 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 
 	if (!MiceToProcessMovement.IsValidIndex(0))
 	{
-		// Reached end
+		// Reached end, all mice moved
+		// TODO: Looses direct link to player that was taking the turn,
+		// if the turn is somehow switched while this is processing, it will end the wrong players turn
+		// could store a pointer to the player it was processing as a safety, which would then be ignored by
+		// the gamemode
+		if (MMGameMode)
+		{
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
+
+			MMGameMode->PlayerTurnComplete(MMGameMode->GetCurrentPlayer());
+		}
+		else
+			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Failed to get Gamemode when completing mice process!"));
+
+		
 		return;
 	}
 	AMM_Mouse* NextMouse = MiceToProcessMovement[0];
@@ -292,6 +350,8 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 	{
 		// TODO: ADD LOOP/Next array element
 		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessMice | Starting mouse not valid for processing!"));
+		// Temporary stop
+		return;
 	}
 	NextMouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessedMouse);
 	
@@ -383,6 +443,12 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 	FIntVector2D LastColumnCoord = { _Column, 0 };
 	if (_Direction > 0)
 		LastColumnCoord = { _Column, GridSize.Y - 1 };
+
+	if (!IsValid(GridObject))
+	{
+		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::AdjustColumn | Grid Manager not valid!"));
+		return;
+	}
 
 	// Find Last element and remove from grid
 	AMM_GridElement* LastElement = GridObject->GetGridElement(LastColumnCoord);

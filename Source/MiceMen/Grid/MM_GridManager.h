@@ -125,6 +125,7 @@ protected:
 	TMap<int, AMM_ColumnControl*> ColumnControls;
 
 
+	UPROPERTY()
 	UMM_GridObject* GridObject;
 
 	UPROPERTY(BlueprintReadOnly)

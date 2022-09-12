@@ -12,8 +12,10 @@ Structure/Layout
 Todo:
 - Store colour and retrieve (not multi define)
 - Ratio blocks so there are enough empty ones?
-- Link turn to occur end of all mice movements
 - Win condition
+- Not move the same column that was just moved
+- Not move a column more than 6 times in a row
+- If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
 
 To put in readme:
 - Controls
@@ -24,7 +26,9 @@ To put in readme:
 
 Bugs Found
 - Block (visually) stayed on previous place instead of wrapping around
-- (related to above) After switching a turn, the GridObject GridSize becamee invalid (X=-74756880 Y=32764)
+- (related to above) After switching a turn, the GridObject GridSize becamee invalid (X=-74756880 Y=32764) (fixed?)
+- Not all columns hightlighted for player...? (can interact)
+- Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
 
 Gamemode
 - Handles turns

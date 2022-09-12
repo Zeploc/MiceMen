@@ -35,8 +35,8 @@ void AMM_PlayerController::BeginTurn()
 	MMPawn->BeginTurn();
 }
 
-void AMM_PlayerController::EndTurn()
+void AMM_PlayerController::TurnEnded()
 {
-	if (MMGameMode)
-		MMGameMode->PlayerTurnComplete(this);
+	/*if (MMGameMode)
+		MMGameMode->PlayerTurnComplete(this);*/
 }

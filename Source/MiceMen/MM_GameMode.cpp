@@ -40,6 +40,7 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 		NextPlayer = 0;
 
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed players turn with %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+	CurrentPlayer->TurnEnded();
 
 	SwitchTurns(AllPlayers[NextPlayer]);
 
