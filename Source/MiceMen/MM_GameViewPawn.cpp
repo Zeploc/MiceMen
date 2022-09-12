@@ -91,29 +91,46 @@ void AMM_GameViewPawn::Tick(float DeltaTime)
 void AMM_GameViewPawn::BeginGrab()
 {
 	if (!MMPlayerController || !bTurnActive)
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Failed as turn is not active"));
 		return;
+	}
 
 	// Deproject mouse cursor to world
 	FVector WorldLocation, WorldDirection;
 	if (!MMPlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
+	{
 		// Failed to deproject
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Failed to deproject mouse"));
 		return;
+	}
 
 	// Get hit at mouse position in world on interactable channel
 	FHitResult InteractHit;
 	if (!GetWorld()->LineTraceSingleByChannel(InteractHit, WorldLocation, WorldLocation + WorldDirection * InteractTraceDistance, ECC_GameTraceChannel1))
+	{
 		// Failed hit
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Did not hit a column"));
 		return;
+	}
 
-	CurrentColumn = Cast<AMM_ColumnControl>(InteractHit.GetActor());
-	if (CurrentColumn)
+	AMM_ColumnControl* NewColumn = Cast<AMM_ColumnControl>(InteractHit.GetActor());
+	if (NewColumn)
 	{
 		// Check valid column
-		if (CurrentColumnControls.Contains(CurrentColumn))// GetGridManager() && GridManager->IsTeamInColumn(CurrentColumn->GetControllingColumn(), MMPlayerController->GetCurrentTeam()))
+		if (CurrentColumnControls.Contains(NewColumn))// GetGridManager() && GridManager->IsTeamInColumn(CurrentColumn->GetControllingColumn(), MMPlayerController->GetCurrentTeam()))
 		{
+			CurrentColumn = NewColumn;
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"), CurrentColumn->GetControllingColumn());
 			CurrentColumn->BeginGrab();
 			HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
 		}
+		else
+			UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a team column"));
+	}
+	else
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a column"));
 	}
 }
 
@@ -121,9 +138,18 @@ void AMM_GameViewPawn::EndGrab()
 {
 	if (CurrentColumn)
 	{
-		CurrentColumn->EndGrab();
-		CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::TurnEnded);
+		// Stop allowing movement until column event complete
+		bTurnActive = false;
+
+		// Rebind turn ended event
+		// TODO: Improve binding
+		if (CurrentColumnDelegateHandle.IsValid())
+			CurrentColumnDelegateHandle.Reset();
+		// Bind new delegate for column movement
+		CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::ColumnAdjusted);
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+
+		CurrentColumn->EndGrab();
 	}
 	CurrentColumn = nullptr;
 }
@@ -147,6 +173,18 @@ void AMM_GameViewPawn::HandleGrab()
 	FVector NewLocation = CurrentColumn->GetActorLocation();
 	NewLocation.Z = IntersectionLocation.Z + HitColumnOffset.Z;
 	CurrentColumn->UpdatePreviewLocation(NewLocation);
+}
+
+void AMM_GameViewPawn::ColumnAdjusted(bool _TurnComplete)
+{
+	if (_TurnComplete)
+	{
+		TurnEnded();
+	}
+	else
+	{
+		bTurnActive = true;
+	}
 }
 
 void AMM_GameViewPawn::TurnEnded()

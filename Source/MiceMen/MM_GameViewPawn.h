@@ -46,6 +46,7 @@ protected:
 
 	void HandleGrab();
 
+	void ColumnAdjusted(bool _TurnComplete);
 	void TurnEnded();
 
 	UFUNCTION(BlueprintPure)
@@ -78,4 +79,5 @@ protected:
 
 	TArray<AMM_ColumnControl*> CurrentColumnControls;
 
+	FDelegateHandle CurrentColumnDelegateHandle;
 };

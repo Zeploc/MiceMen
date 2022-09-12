@@ -121,6 +121,7 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 	if (!_Player)
 		return;
 
+
 	// Store local player
 	ULocalPlayer* LocalPlayer = _Player->GetLocalPlayer();
 	if (CurrentPlayer)
@@ -128,6 +129,7 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 
 	// Begin player turn
 	CurrentPlayer = _Player;
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
 	CurrentPlayer->BeginTurn();
 
 	// Since this is local, set the new player to active input
@@ -135,7 +137,6 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 	// And would send events to the server
 	LocalPlayer->SwitchController(CurrentPlayer);
 
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
 
 	BI_OnSwitchTurns(CurrentPlayer);
 }

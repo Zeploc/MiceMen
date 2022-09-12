@@ -6,7 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "MM_ColumnControl.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FColumnAdjustCompleteDelegate);
+/**
+ * Event for when a move has been made on the column,
+ * the bool bTurnComplete determines whether a turn has completed, or was cancelled.
+ */
+DECLARE_MULTICAST_DELEGATE_OneParam(FColumnAdjustCompleteDelegate, bool);
 
 UCLASS()
 class MICEMEN_API AMM_ColumnControl : public AActor
