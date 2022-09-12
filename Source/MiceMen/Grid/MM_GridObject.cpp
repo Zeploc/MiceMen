@@ -34,14 +34,14 @@ AMM_GridElement* UMM_GridObject::GetGridElement(FIntVector2D _Coord)
 	if (_Coord.X >= GridSize.X || _Coord.Y >= GridSize.Y)
 	{
 		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | %s not in range of %s"), *_Coord.ToString(), *GridSize.ToString());
-		return false;
+		return nullptr;
 	}
 
 	// Check grid size is correct 
 	if (Grid.Num() != GridSize.X * GridSize.Y)
 	{
 		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | Grid size incorrect %i is not equal to %i"), Grid.Num(), GridSize.X * GridSize.Y);
-		return false;
+		return nullptr;
 	}
 
 	return Grid[CoordToIndex(_Coord.X, _Coord.Y)];

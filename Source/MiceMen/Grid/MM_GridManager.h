@@ -61,7 +61,10 @@ protected:
 
 	void PopulateMice();
 
-	void ProcessMice();
+	void BeginProcessMice();
+
+	UFUNCTION()
+	void ProcessedMouse(AMM_Mouse* _Mouse);
 
 	void RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse);
 	void AddMouseToColumn(int _Column, AMM_Mouse* _Mouse);
@@ -126,6 +129,11 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	AMM_GameMode* MMGameMode;
+
+	/**
+	 * Current Mice to process movement.
+	 */
+	TArray<AMM_Mouse*> MiceToProcessMovement;
 
 	int GapSize;
 	int TeamSize;

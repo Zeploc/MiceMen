@@ -30,9 +30,12 @@ void AMM_Mouse::SetupMouse(int _iTeam)
 	iTeam = _iTeam;
 }
 
-void AMM_Mouse::MoveAlongPath(TArray<FVector> _Path)
+
+void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& _Path)
 {
-	BI_MoveAlongPath(_Path);
+	// Default behavior, should be overridden
+	MouseMovementEndDelegate.Broadcast(this);
+	SetActorLocation(_Path.Last());
 }
 
 void AMM_Mouse::MouseComplete()
