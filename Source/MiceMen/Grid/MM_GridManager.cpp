@@ -178,6 +178,8 @@ void AMM_GridManager::PopulateMice()
 	{
 		// Add initial team array
 		TeamMice.Add(iTeam, TArray<AMM_Mouse*>());
+		if (MMGameMode)
+			MMGameMode->AddTeam(iTeam);
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateMice | Adding mice for team %i"), iTeam);
 
 		// Add mice for team
@@ -324,6 +326,17 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 	{
 		MiceToProcessMovement.Remove(_Mouse);
 		_Mouse->MouseMovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::ProcessedMouse);
+		if (_Mouse->isMouseComplete())
+		{
+			if (MMGameMode)
+			{
+				MMGameMode->MouseCompleted(_Mouse);
+
+				// If mouse complete was winning mouse, stop processing mice
+				if (MMGameMode->CheckWinCondition(InitialMiceCount))
+					return;
+			}
+		}
 	}
 
 	if (!MiceToProcessMovement.IsValidIndex(0))

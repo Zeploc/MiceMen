@@ -42,6 +42,9 @@ public:
 	int GetTeam() {
 		return  iTeam;
 	};
+	bool isMouseComplete() {
+		return  bMouseComplete;
+	};
 
 protected:
 	// Called when the game starts or when spawned

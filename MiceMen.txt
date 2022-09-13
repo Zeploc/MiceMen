@@ -30,6 +30,7 @@ Bugs Found
 - (related to above) After switching a turn, the GridObject GridSize becamee invalid (X=-74756880 Y=32764) (fixed?)
 - When no mice are processed, the visual is negated by the other teams
 - Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
+- Editor crash when switching grid size (occasionally)
 
 Gamemode
 - Handles turns

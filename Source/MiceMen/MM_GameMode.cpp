@@ -11,6 +11,7 @@
 #include "Grid/MM_WorldGrid.h"
 #include "MM_GameViewPawn.h"
 #include "MiceMen.h"
+#include "Gameplay/MM_Mouse.h"
 
 AMM_GameMode::AMM_GameMode()
 {	
@@ -44,6 +45,42 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 
 	SwitchTurns(AllPlayers[NextPlayer]);
 
+}
+
+void AMM_GameMode::AddTeam(int _iTeam)
+{
+	TeamPoints.Add(_iTeam, 0);
+}
+
+void AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
+{
+	if (!_Mouse)
+		return;
+
+	int CurrentMouseTeam = _Mouse->GetTeam();
+
+	int CurrentScore = 0;
+	if (int* FoundScore = TeamPoints.Find(CurrentMouseTeam))
+	{
+		CurrentScore = *FoundScore;
+	}
+	CurrentScore++;
+	TeamPoints.Add(CurrentMouseTeam, CurrentScore);
+}
+
+bool AMM_GameMode::CheckWinCondition(int _MicePerTeam)
+{
+	TArray<int> Teams;
+	TeamPoints.GenerateKeyArray(Teams);
+	for (int iTeam : Teams)
+	{
+		if (TeamPoints[iTeam] >= _MicePerTeam)
+		{
+			TeamWon(iTeam);
+			return true;
+		}
+	}
+	return false;
 }
 
 void AMM_GameMode::BeginPlay()
@@ -140,4 +177,9 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 
 
 	BI_OnSwitchTurns(CurrentPlayer);
+}
+
+void AMM_GameMode::TeamWon(int _iTeam)
+{
+	BI_OnTeamWon(_iTeam);
 }
