@@ -130,6 +130,9 @@ void AMM_ColumnControl::UpdateCollumn()
 		DirectionChange = -1;
 	}
 
+	// Column move complete, turn has ended if the direction was changed ie not 0
+	AdjustCompleteDelegate.Broadcast(DirectionChange != 0);
+
 	// New direction chosen, update grid manager
 	if (DirectionChange != 0)
 	{
@@ -143,8 +146,6 @@ void AMM_ColumnControl::UpdateCollumn()
 
 	}
 
-	// Column move complete, turn has ended if the direction was changed ie not 0
-	AdjustCompleteDelegate.Broadcast(DirectionChange != 0);
 }
 
 void AMM_ColumnControl::DisplayGrabbable(bool _bGrabbable, int _Team /* = -1*/)

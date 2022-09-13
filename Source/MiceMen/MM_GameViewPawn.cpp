@@ -74,6 +74,7 @@ void AMM_GameViewPawn::BeginTurn()
 				// Display column as grabbable and store
 				AllColumnControls[Column]->DisplayGrabbable(true, MMPlayerController->GetCurrentTeam());
 				CurrentColumnControls.Add(AllColumnControls[Column]);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
 			}
 		}
 	}

@@ -240,7 +240,8 @@ TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition
 		if (HasMove)
 		{
 			LastPosition = NewPosition;
-			Path.Add(NewPosition);
+			if (Path.Last() != NewPosition)
+				Path.Add(NewPosition);
 
 
 		}

@@ -349,7 +349,7 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 	if (!NextMouse)
 	{
 		// TODO: ADD LOOP/Next array element
-		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessMice | Starting mouse not valid for processing!"));
+		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Starting mouse not valid for processing!"));
 		// Temporary stop
 		return;
 	}
@@ -359,6 +359,15 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 
 	// Get Path
 	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NextMouse->GetCoordinates(), iTeam == 0 ? 1 : -1);
+	FIntVector2D FinalPosition = ValidPath.Last();
+
+	// If no new position/Path, go to next mouse
+	if (NextMouse->GetCoordinates() == FinalPosition)
+	{
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse staying at %s"), *FinalPosition.ToString());
+		ProcessedMouse(NextMouse);
+		return;
+	}
 
 #if !UE_BUILD_SHIPPING
 	// TODO: DEBUG
@@ -366,12 +375,10 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 	for (int i = 0; i < ValidPath.Num(); i++)
 	{
 		UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(ValidPath[i]).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)i / (float)10) + 5), colour, FRotator::ZeroRotator, 5, 3);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Current path %i: %s"), i, *ValidPath[i].ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Current path %i: %s"), i, *ValidPath[i].ToString());
 	}
 #endif
 
-	// TODO: Change to event based, ie one mouse goes at a time, Should solve below problem
-	// TODO: Order could have one mouse be blocked by another that can move
 	// Need to take into account mice that haven't moved in path
 	// Also if a second team movement then opens movement for the previously moved team?
 	// Make movement
@@ -380,7 +387,6 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 	RemoveMouseFromColumn(NextMouse->GetCoordinates().X, NextMouse);
 
 
-	FIntVector2D FinalPosition = ValidPath.Last();
 
 	// If the mouse is at the end
 	if ((FinalPosition.X <= 0 && iTeam == 1) || (FinalPosition.X >= GridSize.X - 1 && iTeam == 0))
@@ -389,14 +395,14 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 		NextMouse->MouseComplete();
 		TeamMice[iTeam].Remove(NextMouse);
 		Mice.Remove(NextMouse);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Mouse complete for team %i at %s"), iTeam, *FinalPosition.ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse complete for team %i at %s"), iTeam, *FinalPosition.ToString());
 	}
 	// Not at the end, set coordinates to end path position
 	else
 	{
 		GridObject->SetGridElement(FinalPosition, NextMouse);
 		AddMouseToColumn(FinalPosition.X, NextMouse);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMice | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
 	}
 
 	// Update FreeSlots array
@@ -455,6 +461,7 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 	GridObject->SetGridElement(LastColumnCoord, nullptr);
 
 	// TODO: Change from iteration to displacing array??
+	// At least minimum store in new array, then apply it and update elements
 
 	// Slot the last element into the first slot in the loop
 	AMM_GridElement* NextElement = LastElement;

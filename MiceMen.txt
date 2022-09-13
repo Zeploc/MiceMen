@@ -16,6 +16,7 @@ Todo:
 - Not move the same column that was just moved
 - Not move a column more than 6 times in a row
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
+- Visual/Gameplay
 
 To put in readme:
 - Controls
@@ -27,7 +28,7 @@ To put in readme:
 Bugs Found
 - Block (visually) stayed on previous place instead of wrapping around
 - (related to above) After switching a turn, the GridObject GridSize becamee invalid (X=-74756880 Y=32764) (fixed?)
-- Not all columns hightlighted for player...? (can interact)
+- When no mice are processed, the visual is negated by the other teams
 - Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
 
 Gamemode
@@ -65,11 +66,12 @@ UI
 Visual/Gameplay
 - Highlight collumns on players turn
 - Yellow for moveable, red for collumn which can't be moved
-- Green when held
+- Green when held/once in valid slot?
 - Arrows on top and bottom show when hover
 - Arrows change when snapping to new position (hide/ only show other direction)
 - Platform that the mouse falls through when getting a point (overlay with physics based visual)
 - When dragging visualise element that wraps around
+- Bounce visual jumping on another mouses head
 
 UI/Game loop
 - Difficulty - easy/hard
