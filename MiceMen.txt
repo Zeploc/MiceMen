@@ -5,19 +5,41 @@ Naming
 - BP_MM_UI
 
 
-Structure/Layout
- Class declarations at the top?
- Setup event log for debugging
-
 Todo:
-- Store colour and retrieve (not multi define)
-- Ratio blocks so there are enough empty ones?
-- Win condition
+- Find move line up in visual studio key
+- Random first player turn
 - Not move the same column that was just moved
 - Not move a column more than 6 times in a row
-- If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
-- Visual/Gameplay
+- Can move columns above if all mice on one column
+- If one mouse per team, only 8 turns (total) until game force ends, further along is winner (if equal position then tie)
 
+- If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
+- Ratio blocks so there are enough empty ones?
+
+Bugs Found
+- Block (visually) stayed on previous place instead of wrapping around
+- (related to above) After switching a turn, the GridObject GridSize became invalid (X=-74756880 Y=32764) (fixed?)
+- When no mice are processed, the visual is negated by the other teams
+- Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
+- Editor crash when switching grid size (occasionally)
+
+- Class declarations at the top
+- Break into functions for different levels of code/logic
+- Functions for cleanliness preferred
+- Use regions #pragma region AND #pragma endregion
+- const reference function parameters
+- const functions when don't need to modify functions
+- Function/Variable Headers
+	@param
+- Commenting
+- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
+- Check UPROPERTY and UFUNCTIONS are relevant
+- Move functions else where (librarys/components) where appropriate
+
+
+
+- Visual/Gameplay
+-----------------------------------------------------------------------
 To put in readme:
 - Controls
 - Logging system
@@ -25,12 +47,6 @@ To put in readme:
 - Controller/local player setup
 - Further decisions for if networked
 
-Bugs Found
-- Block (visually) stayed on previous place instead of wrapping around
-- (related to above) After switching a turn, the GridObject GridSize becamee invalid (X=-74756880 Y=32764) (fixed?)
-- When no mice are processed, the visual is negated by the other teams
-- Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
-- Editor crash when switching grid size (occasionally)
 
 Gamemode
 - Handles turns
@@ -73,6 +89,7 @@ Visual/Gameplay
 - Platform that the mouse falls through when getting a point (overlay with physics based visual)
 - When dragging visualise element that wraps around
 - Bounce visual jumping on another mouses head
+- Move faster but leave trail
 
 UI/Game loop
 - Difficulty - easy/hard
@@ -81,11 +98,7 @@ UI/Game loop
 - Sandbox mode, single player move grid around
 
 To Plan:
-- Switching turns change between local players?
-- Moving row interaction
-- Turn Display/indicator
 - Environment/Background
-- Music
 - AI?
 
 Stretch:
