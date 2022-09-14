@@ -8,7 +8,7 @@
 
 /**
  * Event for when a move has been made on the column,
- * the bool bTurnComplete determines whether a turn has completed, or was cancelled.
+ * bool bTurnComplete determines whether a turn has completed, or was canceled.
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(FColumnAdjustCompleteDelegate, bool);
 
@@ -43,7 +43,7 @@ public:
 	FVector GetOriginalColumnLocation() {
 		return OriginalColumnLocation;			
 	}
-	int GetControllingColumn() {
+	int GetColumnIndex() {
 		return ControllingColumn;
 	}
 
@@ -60,6 +60,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_EndGrab();
 
+	UFUNCTION(BlueprintNativeEvent)
+		void BN_DirectionChanged(int _NewDirection);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float LerpSpeed = 10.0f;
@@ -72,11 +75,13 @@ protected:
 	class AMM_GridManager* GridManager;
 
 	UPROPERTY(BlueprintReadOnly)
-		float MaxPullAmount = 100.0f;
+		float GridElementHeight = 100.0f;
 	UPROPERTY(BlueprintReadOnly)
 		float SnapSize = 40.0f;
 
 	int ControllingColumn = -1;
+
+	int CurrentDirectionChange = 0;
 
 	bool bGrabbed = false;
 	bool bLerp = false;

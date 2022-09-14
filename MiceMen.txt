@@ -7,8 +7,6 @@ Naming
 
 Todo:
 - Find move line up in visual studio key
-- Random first player turn
-- Not move the same column that was just moved
 - Not move a column more than 6 times in a row
 - Can move columns above if all mice on one column
 - If one mouse per team, only 8 turns (total) until game force ends, further along is winner (if equal position then tie)
@@ -36,7 +34,8 @@ Bugs Found
 - Check UPROPERTY and UFUNCTIONS are relevant
 - Move functions else where (librarys/components) where appropriate
 
-
+- Match func order between h and cpp?
+- Order of functions based on process order?
 
 - Visual/Gameplay
 -----------------------------------------------------------------------
@@ -82,7 +81,7 @@ UI
 
 Visual/Gameplay
 - Highlight collumns on players turn
-- Yellow for moveable, red for collumn which can't be moved
+- Yellow for moveable, red... for column which can't be moved
 - Green when held/once in valid slot?
 - Arrows on top and bottom show when hover
 - Arrows change when snapping to new position (hide/ only show other direction)
@@ -90,6 +89,7 @@ Visual/Gameplay
 - When dragging visualise element that wraps around
 - Bounce visual jumping on another mouses head
 - Move faster but leave trail
+- Improve snapping
 
 UI/Game loop
 - Difficulty - easy/hard

@@ -25,6 +25,73 @@ class AMM_GridManager* AMM_GameMode::GetGridManager()
 	return GridManager;
 }
 
+void AMM_GameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
+void AMM_GameMode::BeginGame()
+{
+	if (AllPlayers.Num() < 2)
+		return;
+
+	SetupGridManager();
+
+	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
+
+	SwitchTurns(AllPlayers[IntialPlayer]);
+}
+
+void AMM_GameMode::AddTeam(int _iTeam)
+{
+	TeamPoints.Add(_iTeam, 0);
+}
+
+void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
+{
+	Super::PostLogin(_NewPlayer);
+
+	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
+	{
+		// Current length is next index
+		MMController->SetupPlayer(AllPlayers.Num());
+		AllPlayers.Add(MMController);
+
+		// Store first local player
+		if (MMController->GetLocalPlayer() && !FirstLocalPlayer)
+		{
+			FirstLocalPlayer = MMController->GetLocalPlayer();
+		}
+
+		// Currently only requires two players
+		if (AllPlayers.Num() >= 2)
+		{
+			BeginGame();
+		}
+	}
+}
+
+void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
+{
+	if (!_Player)
+		return;
+
+	// Begin player turn
+	CurrentPlayer = _Player;
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+	CurrentPlayer->BeginTurn();
+
+	// Since this is local, set the new player to active input
+	// Note: In a network situation this would not be necessary as each client has their own input
+	// And would send events to the server
+	if (FirstLocalPlayer)
+		FirstLocalPlayer->SwitchController(CurrentPlayer);
+
+
+	BI_OnSwitchTurns(CurrentPlayer);
+}
+
 void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 {
 	// Was not the players current turn
@@ -45,11 +112,6 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 
 	SwitchTurns(AllPlayers[NextPlayer]);
 
-}
-
-void AMM_GameMode::AddTeam(int _iTeam)
-{
-	TeamPoints.Add(_iTeam, 0);
 }
 
 void AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
@@ -81,23 +143,6 @@ bool AMM_GameMode::CheckWinCondition(int _MicePerTeam)
 		}
 	}
 	return false;
-}
-
-void AMM_GameMode::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//SetupGridManager();
-}
-
-void AMM_GameMode::BeginGame()
-{
-	if (AllPlayers.Num() < 2)
-		return;
-
-	SetupGridManager();
-
-	SwitchTurns(AllPlayers[0]);
 }
 
 bool AMM_GameMode::SetupGridManager()
@@ -136,48 +181,7 @@ bool AMM_GameMode::SetupGridManager()
 	return true;
 }
 
-void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
-{
-	Super::PostLogin(_NewPlayer);
 
-	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
-	{
-		// Current length is next index
-		MMController->SetupPlayer(AllPlayers.Num());
-		AllPlayers.Add(MMController);
-
-		// Currently only requires two players
-		if (AllPlayers.Num() >= 2)
-		{
-			BeginGame();
-		}
-	}
-}
-
-void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
-{
-	if (!_Player)
-		return;
-
-
-	// Store local player
-	ULocalPlayer* LocalPlayer = _Player->GetLocalPlayer();
-	if (CurrentPlayer)
-		LocalPlayer = CurrentPlayer->GetLocalPlayer();
-
-	// Begin player turn
-	CurrentPlayer = _Player;
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
-	CurrentPlayer->BeginTurn();
-
-	// Since this is local, set the new player to active input
-	// Note: In a network situation this would not be necessary as each client has their own input
-	// And would send events to the server
-	LocalPlayer->SwitchController(CurrentPlayer);
-
-
-	BI_OnSwitchTurns(CurrentPlayer);
-}
 
 void AMM_GameMode::TeamWon(int _iTeam)
 {

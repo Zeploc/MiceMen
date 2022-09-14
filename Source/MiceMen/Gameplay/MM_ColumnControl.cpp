@@ -51,6 +51,11 @@ void AMM_ColumnControl::MoveColumnBackToOriginalPosition()
 	}
 }
 
+void AMM_ColumnControl::BN_DirectionChanged_Implementation(int _NewDirection)
+{
+
+}
+
 void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager)
 {
 	ControllingColumn = _ColumnID;
@@ -62,7 +67,7 @@ void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager
 	GrabbableBox->SetBoxExtent(BoxSize);
 	GrabbableBox->SetRelativeLocation(FVector(0, 0, ColumnHeight / 2));
 
-	MaxPullAmount = GridManager->GridElementHeight;
+	GridElementHeight = GridManager->GridElementHeight;
 
 }
 
@@ -84,29 +89,42 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 {
 	PreviewLocation = _NewLocation;
 
+	int NewDirectionChange = 0;
+
 	// Limit to only one grid slot movement
-	PreviewLocation.Z = FMath::Clamp(PreviewLocation.Z, OriginalColumnLocation.Z - MaxPullAmount, OriginalColumnLocation.Z + MaxPullAmount);
+	PreviewLocation.Z = FMath::Clamp(PreviewLocation.Z, OriginalColumnLocation.Z - GridElementHeight, OriginalColumnLocation.Z + GridElementHeight);
 	// Snap when close to grid slot
 	if (abs(_NewLocation.Z - OriginalColumnLocation.Z) < SnapSize)
+	{
 		PreviewLocation.Z = OriginalColumnLocation.Z;
-	else if (abs(_NewLocation.Z - OriginalColumnLocation.Z - MaxPullAmount) < SnapSize)
-		PreviewLocation.Z = OriginalColumnLocation.Z + MaxPullAmount;
-	else if (abs(_NewLocation.Z - OriginalColumnLocation.Z + MaxPullAmount) < SnapSize)
-		PreviewLocation.Z = OriginalColumnLocation.Z - MaxPullAmount;
+		NewDirectionChange = 0;
+	}
+	else if (_NewLocation.Z > OriginalColumnLocation.Z + (GridElementHeight - SnapSize))
+	{
+		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight;
+		NewDirectionChange = 1;
+	}
+	else if (_NewLocation.Z < OriginalColumnLocation.Z - (GridElementHeight - SnapSize))
+	{
+		PreviewLocation.Z = OriginalColumnLocation.Z - GridElementHeight;
+		NewDirectionChange = -1;
+	}
+
+	if (CurrentDirectionChange != NewDirectionChange)
+	{
+		CurrentDirectionChange = NewDirectionChange;
+		BN_DirectionChanged(CurrentDirectionChange);
+	}
 }
 
 void AMM_ColumnControl::EndGrab()
 {
 	bGrabbed = false;
 
-	// Find out which snapping point is closest to to lerp to
-	if (abs(PreviewLocation.Z - OriginalColumnLocation.Z - MaxPullAmount) < SnapSize)
+	// Set snap to point based on current direction
+	if (CurrentDirectionChange != 0)
 	{
-		PreviewLocation.Z = OriginalColumnLocation.Z + MaxPullAmount;
-	}
-	else if (abs(PreviewLocation.Z - OriginalColumnLocation.Z + MaxPullAmount) < SnapSize)
-	{
-		PreviewLocation.Z = OriginalColumnLocation.Z - MaxPullAmount;
+		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight * CurrentDirectionChange;
 	}
 	else
 	{
@@ -118,27 +136,16 @@ void AMM_ColumnControl::EndGrab()
 
 void AMM_ColumnControl::UpdateCollumn()
 {
-	int DirectionChange = 0;
-
-	// Find out which snapping point is closest to for adjusting column
-	if (abs(PreviewLocation.Z - OriginalColumnLocation.Z - MaxPullAmount) < SnapSize)
-	{
-		DirectionChange = 1;
-	}
-	else if (abs(PreviewLocation.Z - OriginalColumnLocation.Z + MaxPullAmount) < SnapSize)
-	{
-		DirectionChange = -1;
-	}
 
 	// Column move complete, turn has ended if the direction was changed ie not 0
-	AdjustCompleteDelegate.Broadcast(DirectionChange != 0);
+	AdjustCompleteDelegate.Broadcast(CurrentDirectionChange != 0);
 
 	// New direction chosen, update grid manager
-	if (DirectionChange != 0)
+	if (CurrentDirectionChange != 0)
 	{
 		MoveColumnBackToOriginalPosition();
 		if (GridManager)
-			GridManager->AdjustColumn(ControllingColumn, DirectionChange);
+			GridManager->AdjustColumn(ControllingColumn, CurrentDirectionChange);
 		else
 		{
 			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_ColumnControl::UpdateCollumn | Grid Manager null for %i as %s"), ControllingColumn, *GetName());

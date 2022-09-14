@@ -122,7 +122,7 @@ void AMM_GameViewPawn::BeginGrab()
 		if (CurrentColumnControls.Contains(NewColumn))// GetGridManager() && GridManager->IsTeamInColumn(CurrentColumn->GetControllingColumn(), MMPlayerController->GetCurrentTeam()))
 		{
 			CurrentColumn = NewColumn;
-			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"), CurrentColumn->GetControllingColumn());
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"), CurrentColumn->GetColumnIndex());
 			CurrentColumn->BeginGrab();
 			HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
 		}

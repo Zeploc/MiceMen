@@ -11,6 +11,7 @@ class APlayerController;
 class AMM_PlayerController;
 class AMM_GridManager;
 class AMM_Mouse;
+class ULocalPlayer;
 
 /**
  * Control for the main gameplay, grid systems and players
@@ -92,5 +93,8 @@ protected:
 	/** The current team points, Team ID to number of points */
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, int> TeamPoints;
+
+	/* Stored local player to switch controller*/
+	ULocalPlayer* FirstLocalPlayer;
 };
 

@@ -140,13 +140,14 @@ void AMM_GridManager::PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewC
 			// If its not every third block
 			isPresetBlockFilled = _NewCoord.Y % 3 != 0;
 		else if ((_NewCoord.Y + 3) % 3 == 0)
+			// If every third block
 			isPresetBlockFilled = true;
 	}
 
 	// Initial testing random bool for placement
 	if ((FMath::RandBool() && !IsPresetCenterBlock) || isPresetBlockFilled)
 	{
-		// Create new Grid block object and add to column array
+		// Create new Grid block object 
 		AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);
 		if (!NewGridBlock)
 		{
@@ -154,6 +155,8 @@ void AMM_GridManager::PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewC
 			return;
 		}
 		NewGridBlock->SetupGridInfo(this, _NewCoord);
+
+		// Add to column array
 		if (NewColumnControl)
 			NewGridBlock->AttachToActor(NewColumnControl, FAttachmentTransformRules::KeepWorldTransform);
 		GridObject->SetGridElement(_NewCoord, NewGridBlock);
@@ -215,7 +218,7 @@ void AMM_GridManager::PopulateMice()
 
 }
 
-TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath)
+TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const
 {
 	TArray<FVector> NewWorldPath;
 	for (FIntVector2D _Coord : _CoordPath)
@@ -225,7 +228,7 @@ TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _Coor
 	return NewWorldPath;
 }
 
-FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector2D _Coords)
+FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector2D _Coords) const
 {
 	FTransform GridElementTransform = GetActorTransform();
 	FVector NewRelativeLocation = FVector::Zero();
@@ -292,9 +295,11 @@ void AMM_GridManager::BeginProcessMice()
 					{
 						// Check if the mouse is more forward, based on the team
 						bool isMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
+
 						// Team is going left
 						if (iTeam == 1)
 							isMoreForward = Coordinates.X < OrderedMouse->GetCoordinates().X;
+
 						// Mouse is not more forward, go to next
 						if (!isMoreForward)
 							continue;
@@ -316,16 +321,17 @@ void AMM_GridManager::BeginProcessMice()
 	}
 
 	// Start processing, nullptr will ignore cleanup
-	ProcessedMouse(nullptr);
+	OnMouseProcessed(nullptr);
 }
 
 
-void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
+void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 {
+	// Cleanup processed mouse
 	if (_Mouse)
 	{
 		MiceToProcessMovement.Remove(_Mouse);
-		_Mouse->MouseMovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::ProcessedMouse);
+		_Mouse->MouseMovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::OnMouseProcessed);
 		if (_Mouse->isMouseComplete())
 		{
 			if (MMGameMode)
@@ -339,6 +345,7 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 		}
 	}
 
+	// Check if remaining mice to process
 	if (!MiceToProcessMovement.IsValidIndex(0))
 	{
 		// Reached end, all mice moved
@@ -355,72 +362,85 @@ void AMM_GridManager::ProcessedMouse(AMM_Mouse* _Mouse)
 		else
 			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Failed to get Gamemode when completing mice process!"));
 
-		
+
 		return;
 	}
-	AMM_Mouse* NextMouse = MiceToProcessMovement[0];
-	if (!NextMouse)
+
+	// Process Next mouse
+	ProcessMouse(MiceToProcessMovement[0]);
+}
+
+void AMM_GridManager::ProcessMouse(AMM_Mouse* _NextMouse)
+{
+	if (!_NextMouse)
 	{
 		// TODO: ADD LOOP/Next array element
 		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Starting mouse not valid for processing!"));
 		// Temporary stop
 		return;
 	}
-	NextMouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessedMouse);
-	
-	int iTeam = NextMouse->GetTeam();
+
+	_NextMouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::OnMouseProcessed);
+
+	int iTeam = _NextMouse->GetTeam();
 
 	// Get Path
-	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NextMouse->GetCoordinates(), iTeam == 0 ? 1 : -1);
+	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(_NextMouse->GetCoordinates(), iTeam == 0 ? 1 : -1);
 	FIntVector2D FinalPosition = ValidPath.Last();
 
 	// If no new position/Path, go to next mouse
-	if (NextMouse->GetCoordinates() == FinalPosition)
+	if (_NextMouse->GetCoordinates() == FinalPosition)
 	{
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse staying at %s"), *FinalPosition.ToString());
-		ProcessedMouse(NextMouse);
+		OnMouseProcessed(_NextMouse);
 		return;
 	}
 
 #if !UE_BUILD_SHIPPING
-	// TODO: DEBUG
-	auto colour = FLinearColor::MakeRandomColor();
-	for (int i = 0; i < ValidPath.Num(); i++)
-	{
-		UKismetSystemLibrary::DrawDebugBox(GetWorld(), GetWorldTransformFromCoord(ValidPath[i]).GetLocation() + FVector(0, 0, 50), FVector(40 * ((float)i / (float)10) + 5), colour, FRotator::ZeroRotator, 5, 3);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Current path %i: %s"), i, *ValidPath[i].ToString());
-	}
+	DebugPath(ValidPath);
 #endif
 
 	// Need to take into account mice that haven't moved in path
 	// Also if a second team movement then opens movement for the previously moved team?
 	// Make movement
-	NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
-	GridObject->SetGridElement(NextMouse->GetCoordinates(), nullptr);
-	RemoveMouseFromColumn(NextMouse->GetCoordinates().X, NextMouse);
-
+	_NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
+	GridObject->SetGridElement(_NextMouse->GetCoordinates(), nullptr);
+	RemoveMouseFromColumn(_NextMouse->GetCoordinates().X, _NextMouse);
 
 
 	// If the mouse is at the end
 	if ((FinalPosition.X <= 0 && iTeam == 1) || (FinalPosition.X >= GridSize.X - 1 && iTeam == 0))
 	{
 		// Mouse Completed
-		NextMouse->MouseComplete();
-		TeamMice[iTeam].Remove(NextMouse);
-		Mice.Remove(NextMouse);
+		_NextMouse->MouseComplete();
+		TeamMice[iTeam].Remove(_NextMouse);
+		Mice.Remove(_NextMouse);
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse complete for team %i at %s"), iTeam, *FinalPosition.ToString());
 	}
 	// Not at the end, set coordinates to end path position
 	else
 	{
-		GridObject->SetGridElement(FinalPosition, NextMouse);
-		AddMouseToColumn(FinalPosition.X, NextMouse);
+		GridObject->SetGridElement(FinalPosition, _NextMouse);
+		AddMouseToColumn(FinalPosition.X, _NextMouse);
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
 	}
 
 	// Update FreeSlots array
 	GridObject->RegenerateFreeSlots();
+}
 
+void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath)
+{
+	// TODO: DEBUG
+	auto colour = FLinearColor::MakeRandomColor();
+	for (int i = 0; i < ValidPath.Num(); i++)
+	{
+		FVector BoxLocation = GetWorldTransformFromCoord(ValidPath[i]).GetLocation() + FVector(0, 0, 50);
+		FVector BoxBounds = FVector(40 * ((float)i / (float)10) + 5);
+
+		UKismetSystemLibrary::DrawDebugBox(GetWorld(), BoxLocation, BoxBounds, colour, FRotator::ZeroRotator, 5, 3);
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Current path %i: %s"), i, *ValidPath[i].ToString());
+	}
 }
 
 void AMM_GridManager::RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse)
@@ -459,6 +479,8 @@ void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
 
 void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 {
+	LastMovedColumn = _Column;
+
 	FIntVector2D LastColumnCoord = { _Column, 0 };
 	if (_Direction > 0)
 		LastColumnCoord = { _Column, GridSize.Y - 1 };
@@ -558,13 +580,24 @@ bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
 TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
 {
 	TArray<int> AvailableColumns;
+
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
+		// Cannot move the last moved column
+		if (x == LastMovedColumn)
+		{
+			continue;
+		}
+
 		// If team is available in this column, add it
 		if (AvailableColumnTeams[x].Contains(_Team))
+		{
 			AvailableColumns.Add(x);
+		}
 	}
+
+
 	return AvailableColumns;
 }
 

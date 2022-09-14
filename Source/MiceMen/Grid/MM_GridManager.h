@@ -64,14 +64,18 @@ protected:
 	void BeginProcessMice();
 
 	UFUNCTION()
-	void ProcessedMouse(AMM_Mouse* _Mouse);
+	void OnMouseProcessed(AMM_Mouse* _Mouse);
+
+	void ProcessMouse(AMM_Mouse* _NextMouse);
+
+	void DebugPath(TArray<FIntVector2D> ValidPath);
 
 	void RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse);
 	void AddMouseToColumn(int _Column, AMM_Mouse* _Mouse);
 
-	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath);
+	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const;
 
-	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords);
+	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords) const;
 
 	void DebugVisualiseGrid();
 
@@ -124,6 +128,8 @@ protected:
 	 */
 	TMap<int, AMM_ColumnControl*> ColumnControls;
 
+	UPROPERTY(BlueprintReadOnly)
+		int LastMovedColumn = -1;
 
 	UPROPERTY()
 	UMM_GridObject* GridObject;
