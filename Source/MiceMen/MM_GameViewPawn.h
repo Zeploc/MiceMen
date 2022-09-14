@@ -80,4 +80,7 @@ protected:
 	TArray<AMM_ColumnControl*> CurrentColumnControls;
 
 	FDelegateHandle CurrentColumnDelegateHandle;
+
+	int LastMovedColumn = -1;
+	int SameMovedColumnCount = 0;
 };

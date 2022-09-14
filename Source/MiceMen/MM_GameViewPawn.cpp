@@ -68,6 +68,13 @@ void AMM_GameViewPawn::BeginTurn()
 		// For each available column
 		for (int Column : AvailableColumns)
 		{
+			// Check if this column was already moved 6 times in a row
+			if (Column == LastMovedColumn && SameMovedColumnCount > 6)
+			{
+				// Don't add column to movable
+				continue;
+			}
+
 			// Check column controls has the index and that it is a valid pointer
 			if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
 			{
@@ -151,6 +158,25 @@ void AMM_GameViewPawn::EndGrab()
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 		CurrentColumn->EndGrab();
+
+		// The column is being moved to a new slot
+		if (CurrentColumn->GetCurrentColumnDirection() != 0)
+		{
+			int CurrentColumnIndex = CurrentColumn->GetColumnIndex();
+
+			// If the column moved was not the same as the last
+			if (CurrentColumnIndex != LastMovedColumn)
+			{
+				// Store column moved and reset counter
+				LastMovedColumn = CurrentColumnIndex;
+				SameMovedColumnCount = 0;
+			}
+			// Same column moved, increment counter
+			else
+			{
+				SameMovedColumnCount++;
+			}
+		}
 	}
 	CurrentColumn = nullptr;
 }

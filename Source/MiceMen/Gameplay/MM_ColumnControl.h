@@ -46,6 +46,9 @@ public:
 	int GetColumnIndex() {
 		return ControllingColumn;
 	}
+	int GetCurrentColumnDirection() {
+		return CurrentDirectionChange;
+	}
 
 protected:
 	// Called when the game starts or when spawned

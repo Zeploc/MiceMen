@@ -7,8 +7,7 @@ Naming
 
 Todo:
 - Find move line up in visual studio key
-- Not move a column more than 6 times in a row
-- Can move columns above if all mice on one column
+- Test move column if all team mice on one column but would otherwise be unmoveable
 - If one mouse per team, only 8 turns (total) until game force ends, further along is winner (if equal position then tie)
 
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
@@ -80,8 +79,7 @@ UI
 - Base in code, bind widgets
 
 Visual/Gameplay
-- Highlight collumns on players turn
-- Yellow for moveable, red... for column which can't be moved
+- Need visuals for columns that can't be moved, ie same column moved or 6 times in a row
 - Green when held/once in valid slot?
 - Arrows on top and bottom show when hover
 - Arrows change when snapping to new position (hide/ only show other direction)

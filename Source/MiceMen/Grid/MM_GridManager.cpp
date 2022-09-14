@@ -581,22 +581,32 @@ TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
 {
 	TArray<int> AvailableColumns;
 
+	int FailsafeColumn = -1;
+
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
-		// Cannot move the last moved column
-		if (x == LastMovedColumn)
-		{
-			continue;
-		}
-
 		// If team is available in this column, add it
 		if (AvailableColumnTeams[x].Contains(_Team))
 		{
+			// Store failsafe column, in case all are removed
+			FailsafeColumn = x;
+
+			// Cannot move the last moved column
+			if (x == LastMovedColumn)
+			{
+				continue;
+			}
+
 			AvailableColumns.Add(x);
 		}
 	}
 
+	// If no columns were added, use failsafe column
+	if (AvailableColumns.Num() <= 0)
+	{
+		AvailableColumns.Add(FailsafeColumn);
+	}
 
 	return AvailableColumns;
 }
