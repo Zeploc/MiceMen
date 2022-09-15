@@ -29,6 +29,12 @@ public:
 
 	void PlayerTurnComplete(AMM_PlayerController* _Player);
 
+	/**  Described as stalemate, when only 1 mouse exists per team */
+	void CheckStalemateMice();
+
+	/**  Find winning team in a stalemate situation */
+	int GetWinningStalemateTeam();
+
 	AMM_PlayerController* GetCurrentPlayer() { return CurrentPlayer; }
 
 	/**
@@ -43,16 +49,15 @@ public:
 	 * When a mouse reaches the end and should score a point.
 	 * 
 	 * @param _Mouse - the mouse that completed
+	 * @return true if the game has reached a win condition
 	 */
-	void MouseCompleted(AMM_Mouse* _Mouse);
+	bool MouseCompleted(AMM_Mouse* _Mouse);
 
 	/**
 	 * Checks if a team has completed all their mice.
-	 * 
-	 * @param _MicePerTeam - the number of mice one team has
 	 * @return true if a team has one and the game should end
 	 */
-	bool CheckWinCondition(int _MicePerTeam);
+	bool CheckWinCondition();
 
 protected:
 	virtual void BeginPlay() override;
@@ -77,6 +82,14 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AMM_GridManager> GridManagerClass;
 
+	/**  The amount of turns the game will last for when entered stalemate (one mouse per team) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		int StalemateTurns = 8;
+
+	/**  The starting number of mice on each team */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		int InitialMiceCount = 12;
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	class AMM_GridManager* GridManager;
@@ -96,5 +109,9 @@ protected:
 
 	/* Stored local player to switch controller*/
 	ULocalPlayer* FirstLocalPlayer;
+
+	/** When a stalemate is entered, this value will count up per turn */
+	UPROPERTY(BlueprintReadOnly)
+		int StalemateCount = -1;
 };
 

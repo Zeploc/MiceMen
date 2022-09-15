@@ -29,7 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
-	void SetupGrid(FIntVector2D _GridSize);
+	void SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode);
+	void RebuildGrid(int _InitialMiceCount);
 	void AdjustColumn(int _Column, int _Direction);
 
 	UFUNCTION(BlueprintPure)
@@ -49,17 +50,20 @@ public:
 	UFUNCTION(BlueprintPure)
 		TArray<int> GetTeamColumns(int _Team);
 
+	/** A check for if only one mouse per team exists */
+	bool IsStalemate() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void RebuildGrid();
 	void GridCleanUp();
 	void PopulateGrid();
 
 	void PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
 
-	void PopulateMice();
+
+	void PopulateMice(int _MicePerTeam);
 
 	void BeginProcessMice();
 
@@ -67,6 +71,8 @@ protected:
 	void OnMouseProcessed(AMM_Mouse* _Mouse);
 
 	void ProcessMouse(AMM_Mouse* _NextMouse);
+
+	void MouseCompleted(AMM_Mouse* _NextMouse, int iTeam);
 
 	void DebugPath(TArray<FIntVector2D> ValidPath);
 
@@ -93,8 +99,6 @@ public:
 		float GridElementWidth = 100.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementHeight = 100.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		int InitialMiceCount = 12;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

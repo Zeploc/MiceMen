@@ -37,6 +37,7 @@ void AMM_GameMode::BeginGame()
 		return;
 
 	SetupGridManager();
+	CheckStalemateMice();
 
 	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
 
@@ -110,14 +111,52 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed players turn with %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
 	CurrentPlayer->TurnEnded();
 
+
+	// If stalemate is active, increase counter for turn taken
+	if (StalemateCount >= 0)
+	{
+		// Turn taken, increase count
+		StalemateCount++;
+
+		// Check if stalemate turn count reached
+		if (StalemateCount >= StalemateTurns)
+		{
+			// Find winning stalemate team and end the game
+			TeamWon(GetWinningStalemateTeam());
+			return;
+		}
+	}
+
 	SwitchTurns(AllPlayers[NextPlayer]);
 
 }
+void AMM_GameMode::CheckStalemateMice()
+{
+	// If more than 0, already in stalemate mode
+	if (StalemateCount >= 0)
+	{
+		return;
+	}
 
-void AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
+	// Check if stalemate with grid manager
+	if (GetGridManager() && GridManager->IsStalemate())
+	{
+		// Enter stalemate mode and begin counting turns
+		StalemateCount = 0;
+	}	
+
+}
+
+int AMM_GameMode::GetWinningStalemateTeam()
+{
+	// TODO: Get further ahead mouse to work out winning team
+	return 0;
+}
+
+bool AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
 {
 	if (!_Mouse)
-		return;
+		return false;
 
 	int CurrentMouseTeam = _Mouse->GetTeam();
 
@@ -128,15 +167,18 @@ void AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
 	}
 	CurrentScore++;
 	TeamPoints.Add(CurrentMouseTeam, CurrentScore);
+
+	// Check win condition and return if the game is complete
+	return CheckWinCondition();
 }
 
-bool AMM_GameMode::CheckWinCondition(int _MicePerTeam)
+bool AMM_GameMode::CheckWinCondition()
 {
 	TArray<int> Teams;
 	TeamPoints.GenerateKeyArray(Teams);
 	for (int iTeam : Teams)
 	{
-		if (TeamPoints[iTeam] >= _MicePerTeam)
+		if (TeamPoints[iTeam] >= InitialMiceCount)
 		{
 			TeamWon(iTeam);
 			return true;
@@ -170,8 +212,9 @@ bool AMM_GameMode::SetupGridManager()
 
 	// Spawn Grid manager
 	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
-	GridManager->SetupGrid(NewGridSize);
+	GridManager->SetupGrid(NewGridSize, this);
 	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
+	GridManager->RebuildGrid(InitialMiceCount);
 	if (!GridManager)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to spawn Grid Manager!"));

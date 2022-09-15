@@ -31,10 +31,6 @@ void AMM_GridManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
-
-	RebuildGrid();
-
 }
 // Called every frame
 void AMM_GridManager::Tick(float DeltaTime)
@@ -46,12 +42,13 @@ void AMM_GridManager::Tick(float DeltaTime)
 }
 
 
-void AMM_GridManager::SetupGrid(FIntVector2D _GridSize)
+void AMM_GridManager::SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode)
 {
 	GridSize = _GridSize;
+	MMGameMode = _MMGameMode;
 }
 
-void AMM_GridManager::RebuildGrid()
+void AMM_GridManager::RebuildGrid(int _InitialMiceCount)
 {
 	GridCleanUp();
 
@@ -70,7 +67,7 @@ void AMM_GridManager::RebuildGrid()
 	TeamSize = (GridSize.X - GapSize) / 2;
 
 	PopulateGrid();
-	PopulateMice();
+	PopulateMice(_InitialMiceCount);
 }
 
 void AMM_GridManager::GridCleanUp()
@@ -170,7 +167,7 @@ void AMM_GridManager::PlaceBlock(FIntVector2D _NewCoord, AMM_ColumnControl* NewC
 	}
 }
 
-void AMM_GridManager::PopulateMice()
+void AMM_GridManager::PopulateMice(int _MicePerTeam)
 {
 	FIntVector2D TeamRanges[] = {
 		FIntVector2D(0, TeamSize - 1),
@@ -186,7 +183,7 @@ void AMM_GridManager::PopulateMice()
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateMice | Adding mice for team %i"), iTeam);
 
 		// Add mice for team
-		for (int iMouse = 0; iMouse < InitialMiceCount; iMouse++)
+		for (int iMouse = 0; iMouse < _MicePerTeam; iMouse++)
 		{
 			FIntVector2D NewRandomMousePosition = GridObject->GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
 
@@ -336,10 +333,8 @@ void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 		{
 			if (MMGameMode)
 			{
-				MMGameMode->MouseCompleted(_Mouse);
-
 				// If mouse complete was winning mouse, stop processing mice
-				if (MMGameMode->CheckWinCondition(InitialMiceCount))
+				if (MMGameMode->MouseCompleted(_Mouse))
 					return;
 			}
 		}
@@ -412,10 +407,8 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _NextMouse)
 	if ((FinalPosition.X <= 0 && iTeam == 1) || (FinalPosition.X >= GridSize.X - 1 && iTeam == 0))
 	{
 		// Mouse Completed
-		_NextMouse->MouseComplete();
-		TeamMice[iTeam].Remove(_NextMouse);
-		Mice.Remove(_NextMouse);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse complete for team %i at %s"), iTeam, *FinalPosition.ToString());
+		MouseCompleted(_NextMouse, iTeam);
+
 	}
 	// Not at the end, set coordinates to end path position
 	else
@@ -427,6 +420,25 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _NextMouse)
 
 	// Update FreeSlots array
 	GridObject->RegenerateFreeSlots();
+}
+
+void AMM_GridManager::MouseCompleted(AMM_Mouse* _NextMouse, int iTeam)
+{
+	if (!_NextMouse)
+	{
+		return;
+	}
+
+	_NextMouse->MouseComplete();
+	TeamMice[iTeam].Remove(_NextMouse);
+	Mice.Remove(_NextMouse);
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse complete for team %i at %s"), iTeam, *_NextMouse->GetCoordinates().ToString());
+
+	// Check stalemate
+	if (MMGameMode)
+	{
+		MMGameMode->CheckStalemateMice();
+	}
 }
 
 void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath)
@@ -480,7 +492,7 @@ void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
 void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 {
 	LastMovedColumn = _Column;
-
+	
 	FIntVector2D LastColumnCoord = { _Column, 0 };
 	if (_Direction > 0)
 		LastColumnCoord = { _Column, GridSize.Y - 1 };
@@ -556,19 +568,6 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 	BeginProcessMice();
 }
 
-
-// ################################ Grid Debugging ################################
-
-void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
-{
-	bDebugGridEnabled = _Enabled;
-}
-
-void AMM_GridManager::ToggleDebugVisualGrid()
-{
-	SetDebugVisualGrid(!bDebugGridEnabled);
-}
-
 bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
 {
 	if (!AvailableColumnTeams.Contains(_Column))
@@ -609,6 +608,33 @@ TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
 	}
 
 	return AvailableColumns;
+}
+
+bool AMM_GridManager::IsStalemate() const
+{
+	TArray<int> MiceTeams;
+	TeamMice.GenerateKeyArray(MiceTeams);
+	for (int iTeam : MiceTeams)
+	{
+		// If any team doesn't have one mice, its not a "stalemate"
+		if (TeamMice[iTeam].Num() != 1)
+			return false;
+	}
+
+	return true;
+}
+
+
+// ################################ Grid Debugging ################################
+
+void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
+{
+	bDebugGridEnabled = _Enabled;
+}
+
+void AMM_GridManager::ToggleDebugVisualGrid()
+{
+	SetDebugVisualGrid(!bDebugGridEnabled);
 }
 
 void AMM_GridManager::DebugVisualiseGrid()
