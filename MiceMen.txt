@@ -7,11 +7,10 @@ Naming
 
 Todo:
 - Find move line up in visual studio key
-- Test move column if all team mice on one column but would otherwise be unmoveable
-- If one mouse per team, only 8 turns (total) until game force ends, further along is winner (if equal position then tie)
 
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
 - Ratio blocks so there are enough empty ones?
+- Check Logic when not much movement (lots of prints)
 
 Bugs Found
 - Block (visually) stayed on previous place instead of wrapping around
@@ -19,6 +18,7 @@ Bugs Found
 - When no mice are processed, the visual is negated by the other teams
 - Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
 - Editor crash when switching grid size (occasionally)
+
 
 - Class declarations at the top
 - Break into functions for different levels of code/logic

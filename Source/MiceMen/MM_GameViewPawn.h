@@ -34,6 +34,8 @@ public:
 
 	void BeginTurn();
 
+	void AddColumnAsGrabbable(int Column);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -58,6 +60,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float InteractTraceDistance = 100000.0f;
 
+	/**
+	 * Maximum times the same column can be moved by the player.
+	 * Superseded if all mouse on that same column
+	 * Stored in pawn to have the ability to change it per player
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+		int SameColumnMax = 6;
 
 protected:
 	UPROPERTY(BlueprintReadOnly)

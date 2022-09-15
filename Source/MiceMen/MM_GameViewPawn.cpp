@@ -62,28 +62,45 @@ void AMM_GameViewPawn::BeginTurn()
 
 		// Get available column indexes for this player
 		TArray<int> AvailableColumns = GridManager->GetTeamColumns(MMPlayerController->GetCurrentTeam());
-		// Get all columns
-		TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
+		int FallbackColumn = -1;
 
 		// For each available column
 		for (int Column : AvailableColumns)
 		{
-			// Check if this column was already moved 6 times in a row
-			if (Column == LastMovedColumn && SameMovedColumnCount > 6)
+			FallbackColumn = Column;
+
+			// Check if this column was already moved a specific amount of times in a row
+			if (Column == LastMovedColumn && SameMovedColumnCount >= SameColumnMax)
 			{
 				// Don't add column to movable
 				continue;
 			}
 
-			// Check column controls has the index and that it is a valid pointer
-			if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
-			{
-				// Display column as grabbable and store
-				AllColumnControls[Column]->DisplayGrabbable(true, MMPlayerController->GetCurrentTeam());
-				CurrentColumnControls.Add(AllColumnControls[Column]);
-				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
-			}
+			AddColumnAsGrabbable(Column);
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
 		}
+
+		// If no available columns, use fall back,
+		// for situations such as when all mice are on the same column but it was moved more than the max
+		if (CurrentColumnControls.Num() <= 0 && FallbackColumn >= 0)
+		{
+			AddColumnAsGrabbable(FallbackColumn);
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
+		}
+	}
+}
+
+void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)
+{
+	// Get all columns
+	TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
+
+	// Check column controls has the index and that it is a valid pointer
+	if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
+	{
+		// Display column as grabbable and store
+		AllColumnControls[Column]->DisplayGrabbable(true, MMPlayerController->GetCurrentTeam());
+		CurrentColumnControls.Add(AllColumnControls[Column]);
 	}
 }
 
@@ -167,14 +184,15 @@ void AMM_GameViewPawn::EndGrab()
 			// If the column moved was not the same as the last
 			if (CurrentColumnIndex != LastMovedColumn)
 			{
-				// Store column moved and reset counter
+				// Store column moved and reset counter (has moved once counting this turn)
 				LastMovedColumn = CurrentColumnIndex;
-				SameMovedColumnCount = 0;
+				SameMovedColumnCount = 1;
 			}
 			// Same column moved, increment counter
 			else
 			{
 				SameMovedColumnCount++;
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Moved same column at %i time(s)"), SameMovedColumnCount);
 			}
 		}
 	}
