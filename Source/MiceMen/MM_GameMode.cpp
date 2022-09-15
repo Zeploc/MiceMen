@@ -29,6 +29,42 @@ void AMM_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SecondLocalPlayer = UGameplayStatics::CreatePlayer(GetWorld());
+}
+
+void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
+{
+	Super::EndPlay(_EndPlayReason);
+
+	if (_EndPlayReason != EEndPlayReason::EndPlayInEditor && _EndPlayReason != EEndPlayReason::Quit)
+	{
+		if (SecondLocalPlayer)
+		{
+			UGameplayStatics::RemovePlayer(SecondLocalPlayer, true);
+		}
+	}
+	if (GridManager)
+	{
+		GridManager->Destroy();
+		GridManager = nullptr;
+	}
+}
+void AMM_GameMode::RestartGame()
+{
+	if (GridManager)
+	{
+		GridManager->Destroy();
+		GridManager = nullptr;
+	}
+
+	StalemateCount = -1;
+	TeamPoints.Empty();
+	for (AMM_PlayerController* PlayerController : AllPlayers)
+	{
+		RestartPlayer(PlayerController);
+	}
+
+	BeginGame();
 }
 
 void AMM_GameMode::BeginGame()
@@ -191,6 +227,7 @@ bool AMM_GameMode::CheckWinCondition()
 	}
 	return false;
 }
+
 
 bool AMM_GameMode::SetupGridManager()
 {

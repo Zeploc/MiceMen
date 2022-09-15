@@ -32,6 +32,13 @@ void AMM_GridManager::BeginPlay()
 	Super::BeginPlay();
 
 }
+
+void AMM_GridManager::EndPlay(EEndPlayReason::Type _EndPlayReason)
+{
+	Super::EndPlay(_EndPlayReason);
+
+	GridCleanUp();
+}
 // Called every frame
 void AMM_GridManager::Tick(float DeltaTime)
 {
@@ -81,8 +88,20 @@ void AMM_GridManager::GridCleanUp()
 	}
 	ColumnControls.Empty();
 
+	for (AMM_Mouse* Mouse : Mice)
+	{
+		if (Mouse)
+		{
+			Mouse->Destroy();
+		}
+	}
+	Mice.Empty();
+
+
 	if (GridObject)
+	{
 		GridObject->CleanUp();
+	}
 	// Destroy?? GC auto?
 	GridObject = nullptr;
 }

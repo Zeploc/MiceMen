@@ -18,7 +18,10 @@ void UMM_GridObject::CleanUp()
 	for (AMM_GridElement* GridElement : Grid)
 	{
 		if (GridElement)
+		{
 			GridElement->CleanUp();
+			GridElement->Destroy();
+		}
 	}
 	Grid.Empty();
 

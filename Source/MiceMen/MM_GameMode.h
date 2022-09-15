@@ -59,8 +59,13 @@ public:
 	 */
 	bool CheckWinCondition();
 
+	/**  Resets the board and players */
+	UFUNCTION(BlueprintCallable)
+	void RestartGame();
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
 
 	void BeginGame();
 
@@ -113,5 +118,9 @@ protected:
 	/** When a stalemate is entered, this value will count up per turn */
 	UPROPERTY(BlueprintReadOnly)
 		int StalemateCount = -1;
+
+	/**  Store the second player controller for cleanup */
+	UPROPERTY(BlueprintReadOnly)
+	APlayerController* SecondLocalPlayer;
 };
 
