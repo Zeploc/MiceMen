@@ -53,6 +53,9 @@ public:
 	/** A check for if only one mouse per team exists */
 	bool IsStalemate() const;
 
+	/**  When a stalemate win condition occurs, get the further ahead mouse as the winning team */
+	int GetWinningStalemateTeam() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -149,7 +149,12 @@ void AMM_GameMode::CheckStalemateMice()
 
 int AMM_GameMode::GetWinningStalemateTeam()
 {
-	// TODO: Get further ahead mouse to work out winning team
+	if (GridManager)
+	{
+		return GridManager->GetWinningStalemateTeam();
+	}
+
+	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::GetWinningStalemateTeam | Failed to get winning stalemate team, GridManager not valid!"));
 	return 0;
 }
 
@@ -228,5 +233,10 @@ bool AMM_GameMode::SetupGridManager()
 
 void AMM_GameMode::TeamWon(int _iTeam)
 {
+	if (_iTeam < -1)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No Valid Team won!"));
+		return;
+	}
 	BI_OnTeamWon(_iTeam);
 }

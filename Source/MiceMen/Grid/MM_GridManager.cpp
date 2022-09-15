@@ -625,6 +625,56 @@ bool AMM_GridManager::IsStalemate() const
 }
 
 
+int AMM_GridManager::GetWinningStalemateTeam() const
+{
+	TArray<int> TeamDistances;
+	TArray<int> MiceTeams;
+	TeamMice.GenerateKeyArray(MiceTeams);
+	TeamDistances.SetNum(MiceTeams.Num());
+	for (int iTeam : MiceTeams)
+	{
+		if (TeamMice[iTeam].IsValidIndex(0))
+		{
+			AMM_Mouse* RemainingMouse = TeamMice[iTeam][0];
+			int Distance = RemainingMouse->GetCoordinates().X;
+			// Team going to the left
+			if (iTeam == 1)
+			{
+				// TODO: Cleanup
+				// Get the distance from the last grid x index
+				Distance = (GridSize.X - 1) - Distance;
+			}
+
+			TeamDistances[iTeam] = Distance;
+		}
+	}
+	
+	// TODO: Change to dynamic?
+	if (TeamDistances.Num() >= 2)
+	{
+		// Check if same distance, tie situation
+		if (TeamDistances[0] == TeamDistances[1])
+		{
+			// -1 meaning tie
+			return -1;
+		}
+
+		// Check winning team based on further distance
+		int WinningTeam = 0;
+		if (TeamDistances[1] > TeamDistances[0])
+		{
+			WinningTeam = 1;
+		}
+		return WinningTeam;
+	}
+	
+
+	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::GetWinningStalemateTeam | Failed to get winning stalemate team, returned -2!"));
+
+	return -2;
+
+}
+
 // ################################ Grid Debugging ################################
 
 void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
