@@ -28,8 +28,6 @@ public:
 
 	TArray<FIntVector2D> GetFreeSlots() { return FreeSlots; }
 
-	void RegenerateFreeSlots();
-
 	FIntVector2D GetRandomGridCoord(bool _bFreeSlot = true);
 	FIntVector2D GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true);
 	FIntVector2D GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot = true);
@@ -69,12 +67,4 @@ private:
 		 */
 		TArray<FIntVector2D> FreeSlots;
 
-
-
-		///**
-		// * Generated from FreeSlots to have array to remove keys generation.
-		// * This is to remove the GenerateKeys() from the map, created an extra iteration
-		// * This is based on CPU being prioritised over memory
-		// */
-		//TArray<FIntVector2D> FreeSlotKeys;
 };

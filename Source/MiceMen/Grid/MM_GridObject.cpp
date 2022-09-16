@@ -105,13 +105,6 @@ bool UMM_GridObject::SetGridElement(FIntVector2D _Coord, class AMM_GridElement* 
 	return true;
 }
 
-void UMM_GridObject::RegenerateFreeSlots()
-{
-	// Update FreeSlots array
-	//FreeSlots.GenerateKeyArray(FreeSlotKeys);
-
-}
-
 // ################################ Grid Helpers ################################
 
 
