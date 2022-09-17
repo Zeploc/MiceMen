@@ -3,8 +3,8 @@
 
 #include "MM_PlayerController.h"
 
-#include "MM_GameViewPawn.h"
-#include "MM_GameMode.h"
+#include "Player/MM_GameViewPawn.h"
+#include "Base/MM_GameMode.h"
 
 AMM_PlayerController::AMM_PlayerController()
 {
@@ -33,11 +33,23 @@ void AMM_PlayerController::SetupPlayer(int _Team)
 void AMM_PlayerController::SetAsAI()
 {
 	bIsAI = true;
+	if (MMPawn && MMPawn->IsTurnActive())
+	{
+		MMPawn->TakeRandomTurn();
+	}
+}
+
+void AMM_PlayerController::ClearAI()
+{
+	bIsAI = false;
 }
 
 void AMM_PlayerController::BeginTurn()
 {
-	MMPawn->BeginTurn();
+	if (MMPawn)
+	{
+		MMPawn->BeginTurn();
+	}
 }
 
 void AMM_PlayerController::TurnEnded()

@@ -6,10 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 
-#include "MM_PlayerController.h"
+#include "Player/MM_PlayerController.h"
 #include "Grid/MM_GridManager.h"
 #include "Grid/MM_WorldGrid.h"
-#include "MM_GameViewPawn.h"
+#include "Player/MM_GameViewPawn.h"
 #include "MiceMen.h"
 #include "Gameplay/MM_Mouse.h"
 
@@ -53,6 +53,8 @@ void AMM_GameMode::RestartGame()
 {
 	CleanupGame();
 
+	BI_OnGameRestarted();
+
 	BeginGame(CurrentGameType);
 }
 
@@ -72,6 +74,11 @@ void AMM_GameMode::CleanupGame()
 	TeamPoints.Empty();
 	for (AMM_PlayerController* PlayerController : AllPlayers)
 	{
+		if (!PlayerController)
+		{
+			continue;
+		}
+		PlayerController->ClearAI();
 		RestartPlayer(PlayerController);
 	}
 }
@@ -103,6 +110,10 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 	{
 	case EGameType::E_PVP:
 		break;
+	case EGameType::E_TEST:
+	{
+		// Fall down (set players to AI)
+	}
 	case EGameType::E_AIVAI:
 	{
 		if (AllPlayers.IsValidIndex(0))
@@ -123,16 +134,6 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 	}
 	case EGameType::E_SANDBOX:
 		break;
-	case EGameType::E_TEST:
-	{
-		if (GetGridManager())
-		{
-			GridManager->EnableTestMode();
-		}
-		break;
-	}
-	case EGameType::E_MAX:
-		break;
 	default:
 		break;
 	}
@@ -145,6 +146,20 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 	BI_OnGameBegun();
 }
 
+
+void AMM_GameMode::SwitchToTest()
+{
+	CurrentGameType = EGameType::E_TEST;
+
+	// Change both players to AI
+	for (AMM_PlayerController* PlayerController : AllPlayers)
+	{
+		if (PlayerController)
+		{
+			PlayerController->SetAsAI();
+		}
+	}
+}
 
 void AMM_GameMode::EndGame()
 {
@@ -236,6 +251,12 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 			TeamWon(GetWinningStalemateTeam());
 			return;
 		}
+	}
+
+	// Should be caught on mouse complete, but here as a safety catch
+	if (CheckWinCondition())
+	{
+		return;
 	}
 
 	SwitchTurns(AllPlayers[NextPlayer]);

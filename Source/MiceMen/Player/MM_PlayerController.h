@@ -23,6 +23,7 @@ public:
 
 	/** Changes player to AI */
 	void SetAsAI();
+	void ClearAI();
 
 	void BeginTurn();
 

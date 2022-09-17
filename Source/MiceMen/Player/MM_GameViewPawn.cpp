@@ -6,9 +6,9 @@
 #include "CineCameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-#include "MM_PlayerController.h"
+#include "Player/MM_PlayerController.h"
 #include "Gameplay/MM_ColumnControl.h"
-#include "MM_GameMode.h"
+#include "Base/MM_GameMode.h"
 #include "Grid/MM_GridManager.h"
 #include "MiceMen.h"
 
@@ -109,6 +109,11 @@ void AMM_GameViewPawn::TakeRandomTurn()
 		// Don't use pawn grab since its not based on mouse/input
 		CurrentColumn->BeginGrab();
 		CurrentColumn->UpdatePreviewLocation(NewLocation);
+		// If testing mode, instantly move column
+		if (GetGamemode() && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
+		{
+			CurrentColumn->SetActorLocation(NewLocation);
+		}
 		EndGrab();
 	}
 }

@@ -11,9 +11,9 @@
 #include "Gameplay/MM_ColumnControl.h"
 #include "MM_GridObject.h"
 #include "MiceMen.h"
-#include "MM_GameMode.h"
-#include "MM_PlayerController.h"
-#include "MM_GameViewPawn.h"
+#include "Base/MM_GameMode.h"
+#include "Player/MM_PlayerController.h"
+#include "Player/MM_GameViewPawn.h"
 
 // Sets default values
 AMM_GridManager::AMM_GridManager()
@@ -375,7 +375,7 @@ void AMM_GridManager::BeginProcessMice()
 		}
 
 #if !UE_BUILD_SHIPPING
-		if (bDebugTest)
+		if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 		{
 			if (!DebugCheckAllMiceProcessed(iTeam, CurrentTeamMiceToProcess))
 				return;
@@ -398,11 +398,10 @@ void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 		_Mouse->MouseMovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::OnMouseProcessed);
 		if (_Mouse->isMouseComplete())
 		{
-			if (MMGameMode)
+			// If mouse complete was winning mouse, stop processing mice
+			if (MMGameMode && MMGameMode->MouseCompleted(_Mouse))
 			{
-				// If mouse complete was winning mouse, stop processing mice
-				if (MMGameMode->MouseCompleted(_Mouse))
-					return;
+				return;
 			}
 		}
 	}
@@ -420,13 +419,6 @@ void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
 
 			MMGameMode->PlayerTurnComplete(MMGameMode->GetCurrentPlayer());
-			if (bDebugTest)
-			{
-				if (AMM_GameViewPawn* GameViewPawn = MMGameMode->GetCurrentPlayer()->GetPawn<AMM_GameViewPawn>())
-				{
-					GameViewPawn->TakeRandomTurn();
-				}
-			}
 		}
 		else
 			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Failed to get Gamemode when completing mice process!"));
@@ -490,6 +482,11 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
 	}
 
+	// If test mode, move delegate is not fired on mouse, go straight to on processed
+	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
+	{
+		OnMouseProcessed(_Mouse);
+	}
 }
 
 bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition)
@@ -509,16 +506,16 @@ bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosit
 	DebugPath(ValidPath);
 #endif
 
-	// Need to account for a second team movement then opens movement for the previously moved team?
-	// 
-	// Make movement
-	if (bDebugTest)
+	// TODO: Need to account for a second team movement then opens movement for the previously moved team?
+
+	// If test mode, instantly move mouse
+	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
 		_NextMouse->SetActorLocation(GetWorldTransformFromCoord(_FinalPosition).GetLocation());
-		OnMouseProcessed(_NextMouse);
 	}
 	else
 	{
+		// Make movement
 		_NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
 	}
 
@@ -692,8 +689,8 @@ TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
 		}
 	}
 
-	// If no columns were added, use failsafe column
-	if (AvailableColumns.Num() <= 0)
+	// If no columns were added, use failsafe column (if was set)
+	if (AvailableColumns.Num() <= 0 && FailsafeColumn >= 0)
 	{
 		AvailableColumns.Add(FailsafeColumn);
 	}
@@ -792,14 +789,6 @@ void AMM_GridManager::ToggleDebugVisualGrid()
 	SetDebugVisualGrid(!bDebugGridEnabled);
 }
 
-void AMM_GridManager::StartTest()
-{
-	EnableTestMode();
-	if (AMM_GameViewPawn* GameViewPawn = MMGameMode->GetCurrentPlayer()->GetPawn<AMM_GameViewPawn>())
-	{
-		GameViewPawn->TakeRandomTurn();
-	}
-}
 
 bool AMM_GridManager::DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mouse*>& CurrentTeamMiceToProcess) const
 {
@@ -815,11 +804,6 @@ bool AMM_GridManager::DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mou
 	return true;
 }
 
-
-void AMM_GridManager::EnableTestMode()
-{
-	bDebugTest = true;
-}
 
 void AMM_GridManager::DebugVisualiseGrid()
 {

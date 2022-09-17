@@ -136,10 +136,6 @@ public:
 
 	bool DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mouse*>& CurrentTeamMiceToProcess) const;
 
-	UFUNCTION(BlueprintCallable)
-		void EnableTestMode();
-	UFUNCTION(BlueprintCallable)
-		void StartTest();
 
 protected:
 
@@ -214,5 +210,4 @@ protected:
 	int TeamSize;
 
 	bool bDebugGridEnabled = false;
-	bool bDebugTest = false;
 };

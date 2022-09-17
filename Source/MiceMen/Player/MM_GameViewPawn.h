@@ -43,6 +43,11 @@ public:
 	{
 		return CurrentColumnControls;
 	};
+	UFUNCTION(BlueprintPure)
+		bool IsTurnActive()
+	{
+		return bTurnActive;
+	};
 
 protected:
 	// Called when the game starts or when spawned
@@ -63,6 +68,8 @@ protected:
 		AMM_GridManager* GetGridManager();
 	UFUNCTION(BlueprintPure)
 		AMM_GameMode* GetGamemode();
+
+
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

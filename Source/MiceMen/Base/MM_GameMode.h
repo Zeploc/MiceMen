@@ -50,6 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void BeginGame(EGameType _GameType);
 	UFUNCTION(BlueprintCallable)
+		void SwitchToTest();
+	UFUNCTION(BlueprintCallable)
 		void EndGame();
 
 	void PlayerTurnComplete(AMM_PlayerController* _Player);
@@ -60,7 +62,11 @@ public:
 	/**  Find winning team in a stalemate situation */
 	int GetWinningStalemateTeam();
 
+	UFUNCTION(BlueprintPure)
 	AMM_PlayerController* GetCurrentPlayer() { return CurrentPlayer; }
+
+	UFUNCTION(BlueprintPure)
+		EGameType GetCurrentGameType() { return CurrentGameType; }
 
 	/**
 	 * Sets up team information in the gamemode
@@ -72,7 +78,6 @@ public:
 
 	/**
 	 * When a mouse reaches the end and should score a point.
-	 * 
 	 * @param _Mouse - the mouse that completed
 	 * @return true if the game has reached a win condition
 	 */
@@ -104,6 +109,8 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnGameEnded();
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_OnGameRestarted();
 
 	/** Creates grid and basic setup */
 	bool SetupGridManager();

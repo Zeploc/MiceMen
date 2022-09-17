@@ -8,6 +8,8 @@ Naming
 
 Todo:
 
+- Add test to see if all mice that completed were correctly scored
+- Link sandbox mode
 
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
 - Displace array instead of moving along
