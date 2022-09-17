@@ -13,6 +13,26 @@ class AMM_GridManager;
 class AMM_Mouse;
 class ULocalPlayer;
 
+/** Gameplay mode to choose how it players */
+UENUM(BlueprintType)
+enum class EGameType : uint8
+{
+	E_NONE		UMETA(DisplayName = "None"),
+
+	/** Player versing Player, turn based one screen */
+	E_PVP		UMETA(DisplayName = "Player VS Player"),
+	/** Player versing AI, the AI will automatically take a their turn */
+	E_PVAI		UMETA(DisplayName = "Player VS AI"),
+	/**  For visualizing the game, AI's take turns making their moves until the game ends */
+	E_AIVAI		UMETA(DisplayName = "AI VS AI"),
+	/** No column or turn restrictions, for playing around, testing interactions and movement */
+	E_SANDBOX	UMETA(DisplayName = "Sandbox"),
+	/** Runs an instant test to look for any problems */
+	E_TEST		UMETA(DisplayName = "Test"),
+
+	E_MAX		UMETA(DisplayName = "MAX")
+};
+
 /**
  * Control for the main gameplay, grid systems and players
  */
@@ -26,6 +46,11 @@ public:
 
 	UFUNCTION(BlueprintPure)
 		AMM_GridManager* GetGridManager();
+
+	UFUNCTION(BlueprintCallable)
+		void BeginGame(EGameType _GameType);
+	UFUNCTION(BlueprintCallable)
+		void EndGame();
 
 	void PlayerTurnComplete(AMM_PlayerController* _Player);
 
@@ -63,11 +88,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RestartGame();
 
+	void CleanupGame();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
 
-	void BeginGame();
+
+	void GameReady();
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_OnGameReady();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_OnGameBegun();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void BI_OnGameEnded();
 
 	/** Creates grid and basic setup */
 	bool SetupGridManager();
@@ -113,14 +149,19 @@ protected:
 	TMap<int, int> TeamPoints;
 
 	/* Stored local player to switch controller*/
+	UPROPERTY()
 	ULocalPlayer* FirstLocalPlayer;
 
 	/** When a stalemate is entered, this value will count up per turn */
 	UPROPERTY(BlueprintReadOnly)
 		int StalemateCount = -1;
 
+	/** The current gameplay type */
+	UPROPERTY(BlueprintReadOnly)
+	EGameType CurrentGameType = EGameType::E_NONE;
+
 	/**  Store the second player controller for cleanup */
 	UPROPERTY(BlueprintReadOnly)
-	APlayerController* SecondLocalPlayer;
+	APlayerController* SecondLocalPlayerController;
 };
 

@@ -32,9 +32,17 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
 	void BeginTurn();
+	void TakeRandomTurn();
 
 	void AddColumnAsGrabbable(int Column);
+
+	UFUNCTION(BlueprintPure)
+		TArray<AMM_ColumnControl*> GetCurrentColumnControls()
+	{
+		return CurrentColumnControls;
+	};
 
 protected:
 	// Called when the game starts or when spawned
@@ -79,13 +87,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		AMM_GameMode* MMGameMode;
 
+	UPROPERTY()
 	AMM_GridManager* GridManager;
 
 	FVector HitColumnOffset;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bTurnActive = false;
+		bool bTurnActive = false;
 
+	UPROPERTY()
 	TArray<AMM_ColumnControl*> CurrentColumnControls;
 
 	FDelegateHandle CurrentColumnDelegateHandle;

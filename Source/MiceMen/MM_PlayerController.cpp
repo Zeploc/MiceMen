@@ -30,6 +30,11 @@ void AMM_PlayerController::SetupPlayer(int _Team)
 	CurrentTeam = _Team;
 }
 
+void AMM_PlayerController::SetAsAI()
+{
+	bIsAI = true;
+}
+
 void AMM_PlayerController::BeginTurn()
 {
 	MMPawn->BeginTurn();

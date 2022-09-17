@@ -177,7 +177,7 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 	if (bGrabbed || bLerp)
 	{
 		// Lerp position
-		FVector NewLocation = FMath::Lerp(GetActorLocation(), PreviewLocation, LerpSpeed * DeltaTime);
+		FVector NewLocation = FMath::Lerp(GetActorLocation(), PreviewLocation, FMath::Clamp(LerpSpeed * DeltaTime, 0.0f, 1.0f));
 		SetActorLocation(NewLocation);
 	}
 

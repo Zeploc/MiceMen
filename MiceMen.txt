@@ -8,13 +8,10 @@ Naming
 
 Todo:
 
-Bugs Found
-- Sometimes there is a free slot, and the mouse does not move (not impacting mouse around them)
-- Editor crash when switching grid size (occasionally)
 
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
 - Displace array instead of moving along
-- Replayability/Restart
+- Performance
 
 
 - Class declarations at the top
@@ -33,7 +30,6 @@ Bugs Found
 - Match func order between h and cpp?
 - Order of functions based on process order?
 
-- HUD for score
 - Ratio blocks so there are enough empty ones?
 - Visual/Gameplay
 -----------------------------------------------------------------------

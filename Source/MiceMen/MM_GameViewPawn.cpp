@@ -35,6 +35,7 @@ void AMM_GameViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 }
 
+
 // Called when the game starts or when spawned
 void AMM_GameViewPawn::BeginPlay()
 {
@@ -87,6 +88,28 @@ void AMM_GameViewPawn::BeginTurn()
 			AddColumnAsGrabbable(FallbackColumn);
 			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
 		}
+
+		// If player is AI, auto take the turn
+		if (MMPlayerController->IsAI())
+			TakeRandomTurn();
+	}
+
+}
+
+void AMM_GameViewPawn::TakeRandomTurn()
+{
+	int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
+	CurrentColumn = CurrentColumnControls[RandomIndex];
+	int RandomDirection = FMath::RandBool() ? 1 : -1;
+	if (CurrentColumn)
+	{
+		FVector NewLocation = CurrentColumn->GetActorLocation();
+		NewLocation.Z += RandomDirection * GridManager->GridElementHeight;
+
+		// Don't use pawn grab since its not based on mouse/input
+		CurrentColumn->BeginGrab();
+		CurrentColumn->UpdatePreviewLocation(NewLocation);
+		EndGrab();
 	}
 }
 
@@ -258,7 +281,7 @@ void AMM_GameViewPawn::TurnEnded()
 
 AMM_GridManager* AMM_GameViewPawn::GetGridManager()
 {
-	if (GridManager)
+	if (IsValid(GridManager))
 		return GridManager;
 
 	if (!GetGamemode())

@@ -77,6 +77,7 @@ protected:
 	/** Starts processing all mice, starting with the current players team */
 	void BeginProcessMice();
 
+
 	/** Called once a mouse has been processed */
 	UFUNCTION()
 	void OnMouseProcessed(AMM_Mouse* _Mouse);
@@ -132,6 +133,13 @@ public:
 		void SetDebugVisualGrid(bool _Enabled);
 	UFUNCTION(BlueprintCallable)
 		void ToggleDebugVisualGrid();
+
+	bool DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mouse*>& CurrentTeamMiceToProcess) const;
+
+	UFUNCTION(BlueprintCallable)
+		void EnableTestMode();
+	UFUNCTION(BlueprintCallable)
+		void StartTest();
 
 protected:
 
@@ -206,4 +214,5 @@ protected:
 	int TeamSize;
 
 	bool bDebugGridEnabled = false;
+	bool bDebugTest = false;
 };

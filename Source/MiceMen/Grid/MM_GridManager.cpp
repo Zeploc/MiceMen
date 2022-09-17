@@ -13,6 +13,7 @@
 #include "MiceMen.h"
 #include "MM_GameMode.h"
 #include "MM_PlayerController.h"
+#include "MM_GameViewPawn.h"
 
 // Sets default values
 AMM_GridManager::AMM_GridManager()
@@ -53,6 +54,7 @@ void AMM_GridManager::SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMod
 {
 	GridSize = _GridSize;
 	MMGameMode = _MMGameMode;
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGrid | Setup grid with size %s and gamemode %s"), *GridSize.ToString(), *MMGameMode->GetName());
 }
 
 void AMM_GridManager::RebuildGrid(int _InitialMiceCount)
@@ -109,6 +111,12 @@ void AMM_GridManager::GridCleanUp()
 	}
 	Mice.Empty();
 
+	TeamMice.Empty();
+	MouseColumns.Empty();
+	AvailableColumnTeams.Empty();
+	LastMovedColumn = -1;
+	MiceToProcessMovement.Empty();
+
 	// Remaining grid cleanup
 	if (GridObject)
 	{
@@ -120,6 +128,8 @@ void AMM_GridManager::GridCleanUp()
 
 void AMM_GridManager::PopulateGrid()
 {
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateGrid | Populating grid of size %s"), *GridSize.ToString());
+
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
@@ -207,6 +217,7 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 
 void AMM_GridManager::PopulateMice(int _MicePerTeam)
 {
+
 	// Define team initial position ranges
 	FIntVector2D TeamRanges[] =
 	{
@@ -215,6 +226,8 @@ void AMM_GridManager::PopulateMice(int _MicePerTeam)
 		// Right side, starting to the right of the center blocks to the end of the grid
 		FIntVector2D(TeamSize + GapSize, GridSize.X - 1)
 	};
+
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateMice | Populating mice with team ranges %s and %s"), *TeamRanges[0].ToString(), *TeamRanges[1].ToString());
 
 	// Place mice for each team,
 	// Note: Possibility for more than 2 teams
@@ -310,14 +323,14 @@ void AMM_GridManager::BeginProcessMice()
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::BeginProcessMice | Processing mice for team %i"), iTeam);
 
-		// TODO: Order need to be more "forward/lower" players, would use more iteration/processing
+		// Order needs to be more "forward/lower" players going first
 		// ie FIRST lower players go first, so that higher players fall and can move after
-		// THEN forward players go first so they don't block other mice
+		// THEN forward players (closer towards their end) go first so they don't block other mice
 
 		TArray<AMM_Mouse*> CurrentTeamMiceToProcess;
 
 		// TODO: Improve Logic
-		// NOTE: Storing the Mice and checking/inserting in order, is more efficient than iterating through the whole 
+		// NOTE: Storing the Mice and checking/inserting in order, is more efficient than iterating through the whole grid
 		for (AMM_Mouse* TeamMouse : TeamMice[iTeam])
 		{
 			// Add first one without iteration
@@ -327,16 +340,18 @@ void AMM_GridManager::BeginProcessMice()
 				continue;
 			}
 			
+			// Check through existing ordered mice
 			FIntVector2D Coordinates = TeamMouse->GetCoordinates();
 			for (int i = 0; i < CurrentTeamMiceToProcess.Num(); i++)
 			{
+				// If new mouse is lower than or on the same line current being checked against
 				AMM_Mouse* OrderedMouse = CurrentTeamMiceToProcess[i];
 				if (Coordinates.Y <= OrderedMouse->GetCoordinates().Y)
 				{
-					// Check is same row, that the current mouse is more forward
+					// IF its on the same row, will check the new mouse is more forward
 					if (Coordinates.Y == OrderedMouse->GetCoordinates().Y)
 					{
-						// Check if the mouse is more forward, based on the team
+						// Check if the mouse is more forward, direction based on the team
 						bool isMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
 
 						// Team is going left
@@ -353,12 +368,19 @@ void AMM_GridManager::BeginProcessMice()
 					break;
 				}
 
-				// Not added before any existing, append to end 
-				if (i == CurrentTeamMiceToProcess.Num() - 1)
-					CurrentTeamMiceToProcess.Add(TeamMouse);
 
 			}
+			// Add to end (if not already) to ensure they are added to process
+			CurrentTeamMiceToProcess.AddUnique(TeamMouse);
 		}
+
+#if !UE_BUILD_SHIPPING
+		if (bDebugTest)
+		{
+			if (!DebugCheckAllMiceProcessed(iTeam, CurrentTeamMiceToProcess))
+				return;
+		}
+#endif
 
 		MiceToProcessMovement.Append(CurrentTeamMiceToProcess);
 	}
@@ -366,7 +388,6 @@ void AMM_GridManager::BeginProcessMice()
 	// Start processing, nullptr will ignore cleanup
 	OnMouseProcessed(nullptr);
 }
-
 
 void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 {
@@ -399,6 +420,13 @@ void AMM_GridManager::OnMouseProcessed(AMM_Mouse* _Mouse)
 			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
 
 			MMGameMode->PlayerTurnComplete(MMGameMode->GetCurrentPlayer());
+			if (bDebugTest)
+			{
+				if (AMM_GameViewPawn* GameViewPawn = MMGameMode->GetCurrentPlayer()->GetPawn<AMM_GameViewPawn>())
+				{
+					GameViewPawn->TakeRandomTurn();
+				}
+			}
 		}
 		else
 			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessedMouse | Failed to get Gamemode when completing mice process!"));
@@ -484,7 +512,15 @@ bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosit
 	// Need to account for a second team movement then opens movement for the previously moved team?
 	// 
 	// Make movement
-	_NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
+	if (bDebugTest)
+	{
+		_NextMouse->SetActorLocation(GetWorldTransformFromCoord(_FinalPosition).GetLocation());
+		OnMouseProcessed(_NextMouse);
+	}
+	else
+	{
+		_NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
+	}
 
 	return true;
 }
@@ -754,6 +790,35 @@ void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
 void AMM_GridManager::ToggleDebugVisualGrid()
 {
 	SetDebugVisualGrid(!bDebugGridEnabled);
+}
+
+void AMM_GridManager::StartTest()
+{
+	EnableTestMode();
+	if (AMM_GameViewPawn* GameViewPawn = MMGameMode->GetCurrentPlayer()->GetPawn<AMM_GameViewPawn>())
+	{
+		GameViewPawn->TakeRandomTurn();
+	}
+}
+
+bool AMM_GridManager::DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mouse*>& CurrentTeamMiceToProcess) const
+{
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::BeginProcessMice | Checking ordered mice team %i"), iTeam);
+	for (AMM_Mouse* Mouse : TeamMice[iTeam])
+	{
+		if (Mouse && !CurrentTeamMiceToProcess.Contains(Mouse))
+		{
+			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::BeginProcessMice | MISSING Mouse at position %s"), *Mouse->GetCoordinates().ToString());
+			return false;
+		}
+	}
+	return true;
+}
+
+
+void AMM_GridManager::EnableTestMode()
+{
+	bDebugTest = true;
 }
 
 void AMM_GridManager::DebugVisualiseGrid()

@@ -21,12 +21,18 @@ public:
 
 	void SetupPlayer(int _Team);
 
+	/** Changes player to AI */
+	void SetAsAI();
+
 	void BeginTurn();
 
 	void TurnEnded();
 
 	UFUNCTION(BlueprintPure)
-	int GetCurrentTeam() { return CurrentTeam; }
+		int GetCurrentTeam() { return CurrentTeam; }
+
+	UFUNCTION(BlueprintPure)
+		bool IsAI() { return bIsAI; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,4 +49,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 		int CurrentTeam = -1;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool bIsAI = false;
 };

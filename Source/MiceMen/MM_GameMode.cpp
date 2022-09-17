@@ -29,7 +29,7 @@ void AMM_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SecondLocalPlayer = UGameplayStatics::CreatePlayer(GetWorld());
+	SecondLocalPlayerController = UGameplayStatics::CreatePlayer(GetWorld());
 }
 
 void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
@@ -38,9 +38,9 @@ void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
 
 	if (_EndPlayReason != EEndPlayReason::EndPlayInEditor && _EndPlayReason != EEndPlayReason::Quit)
 	{
-		if (SecondLocalPlayer)
+		if (SecondLocalPlayerController)
 		{
-			UGameplayStatics::RemovePlayer(SecondLocalPlayer, true);
+			UGameplayStatics::RemovePlayer(SecondLocalPlayerController, true);
 		}
 	}
 	if (GridManager)
@@ -51,10 +51,21 @@ void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
 }
 void AMM_GameMode::RestartGame()
 {
+	CleanupGame();
+
+	BeginGame(CurrentGameType);
+}
+
+void AMM_GameMode::CleanupGame()
+{
 	if (GridManager)
 	{
 		GridManager->Destroy();
 		GridManager = nullptr;
+	}
+	if (FirstLocalPlayer && AllPlayers.IsValidIndex(0))
+	{
+		FirstLocalPlayer->SwitchController(AllPlayers[0]);
 	}
 
 	StalemateCount = -1;
@@ -63,21 +74,83 @@ void AMM_GameMode::RestartGame()
 	{
 		RestartPlayer(PlayerController);
 	}
-
-	BeginGame();
 }
 
-void AMM_GameMode::BeginGame()
+void AMM_GameMode::GameReady()
+{
+	BI_OnGameReady();
+}
+void AMM_GameMode::BeginGame(EGameType _GameType)
 {
 	if (AllPlayers.Num() < 2)
+	{
 		return;
+	}
+	if (_GameType == EGameType::E_NONE || _GameType == EGameType::E_MAX)
+	{
+		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::BeginGame | No gametype selected!"));
+		return;
+	}
 
+
+	// Setup
 	SetupGridManager();
 	CheckStalemateMice();
 
-	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
+	CurrentGameType = _GameType;
+	// Setup game type
+	switch (CurrentGameType)
+	{
+	case EGameType::E_PVP:
+		break;
+	case EGameType::E_AIVAI:
+	{
+		if (AllPlayers.IsValidIndex(0))
+		{
+			AllPlayers[0]->SetAsAI();
+		}
 
+		// Fall down
+	}
+	case EGameType::E_PVAI:
+	{
+		if (AllPlayers.IsValidIndex(1))
+		{
+			AllPlayers[1]->SetAsAI();
+		}
+
+		break;
+	}
+	case EGameType::E_SANDBOX:
+		break;
+	case EGameType::E_TEST:
+	{
+		if (GetGridManager())
+		{
+			GridManager->EnableTestMode();
+		}
+		break;
+	}
+	case EGameType::E_MAX:
+		break;
+	default:
+		break;
+	}
+
+
+	// Start random players turn
+	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
 	SwitchTurns(AllPlayers[IntialPlayer]);
+	
+	BI_OnGameBegun();
+}
+
+
+void AMM_GameMode::EndGame()
+{
+	CleanupGame();
+	
+	BI_OnGameEnded();
 }
 
 void AMM_GameMode::AddTeam(int _iTeam)
@@ -104,7 +177,7 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 		// Currently only requires two players
 		if (AllPlayers.Num() >= 2)
 		{
-			BeginGame();
+			GameReady();
 		}
 	}
 }
@@ -123,7 +196,9 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 	// Note: In a network situation this would not be necessary as each client has their own input
 	// And would send events to the server
 	if (FirstLocalPlayer)
+	{
 		FirstLocalPlayer->SwitchController(CurrentPlayer);
+	}
 
 
 	BI_OnSwitchTurns(CurrentPlayer);
@@ -238,6 +313,8 @@ bool AMM_GameMode::SetupGridManager()
 	if (!GridManagerClass)
 		GridManagerClass = AMM_GridManager::StaticClass();
 
+	UE_LOG(LogTemp, Display, TEXT("AMM_GameMode::SetupGridManager | Setting up Grid Manager with class %s"), *GridManagerClass->GetName());
+
 	FIntVector2D NewGridSize = DefaultGridSize;
 
 	// Default Spawn grid at world zero
@@ -259,7 +336,7 @@ bool AMM_GameMode::SetupGridManager()
 	GridManager->RebuildGrid(InitialMiceCount);
 	if (!GridManager)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to spawn Grid Manager!"));
+		UE_LOG(LogTemp, Error, TEXT("AMM_GameMode::SetupGridManager | Failed to spawn Grid Manager!"));
 		return false;
 	}
 
