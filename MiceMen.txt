@@ -14,6 +14,7 @@ Todo:
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
 - Displace array instead of moving along
 - Performance
+- When all mice get stuck at the middle (no way to pass)
 
 
 - Class declarations at the top
@@ -28,12 +29,15 @@ Todo:
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 - Check UPROPERTY and UFUNCTIONS are relevant
 - Move functions else where (librarys/components) where appropriate
+- Inlines for single use functions?
 
 - Match func order between h and cpp?
 - Order of functions based on process order?
 
 - Ratio blocks so there are enough empty ones?
 - Visual/Gameplay
+- UI control starting mice in gameplay
+- UI control grid size in game
 -----------------------------------------------------------------------
 To put in readme:
 - Controls

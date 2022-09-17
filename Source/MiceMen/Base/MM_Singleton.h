@@ -7,7 +7,7 @@
 #include "MM_Singleton.generated.h"
 
 /**
- * 
+ * A global class used for storing variables that can be accessed in editor as well as runtime
  */
 UCLASS(Blueprintable, BlueprintType)
 class MICEMEN_API UMM_Singleton : public UObject
@@ -17,6 +17,7 @@ class MICEMEN_API UMM_Singleton : public UObject
 public:
 	UMM_Singleton(const FObjectInitializer& ObjectInitializer);
 
+	/** The colours for the teams */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		TMap<int, FLinearColor> TeamColours;
 	

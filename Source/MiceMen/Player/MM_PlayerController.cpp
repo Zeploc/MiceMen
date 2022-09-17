@@ -54,6 +54,5 @@ void AMM_PlayerController::BeginTurn()
 
 void AMM_PlayerController::TurnEnded()
 {
-	/*if (MMGameMode)
-		MMGameMode->PlayerTurnComplete(this);*/
+
 }

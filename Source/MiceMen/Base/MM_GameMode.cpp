@@ -36,17 +36,19 @@ void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
 {
 	Super::EndPlay(_EndPlayReason);
 
-	if (_EndPlayReason != EEndPlayReason::EndPlayInEditor && _EndPlayReason != EEndPlayReason::Quit)
+	// Not concerned with cleanup if the application/process is ending as that is handled internally
+	if (_EndPlayReason == EEndPlayReason::EndPlayInEditor || _EndPlayReason == EEndPlayReason::Quit)
 	{
-		if (SecondLocalPlayerController)
-		{
-			UGameplayStatics::RemovePlayer(SecondLocalPlayerController, true);
-		}
+		return;
 	}
-	if (GridManager)
+
+	// Reset and clear
+	CleanupGame();
+
+	// Remove second player (local player persists through world switches)
+	if (SecondLocalPlayerController)
 	{
-		GridManager->Destroy();
-		GridManager = nullptr;
+		UGameplayStatics::RemovePlayer(SecondLocalPlayerController, true);
 	}
 }
 void AMM_GameMode::RestartGame()
@@ -60,33 +62,28 @@ void AMM_GameMode::RestartGame()
 
 void AMM_GameMode::CleanupGame()
 {
+	// Clear grid manager
 	if (GridManager)
 	{
 		GridManager->Destroy();
 		GridManager = nullptr;
 	}
+	// Change back to first local player
 	if (FirstLocalPlayer && AllPlayers.IsValidIndex(0))
 	{
 		FirstLocalPlayer->SwitchController(AllPlayers[0]);
 	}
 
+	// Restore variables
 	StalemateCount = -1;
 	TeamPoints.Empty();
-	for (AMM_PlayerController* PlayerController : AllPlayers)
-	{
-		if (!PlayerController)
-		{
-			continue;
-		}
-		PlayerController->ClearAI();
-		RestartPlayer(PlayerController);
-	}
 }
 
 void AMM_GameMode::GameReady()
 {
 	BI_OnGameReady();
 }
+
 void AMM_GameMode::BeginGame(EGameType _GameType)
 {
 	if (AllPlayers.Num() < 2)
@@ -99,13 +96,24 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		return;
 	}
 
+	// Restart players
+	for (AMM_PlayerController* PlayerController : AllPlayers)
+	{
+		if (!PlayerController)
+		{
+			continue;
+		}
+		PlayerController->ClearAI();
+		RestartPlayer(PlayerController);
+	}
+
 
 	// Setup
 	SetupGridManager();
 	CheckStalemateMice();
 
-	CurrentGameType = _GameType;
 	// Setup game type
+	CurrentGameType = _GameType;
 	switch (CurrentGameType)
 	{
 	case EGameType::E_PVP:
@@ -179,7 +187,7 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 
 	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
 	{
-		// Current length is next index
+		// Current length of players is next player index
 		MMController->SetupPlayer(AllPlayers.Num());
 		AllPlayers.Add(MMController);
 
@@ -208,36 +216,29 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 	CurrentPlayer->BeginTurn();
 
 	// Since this is local, set the new player to active input
-	// Note: In a network situation this would not be necessary as each client has their own input
+	// Note: In a network or splitscreen situation this would not be necessary as each client has their own input
 	// And would send events to the server
 	if (FirstLocalPlayer)
 	{
 		FirstLocalPlayer->SwitchController(CurrentPlayer);
 	}
 
-
 	BI_OnSwitchTurns(CurrentPlayer);
 }
 
 void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 {
-	// Was not the players current turn
+	// Was not the player's current turn
 	if (_Player != CurrentPlayer)
 	{
 		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::TurnEnded | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
 		return;
 	}
-	
-	// Get next player, wrap around if at the end
-	int NextPlayer = AllPlayers.Find(_Player);
-	NextPlayer++;
-	if (NextPlayer > AllPlayers.Num() - 1)
-		NextPlayer = 0;
 
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed players turn with %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+	// End turn for current player
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed player's turn %s as %i"), *CurrentPlayer->GetName(), CurrentPlayer->GetCurrentTeam());
 	CurrentPlayer->TurnEnded();
-
-
+	
 	// If stalemate is active, increase counter for turn taken
 	if (StalemateCount >= 0)
 	{
@@ -259,8 +260,14 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 		return;
 	}
 
-	SwitchTurns(AllPlayers[NextPlayer]);
+	// Get next player, wrap around if at the end
+	int NextPlayer = AllPlayers.Find(_Player);
+	NextPlayer++;
+	if (NextPlayer > AllPlayers.Num() - 1)
+		NextPlayer = 0;
 
+	// Switch to next player
+	SwitchTurns(AllPlayers[NextPlayer]);
 }
 void AMM_GameMode::CheckStalemateMice()
 {
@@ -270,13 +277,12 @@ void AMM_GameMode::CheckStalemateMice()
 		return;
 	}
 
-	// Check if stalemate with grid manager
+	// Check if in stalemate with grid manager
 	if (GetGridManager() && GridManager->IsStalemate())
 	{
 		// Enter stalemate mode and begin counting turns
 		StalemateCount = 0;
 	}	
-
 }
 
 int AMM_GameMode::GetWinningStalemateTeam()
@@ -297,16 +303,21 @@ bool AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
 
 	int CurrentMouseTeam = _Mouse->GetTeam();
 
-	int CurrentScore = 0;
-	if (int* FoundScore = TeamPoints.Find(CurrentMouseTeam))
-	{
-		CurrentScore = *FoundScore;
-	}
-	CurrentScore++;
-	TeamPoints.Add(CurrentMouseTeam, CurrentScore);
+	// Increment score by 1, will set score if the team already exists
+	TeamPoints.Add(CurrentMouseTeam, GetTeamScore(CurrentMouseTeam) + 1);
 
 	// Check win condition and return if the game is complete
 	return CheckWinCondition();
+}
+
+int AMM_GameMode::GetTeamScore(int _Team)
+{
+	int CurrentScore = 0;
+	if (int* FoundScore = TeamPoints.Find(_Team))
+	{
+		CurrentScore = *FoundScore;
+	}
+	return CurrentScore;
 }
 
 bool AMM_GameMode::CheckWinCondition()
@@ -315,12 +326,14 @@ bool AMM_GameMode::CheckWinCondition()
 	TeamPoints.GenerateKeyArray(Teams);
 	for (int iTeam : Teams)
 	{
+		// If a team has scored all their mice
 		if (TeamPoints[iTeam] >= InitialMiceCount)
 		{
 			TeamWon(iTeam);
 			return true;
 		}
 	}
+	// No team has won yet
 	return false;
 }
 
@@ -349,12 +362,12 @@ bool AMM_GameMode::SetupGridManager()
 		NewGridSize = WorldGrid->GridSize;
 	}
 
-
 	// Spawn Grid manager
 	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
 	GridManager->SetupGrid(NewGridSize, this);
 	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
 	GridManager->RebuildGrid(InitialMiceCount);
+
 	if (!GridManager)
 	{
 		UE_LOG(LogTemp, Error, TEXT("AMM_GameMode::SetupGridManager | Failed to spawn Grid Manager!"));

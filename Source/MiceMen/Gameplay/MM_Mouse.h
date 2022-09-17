@@ -6,11 +6,14 @@
 #include "Grid/MM_GridElement.h"
 #include "MM_Mouse.generated.h"
 
-
+/**
+* The delegate for when a mouse has completed their movement to the final position
+* @OwningMouse the mouse that has completed the movement
+*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseMovementEndDelegate, class AMM_Mouse*, OwningMouse);
 
 /**
- * The mouse actor
+ * The mouse grid element which auto moves, scoring a point when reaching the end
  */
 UCLASS()
 class MICEMEN_API AMM_Mouse : public AMM_GridElement
@@ -35,14 +38,14 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void BN_StartMovement(const TArray<FVector>& _Path);
 
+	/** Called when a mouse has reached the end of the grid */
 	void MouseComplete();
-
 
 
 	int GetTeam() {
 		return  iTeam;
 	};
-	bool isMouseComplete() {
+	bool IsMouseComplete() {
 		return  bMouseComplete;
 	};
 
@@ -59,8 +62,10 @@ public:
 	FMouseMovementEndDelegate MouseMovementEndDelegate;
 
 protected:
+	/** The mouse's team */
 	UPROPERTY(BlueprintReadOnly)
 		int iTeam = -1;
+	/** Whether the mouse has reached the other side of the grid */
 	UPROPERTY(BlueprintReadOnly)
 		bool bMouseComplete = false;
 };

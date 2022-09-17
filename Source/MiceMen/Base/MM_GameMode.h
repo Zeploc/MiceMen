@@ -34,7 +34,7 @@ enum class EGameType : uint8
 };
 
 /**
- * Control for the main gameplay, grid systems and players
+ * Control for the main game play, grid systems and players
  */
 UCLASS()
 class MICEMEN_API AMM_GameMode : public AGameModeBase
@@ -47,13 +47,21 @@ public:
 	UFUNCTION(BlueprintPure)
 		AMM_GridManager* GetGridManager();
 
+	/** Starts game with a certain game play type */
 	UFUNCTION(BlueprintCallable)
 		void BeginGame(EGameType _GameType);
+	/** Changes current mode to test and switches players to AI */
 	UFUNCTION(BlueprintCallable)
 		void SwitchToTest();
+	/** Completes the game, and cleans up all grid systems */
 	UFUNCTION(BlueprintCallable)
 		void EndGame();
 
+	/**
+	* Once a player's turn is complete, performs checks
+	* Will either complete the game or go to the next player. 
+	* @param _Player the player who's turn just ended
+	*/
 	void PlayerTurnComplete(AMM_PlayerController* _Player);
 
 	/**  Described as stalemate, when only 1 mouse exists per team */
@@ -62,16 +70,20 @@ public:
 	/**  Find winning team in a stalemate situation */
 	int GetWinningStalemateTeam();
 
+	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
 	AMM_PlayerController* GetCurrentPlayer() { return CurrentPlayer; }
 
 	UFUNCTION(BlueprintPure)
 		EGameType GetCurrentGameType() { return CurrentGameType; }
 
+	/** Get the current score from a given team */
+	UFUNCTION(BlueprintPure)
+		int GetTeamScore(int _Team);
+
 	/**
-	 * Sets up team information in the gamemode
+	 * Sets up team information in the game mode
 	 * such as initial points.
-	 * 
 	 * @param _iTeam - team to setup
 	 */
 	void AddTeam(int _iTeam);
@@ -83,6 +95,7 @@ public:
 	 */
 	bool MouseCompleted(AMM_Mouse* _Mouse);
 
+
 	/**
 	 * Checks if a team has completed all their mice.
 	 * @return true if a team has one and the game should end
@@ -93,36 +106,40 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RestartGame();
 
+	/** Clean up grid and restore to starting state */
 	void CleanupGame();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
 
-
+	/** Called when the game is ready and game play mode can be chosen */
 	void GameReady();
+
+	/** Creates grid and basic setup, uses AMM_WorldGrid to position the grid*/
+	bool SetupGridManager();
+
+	/** When a new player joins, will store and check if the game is ready to start */
+	virtual void PostLogin(APlayerController* _NewPlayer) override;
+
+	/** Will change turns to a different player */
+	void SwitchTurns(AMM_PlayerController* _Player);
+
+	/** Called when a team has completed in getting all their mice to the other side of the grid */
+	void TeamWon(int _iTeam);
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnGameReady();
-
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnGameBegun();
-
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnGameEnded();
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnGameRestarted();
 
-	/** Creates grid and basic setup */
-	bool SetupGridManager();
-
-	virtual void PostLogin(APlayerController* _NewPlayer) override;
-
-	void SwitchTurns(AMM_PlayerController* _Player);
-
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
+		void BI_OnSwitchTurns(AMM_PlayerController* _Player);
 
-	void TeamWon(int _iTeam);
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_OnTeamWon(int _iTeam);
 
@@ -139,15 +156,18 @@ public:
 		int InitialMiceCount = 12;
 
 protected:
+	/** The main manager for the grid elements and systems */
 	UPROPERTY(BlueprintReadOnly)
 	class AMM_GridManager* GridManager;
 
+	/** The grid size if no AMM_WorldGrid exists in the level */
 	UPROPERTY(EditDefaultsOnly)
 		FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
 
 	UPROPERTY(BlueprintReadOnly)
 		TArray<AMM_PlayerController*> AllPlayers;
 
+	/** The current player whos turn it is */
 	UPROPERTY(BlueprintReadOnly)
 		AMM_PlayerController* CurrentPlayer;
 
@@ -163,7 +183,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		int StalemateCount = -1;
 
-	/** The current gameplay type */
+	/** The current game play type */
 	UPROPERTY(BlueprintReadOnly)
 	EGameType CurrentGameType = EGameType::E_NONE;
 

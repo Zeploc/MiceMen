@@ -6,8 +6,12 @@
 #include "GameFramework/PlayerController.h"
 #include "MM_PlayerController.generated.h"
 
+
+class AMM_GameViewPawn;
+class AMM_GameMode;
+
 /**
- * 
+ * The main player controller for a playable user, as well as an AI player
  */
 UCLASS()
 class MICEMEN_API AMM_PlayerController : public APlayerController
@@ -22,12 +26,14 @@ public:
 	void SetupPlayer(int _Team);
 
 	/** Changes player to AI */
-	void SetAsAI();
-	void ClearAI();
+	virtual void SetAsAI();
+	/** Switched player back to human player */
+	virtual void ClearAI();
 
-	void BeginTurn();
-
-	void TurnEnded();
+	/** Turn has begun, start interaction */
+	virtual void BeginTurn();
+	/** Turn has ended */
+	virtual void TurnEnded();
 
 	UFUNCTION(BlueprintPure)
 		int GetCurrentTeam() { return CurrentTeam; }
@@ -43,14 +49,16 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-		class AMM_GameViewPawn* MMPawn;
+		AMM_GameViewPawn* MMPawn;
 
 	UPROPERTY(BlueprintReadOnly)
-		class AMM_GameMode* MMGameMode;
+		AMM_GameMode* MMGameMode;
 
+	/** The team this player is on */
 	UPROPERTY(BlueprintReadOnly)
 		int CurrentTeam = -1;
 
+	/** Whether this player is an AI player or a human player */
 	UPROPERTY(BlueprintReadOnly)
 		bool bIsAI = false;
 };

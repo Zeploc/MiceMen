@@ -7,6 +7,10 @@
 #include "IntVector2D.h"
 #include "MM_GridElement.generated.h"
 
+
+class AMM_ColumnControl;
+class AMM_GridManager;
+
 /**
  * Base class for one grid item
  */
@@ -18,16 +22,22 @@ class MICEMEN_API AMM_GridElement : public AActor
 public:
 	AMM_GridElement();
 
-	void SetupGridInfo(class AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
+	/** Stores initial information for the grid element */
+	virtual void SetupGridInfo(class AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
 
-	void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
+	/** Changes the grid position, updating the column this element is linked to */
+	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
 
-	void CleanUp();
+	/** Called when grid object is cleaning up elements */
+	virtual void CleanUp();
 
 	UFUNCTION(BlueprintPure)
 	FIntVector2D GetCoordinates() {
 		return Coordinates;
 	}
+
+	UFUNCTION(BlueprintPure)
+		AMM_GridManager* GetGridManager();
 
 protected:
 
@@ -35,13 +45,15 @@ protected:
 public:
 
 protected:
+	/** The current grid coordinates of this element */
 	UPROPERTY(BlueprintReadOnly)
 		FIntVector2D Coordinates;
 
+	/** The column this element is currently linked to */
 	UPROPERTY(BlueprintReadOnly)
-	class AMM_ColumnControl* CurrentColumn;
+	AMM_ColumnControl* CurrentColumn;
 
 	UPROPERTY(BlueprintReadOnly)
-		class AMM_GridManager* GridManager;
+		AMM_GridManager* GridManager;
 
 };

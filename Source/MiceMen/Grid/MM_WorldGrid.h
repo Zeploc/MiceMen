@@ -7,6 +7,10 @@
 #include "IntVector2D.h"
 #include "MM_WorldGrid.generated.h"
 
+/**
+ * The main control for the grid creation in the world.
+ * Will take the World Grids transform to spawn the grid along with the grid size.
+ */
 UCLASS()
 class MICEMEN_API AMM_WorldGrid : public AActor
 {
@@ -24,6 +28,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	/** The amount of elements on the x and y axis for the grid */
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 		FIntVector2D GridSize;
 

@@ -9,6 +9,7 @@
 
 class AMM_ColumnControl;
 class AMM_Mouse;
+class AMM_GridElement;
 class AMM_GridBlock;
 class UMM_GridObject; 
 class AMM_GameMode;
@@ -76,11 +77,26 @@ protected:
 
 	/** Starts processing all mice, starting with the current players team */
 	void BeginProcessMice();
+	/** Find all the mice to process and store them in order of position and team */
+	void StoreOrderedMiceToProcess();
 
 
 	/** Called once a mouse has been processed */
 	UFUNCTION()
 	void OnMouseProcessed(AMM_Mouse* _Mouse);
+
+	/**
+	* Checks if there are mice to process, and ends turn if there are no more. 
+	* @return true if there are still mice to process
+	*/
+	bool CheckMiceToProcess();
+
+	/**
+	* Clears from processing, unbinds delegates, and checks if mouse is complete. 
+	* @param _Mouse to cleanup
+	* @return true if cleanup was successful and should continue, false if game is complete
+	*/
+	bool CleanupProcessedMouse(AMM_Mouse* _Mouse);
 
 	/** Handles moving mouse and updating grid */
 	void ProcessMouse(AMM_Mouse* _Mouse);
@@ -99,6 +115,7 @@ protected:
 public:
 	/** Moves the specified column in a direction, either up or down (1 or -1) */
 	void AdjustColumn(int _Column, int _Direction);
+
 
 	UFUNCTION(BlueprintPure)
 		bool IsTeamInColumn(int _Column, int _Team);
@@ -128,26 +145,29 @@ protected:
 #pragma region Debug
 
 public:
-
+	
+	/** Shows a visual for the all the grid elements stored in the grid object */
 	UFUNCTION(BlueprintCallable)
 		void SetDebugVisualGrid(bool _Enabled);
+	/** Toggles the grid visual */
 	UFUNCTION(BlueprintCallable)
 		void ToggleDebugVisualGrid();
 
-	bool DebugCheckAllMiceProcessed(int iTeam, const TArray<AMM_Mouse*>& CurrentTeamMiceToProcess) const;
+	/** Checks all mice are included in the mice that are set to be processed */
+	bool DebugCheckAllMiceProcessed() const;
 
 
 protected:
+	/** Called on tick when the debug grid is enabled, to draw visuals representing grid elements */
+	void DisplayDebugVisualiseGrid();
 
-	void DebugVisualiseGrid();
-
+	/** Displays a path in world space using colored boxes, increasing in size down the path */
 	void DebugPath(TArray<FIntVector2D> ValidPath);
 
 #pragma endregion
 
-
 public:
-
+	/** Overridable classes */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TSubclassOf<AMM_GridBlock> GridBlockClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -155,12 +175,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TSubclassOf<AMM_ColumnControl> ColumnControlClass;
 
+	/** Grid world space width */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementWidth = 100.0f;
+	/** Grid world space height */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		float GridElementHeight = 100.0f;
 
 protected:
+	/** The grid size set by the game mode used to populate the grid*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		FIntVector2D GridSize;
 
@@ -171,19 +194,22 @@ protected:
 
 	/**
 	 * Active list of mice per team.
-	 * The key is the team, the value is the array
+	 * @key the team
+	 * @value the array of mice in the team
 	 */
 	TMap<int, TArray<AMM_Mouse*>> TeamMice;
 
 	/**
 	 * Active list of all the mice per column.
-	 * The key is the column, the value is the array of mice
+	 * @key the column by x axis
+	 * @value the array of mice in that column
 	 */
 	TMap<int, TArray<AMM_Mouse*>> MouseColumns;
 
 	/**
 	 * Active list of teams per column.
-	 * The key is the column, the value is the array of teams on that column
+	 * @key the column by x axis
+	 * @value the array of teams on that column
 	 */
 	TMap<int, TArray<int>> AvailableColumnTeams;
 
@@ -192,22 +218,25 @@ protected:
 	 */
 	TMap<int, AMM_ColumnControl*> ColumnControls;
 
+	/** The last moved column to stop repeat moves */
 	UPROPERTY(BlueprintReadOnly)
 		int LastMovedColumn = -1;
 
+	/** The main control object for grid elements */
 	UPROPERTY()
 	UMM_GridObject* GridObject;
 
 	UPROPERTY(BlueprintReadOnly)
 	AMM_GameMode* MMGameMode;
 
-	/**
-	 * Current Mice to process movement.
-	 */
+	/** Current Mice to process movement from a column change. */
 	TArray<AMM_Mouse*> MiceToProcessMovement;
 
+	/** The current size of the gap between teams along the x axis */
 	int GapSize;
+	/** The amount of columns for one team when initially spawning the mice */
 	int TeamSize;
 
+	/** Whether the debug grid is currently visualized */
 	bool bDebugGridEnabled = false;
 };

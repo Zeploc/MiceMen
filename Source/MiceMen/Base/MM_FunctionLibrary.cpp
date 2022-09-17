@@ -7,9 +7,10 @@
 UMM_Singleton* UMM_FunctionLibrary::MMSingleton = nullptr;
 
 UMM_Singleton* UMM_FunctionLibrary::GetMMSingleton()
-{
+{	
 	if (!MMSingleton)
 	{
+		// Gets the singleton from the engine
 		UMM_Singleton* FoundSingleton = Cast<UMM_Singleton>(GEngine->GameSingleton);
 
 		if (!FoundSingleton)
@@ -17,6 +18,7 @@ UMM_Singleton* UMM_FunctionLibrary::GetMMSingleton()
 		if (!FoundSingleton->IsValidLowLevel())
 			return nullptr;
 
+		// Stores the singleston as a static variable so it only has to cast once
 		MMSingleton = FoundSingleton;
 	}
 
