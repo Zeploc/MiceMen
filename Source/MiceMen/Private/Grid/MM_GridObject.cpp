@@ -100,7 +100,8 @@ bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement*
 	else
 	{
 		// No element (nullptr), add these coordinates to free slots
-		FreeSlots.Add(_Coord);
+		// Note: Add unique is more expensive (but safe), could be improved
+		FreeSlots.AddUnique(_Coord);
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot added at %s"), *_Coord.ToString());
 	}
@@ -112,49 +113,65 @@ bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement*
 
 AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Direction)
 {
-	FIntVector2D LastColumnCoord = { _Column, 0 };
-	if (_Direction == EDirection::E_UP)
+	// TODO: Add tests
+
+	// Get initial values
+	int StartingGridIndex = CoordToIndex(_Column, 0);	
+	int TopBlock = GridSize.Y - 1;
+	AMM_GridElement* WrappingElement = nullptr;
+
+	// Calculate column range based on direction (exclude element that wraps around)
+	int SliceStart = 0;
+	int SliceEnd = TopBlock;
+
+	// Skip first element which will move to the top
+	if (_Direction == EDirection::E_DOWN)
 	{
-		LastColumnCoord = { _Column, GridSize.Y - 1 };
+		SliceStart += 1;
+	}
+	// Skip top element which will move to the bottom
+	else if (_Direction == EDirection::E_UP)
+	{
+		SliceEnd -= 1;
 	}
 
-	// Find Last element and remove from grid
-	AMM_GridElement* LastElement = GetGridElement(LastColumnCoord);
-	SetGridElement(LastColumnCoord, nullptr);
-
-	// TODO: Change from iteration to displacing array??
-	// At least minimum store in new array, then apply it and update elements
-
-	// Slot the last element into the first slot in the loop
-	AMM_GridElement* NextElement = LastElement;
-
-	for (int i = 0; i < GridSize.Y; i++)
+	// Store new column slice
+	TArray<AMM_GridElement*> ColumnSlice;
+	for (int y = SliceStart; y <= SliceEnd; y++)
 	{
-		// y based on direction
-		// if direction is negative/down, will start at the top and go down
-		// Otherwise will start at 0 and go up
-		int y = i;
-		if (_Direction == EDirection::E_DOWN)
+		ColumnSlice.Add(Grid[StartingGridIndex + y]);
+	}
+
+	// Add last element at new position
+	if (_Direction == EDirection::E_DOWN)
+	{
+		// Add bottom element to the end of the array (at the top)
+		WrappingElement = Grid[StartingGridIndex];
+		ColumnSlice.Add(WrappingElement);
+	}
+	else if (_Direction == EDirection::E_UP)
+	{
+		// Insert top element at the start/bottom
+		WrappingElement = Grid[StartingGridIndex + TopBlock];
+		ColumnSlice.Insert(WrappingElement, 0);
+	}
+
+	// Update each element with its new position and store new free slots
+	for (int y = 0; y < ColumnSlice.Num(); y++)
+	{
+		AMM_GridElement* CurrentElement = ColumnSlice[y];
+		const FIntVector2D ElementCoord = { _Column, y };
+
+		// Assign element to new coordinate
+		bool bSetElementSuccess = SetGridElement(ElementCoord, CurrentElement);
+
+		if (!bSetElementSuccess)
 		{
-			y = GridSize.Y - 1 - i;
+			UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::MoveColumnElements | Failed to set element at coord %s"), *ElementCoord.ToString());
 		}
-
-		// Store current element
-		FIntVector2D CurrentSlot = { _Column, y };
-		AMM_GridElement* CurrentElement = GetGridElement(CurrentSlot);
-
-		// Set current slot to next element stored previously
-		SetGridElement(CurrentSlot, NextElement);
-
-#if !UE_BUILD_SHIPPING
-		OutputColumnDisplace(NextElement, CurrentElement, CurrentSlot);
-#endif
-
-		// Save current element for next
-		NextElement = CurrentElement;
 	}
 
-	return LastElement;
+	return WrappingElement;
 }
 
 FIntVector2D UMM_GridObject::GetRandomGridCoord(bool _bFreeSlot /*= true*/) const
@@ -273,21 +290,4 @@ bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirectio
 {
 	int HorizontalDirection = _Direction == EDirection::E_RIGHT ? 1 : -1;
 	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(HorizontalDirection, 0));
-}
-
-void UMM_GridObject::OutputColumnDisplace(AMM_GridElement* NextElement, AMM_GridElement* CurrentElement, FIntVector2D& CurrentSlot)
-{
-	FString NextElementDisplay = "none";
-	if (NextElement)
-	{
-		NextElementDisplay = NextElement->GetName();
-	}
-
-	FString CurrentElementDisplay = "none";
-	if (CurrentElement)
-	{
-		CurrentElementDisplay = CurrentElement->GetName();
-	}
-
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Setting element %s at %s which was previously %s"), *NextElementDisplay, *CurrentSlot.ToString(), *CurrentElementDisplay);
 }

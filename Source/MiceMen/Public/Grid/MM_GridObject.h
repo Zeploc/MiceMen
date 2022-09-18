@@ -93,8 +93,6 @@ public:
 #pragma region Debug
 
 protected:
-	/** For debugging the column adjusting, outputs to log */
-	void OutputColumnDisplace(AMM_GridElement* NextElement, AMM_GridElement* CurrentElement, FIntVector2D& CurrentSlot);
 
 #pragma endregion
 
