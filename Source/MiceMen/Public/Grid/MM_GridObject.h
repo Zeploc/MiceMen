@@ -72,10 +72,6 @@ public:
 	/** Returns true if the given coordinate is with in the X and Y range on the grid */
 	bool IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY) const;
 
-	// TODO Move to mouse for dynamic movement
-	/** Gets a valid path for an element, giving the horizontal direction to move towards */
-	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection = EDirection::E_RIGHT) const;
-
 #pragma endregion
 
 #pragma region Free Slots

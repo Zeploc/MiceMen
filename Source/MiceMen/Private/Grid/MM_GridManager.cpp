@@ -158,12 +158,12 @@ void AMM_GridManager::PopulateGrid()
 		for (int y = 0; y < GridSize.Y; y++)
 		{
 			// Place random block (or center blocks) or an empty slot
-			PopulateGridElement({ x, y }, NewColumnControl);
+			PlaceGridElement({ x, y }, NewColumnControl);
 		}
 	}
 }
 
-void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl)
+void AMM_GridManager::PlaceGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl)
 {
 	// Initial variables
 	FTransform GridElementTransform = GetWorldTransformFromCoord(_NewCoord);
@@ -200,7 +200,7 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::PlaceBlock | Failed to create Grid Block!"));
 			return;
 		}
-		NewGridBlock->SetupGridInfo(this, _NewCoord);
+		NewGridBlock->SetupGridInfo(this, MMGameMode, _NewCoord);
 
 		// Add to column array and attach
 		if (NewColumnControl)
@@ -249,17 +249,15 @@ void AMM_GridManager::PopulateTeams(int _MicePerTeam)
 			// Get initial position for mice based on free slots with the team range
 			FIntVector2D NewRandomMousePosition = GridObject->GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
 
-			// Get final position for mice (auto moves on initial placement)
-			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NewRandomMousePosition, GetDirectionFromTeam(iTeam));
-			NewRandomMousePosition = ValidPath.Last();
-
-			// Get coordinates in world
-			FTransform GridElementTransform = GetWorldTransformFromCoord(NewRandomMousePosition);
-
 			// Setup new Mouse
-			AMM_Mouse* NewMouse = GetWorld()->SpawnActorDeferred<AMM_Mouse>(MouseClass, GridElementTransform);
-			NewMouse->SetupGridInfo(this, NewRandomMousePosition);
-			NewMouse->SetupMouse(iTeam);
+			AMM_Mouse* NewMouse = GetWorld()->SpawnActorDeferred<AMM_Mouse>(MouseClass, FTransform::Identity);
+			NewMouse->SetupGridInfo(this, MMGameMode, NewRandomMousePosition);
+
+			// Setup mouse updates position based on movement path
+			NewMouse->SetupMouse(iTeam, NewRandomMousePosition);
+
+			// Get final position for mice (auto moves on initial placement) in the world
+			FTransform GridElementTransform = GetWorldTransformFromCoord(NewRandomMousePosition);
 			UGameplayStatics::FinishSpawningActor(NewMouse, GridElementTransform);
 
 			// Attach to column and store
@@ -311,6 +309,21 @@ EDirection AMM_GridManager::GetDirectionFromTeam(ETeam _Team) const
 		Direction = EDirection::E_RIGHT;
 	}
 	return Direction;
+}
+
+bool AMM_GridManager::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction) const
+{
+	return GridObject->FindFreeSlotInDirection(_CurrentPosition, _Direction);
+}
+
+bool AMM_GridManager::FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const
+{
+	return GridObject->FindFreeSlotBelow(_CurrentPosition);
+}
+
+bool AMM_GridManager::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const
+{
+	return GridObject->FindFreeSlotAhead(_CurrentPosition, _Direction);
 }
 
 void AMM_GridManager::BeginProcessMice()
@@ -493,14 +506,15 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 		return;
 	}
 
-	FIntVector2D FinalPosition;
-	bool bMovementSuccesful = AttemptPerformMouseMovement(_Mouse, FinalPosition);
+	// Set up delegate for when movement is complete
+	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
+
+	// Attempt to move the mouse
+	bool bMovementSuccesful = _Mouse->AttemptPerformMovement();
 	if (!bMovementSuccesful)
 	{
 		return;
 	}
-
-	ProcessUpdatedMousePosition(_Mouse, FinalPosition);
 
 	// If test mode, move delegate is not fired on mouse, go straight to on processed
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
@@ -531,100 +545,34 @@ bool AMM_GridManager::CheckMouse(AMM_Mouse* _Mouse)
 	return false;
 }
 
-bool AMM_GridManager::AttemptPerformMouseMovement(AMM_Mouse* _Mouse, FIntVector2D& _FinalPosition)
+void AMM_GridManager::RemoveMouse(AMM_Mouse* _Mouse)
 {
-	// Set up delegate for when movement is complete
-	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
-
-	// Move Mouse to next position
-	bool bSuccessfulMovement = MoveMouse(_Mouse, _FinalPosition);
-	if (!bSuccessfulMovement)
-	{
-		// Mouse didn't move, go on to the next mouse
-		ProcessCompletedMouseMovement(_Mouse);
-	}
-
-	return bSuccessfulMovement;
-}
-
-void AMM_GridManager::ProcessUpdatedMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewPosition)
-{
-	// Remove mouse from previous location
-	GridObject->SetGridElement(_Mouse->GetCoordinates(), nullptr);
-	RemoveMouseFromColumn(_Mouse->GetCoordinates().X, _Mouse);
-
+	// Store variables
 	ETeam iTeam = _Mouse->GetTeam();
+	FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
 
-	// If the mouse is at the end
-	if ((_NewPosition.X <= 0 && iTeam == ETeam::E_TEAM_B) || (_NewPosition.X >= GridSize.X - 1 && iTeam == ETeam::E_TEAM_A))
-	{
-		// Mouse Completed
-		MouseGoalReached(_Mouse, iTeam);
-	}
-	// Not at the end, set coordinates to end path position
-	else
-	{
-		GridObject->SetGridElement(_NewPosition, _Mouse);
-		AddMouseToColumn(_NewPosition.X, _Mouse);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMouse | Mouse New position for team %i at %s"), iTeam, *_NewPosition.ToString());
-	}
-}
-
-bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition)
-{
-	// Calculate Path
-	EDirection Direction = GetDirectionFromTeam(_NextMouse->GetTeam());
-	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(_NextMouse->GetCoordinates(), Direction);
-	_FinalPosition = ValidPath.Last();
-
-	// If there is no new position/Path, go to next mouse
-	if (_NextMouse->GetCoordinates() == _FinalPosition)
-	{
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::MoveMouse | Mouse staying at %s"), *_FinalPosition.ToString());
-		return false;
-	}
-
-#if !UE_BUILD_SHIPPING
-	DebugPath(ValidPath);
-#endif
-
-	// TODO: Need to account for a second team movement then opens movement for the previously moved team?
-
-	// If test mode, instantly move mouse
-	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
-	{
-		_NextMouse->SetActorLocation(GetWorldTransformFromCoord(_FinalPosition).GetLocation());
-	}
-	else
-	{
-		// Begin movement (should fire delegate on complete)
-		_NextMouse->BN_StartMovement(PathFromCoordToWorld(ValidPath));
-	}
-
-	return true;
-}
-
-void AMM_GridManager::MouseGoalReached(AMM_Mouse* _NextMouse, ETeam _iTeam)
-{
-	// Check valid
-	if (!_NextMouse)
-	{
-		return;
-	}
-
-	// Events for mouse on goal reached
-	_NextMouse->GoalReached();
+	// Remove mouse from previous location
+	GridObject->SetGridElement(OriginalCoordinates, nullptr);
+	RemoveMouseFromColumn(OriginalCoordinates.X, _Mouse);
 
 	// Cleanup from grid
-	MiceTeams[_iTeam].Remove(_NextMouse);
-	Mice.Remove(_NextMouse);
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::MouseGoalReached | Mouse reached goal for team %i at %s"), _iTeam, *_NextMouse->GetCoordinates().ToString());
+	MiceTeams[iTeam].Remove(_Mouse);
+	Mice.Remove(_Mouse);
+}
 
-	// Check stalemate
-	if (MMGameMode)
-	{
-		MMGameMode->CheckStalemateMice();
-	}
+void AMM_GridManager::MoveMouse(AMM_Mouse* _Mouse, FIntVector2D _NewCoord)
+{
+	FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
+
+	// TODO: Move grid element in grid object?
+	
+	// Remove mouse from previous location
+	GridObject->SetGridElement(OriginalCoordinates, nullptr);
+	RemoveMouseFromColumn(OriginalCoordinates.X, _Mouse);
+
+	// Add mouse to new location
+	GridObject->SetGridElement(_NewCoord, _Mouse);
+	AddMouseToColumn(_NewCoord.X, _Mouse);
 }
 
 void AMM_GridManager::RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse)
@@ -810,20 +758,6 @@ ETeam AMM_GridManager::GetWinningStalemateTeam() const
 }
 
 // ################################ Grid Debugging ################################
-
-void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath) const
-{
-	auto colour = FLinearColor::MakeRandomColor();
-	for (int i = 0; i < ValidPath.Num(); i++)
-	{
-		FVector BoxLocation = GetWorldTransformFromCoord(ValidPath[i]).GetLocation();
-		BoxLocation.Z += GridElementHeight / 2.0;
-		FVector BoxBounds = FVector(40 * ((float)i / (float)10) + 5);
-
-		UKismetSystemLibrary::DrawDebugBox(GetWorld(), BoxLocation, BoxBounds, colour, FRotator::ZeroRotator, 5, 3);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessedMouse | Current path %i: %s"), i, *ValidPath[i].ToString());
-	}
-}
 
 void AMM_GridManager::SetDebugVisualGrid(bool _bEnabled)
 {

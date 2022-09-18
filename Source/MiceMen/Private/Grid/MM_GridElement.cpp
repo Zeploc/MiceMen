@@ -13,10 +13,11 @@ AMM_GridElement::AMM_GridElement()
 
 }
 
-void AMM_GridElement::SetupGridInfo(AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates)
+void AMM_GridElement::SetupGridInfo(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates)
 {
 	GridManager = _GridManager;
 	Coordinates = _GridCoordinates;
+	MMGameMode = _MMGameMode;
 }
 
 void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)

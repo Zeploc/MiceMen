@@ -10,6 +10,7 @@
 
 class AMM_ColumnControl;
 class AMM_GridManager;
+class AMM_GameMode;
 
 /**
  * Base class for one grid item
@@ -26,7 +27,7 @@ public:
 
 public:
 	/** Stores initial information for the grid element */
-	virtual void SetupGridInfo(AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
+	virtual void SetupGridInfo(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates);
 
 	/** Changes the grid position, updating the column this element is linked to */
 	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
@@ -55,9 +56,12 @@ protected:
 	/** The current grid coordinates of this element */
 	UPROPERTY(BlueprintReadOnly)
 	FIntVector2D Coordinates;
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	AMM_GridManager* GridManager;
+
+	UPROPERTY(BlueprintReadOnly)
+	AMM_GameMode* MMGameMode;
 
 	/** The column this element is currently linked to */
 	UPROPERTY(BlueprintReadOnly)

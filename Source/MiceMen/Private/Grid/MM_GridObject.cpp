@@ -275,48 +275,6 @@ bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirectio
 	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(HorizontalDirection, 0));
 }
 
-TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection /*= EDirection::E_RIGHT*/) const
-{
-	// Setup initial variables
-	TArray<FIntVector2D> Path = { _StartingPosition };
-	FIntVector2D LastPosition = _StartingPosition;
-
-	// Loop while valid move
-	bool bHasMove = true;
-	while (bHasMove)
-	{
-		// Set initial valid move to false
-		bHasMove = false;
-		// Start at last position
-		FIntVector2D NewPosition = LastPosition;
-		// If valid move down, has move can be set to true
-		// Store new position before ahead check
-		if (FindFreeSlotBelow(NewPosition))
-		{
-			Path.Add(NewPosition);
-			bHasMove = true;
-		}
-		// If valid move ahead, has move can be set to true
-		if (FindFreeSlotAhead(NewPosition, _HorizontalDirection))
-		{
-			bHasMove = true;
-		}
-
-		// If a valid move was found, set last position and store in path
-		// Otherwise will exit the while loop, having reached the final position
-		if (bHasMove)
-		{
-			LastPosition = NewPosition;
-			// Adds position to end if it was not added (slot was found from ahead check)
-			if (Path.Last() != NewPosition)
-			{
-				Path.Add(NewPosition);
-			}
-		}
-	}
-	return Path;
-}
-
 void UMM_GridObject::OutputColumnDisplace(AMM_GridElement* NextElement, AMM_GridElement* CurrentElement, FIntVector2D& CurrentSlot)
 {
 	FString NextElementDisplay = "none";

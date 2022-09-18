@@ -77,7 +77,7 @@ protected:
 	void PopulateGrid();
 
 	/** Decides what element to place, either block or empty */
-	void PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
+	void PlaceGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
 
 	/** Places initial mice for each team, based on _MicePerTeam */
 	void PopulateTeams(int _MicePerTeam);
@@ -85,6 +85,13 @@ protected:
 #pragma endregion
 
 #pragma region Mouse Processing
+
+public:
+	/** Removes a mouse from the active list and teams */
+	void RemoveMouse(AMM_Mouse* _Mouse);
+
+	/** Moves a mouse to a new location, clearing the old location */
+	void MoveMouse(AMM_Mouse* _Mouse, FIntVector2D _NewCoord);
 
 protected:
 		
@@ -97,21 +104,11 @@ protected:
 	/** Ends the players turn when there are no more mice to process. */
 	void ProcessMiceComplete();
 
-	// TODO: MOVE TO MOUSE and Add as friend
 	/** Handles moving mouse and updating grid */
 	void ProcessMouse(AMM_Mouse* _Mouse);
 
 	/** Checks mouse is valid to process, will continue to next mouse if it is not */
 	bool CheckMouse(AMM_Mouse* _Mouse);
-
-	/** Attempt to move the mouse, return true is movement successful */
-	bool AttemptPerformMouseMovement(AMM_Mouse* _Mouse, FIntVector2D& _FinalPosition);
-
-	/** Update the grid based on the new position */
-	void ProcessUpdatedMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewPosition);
-
-	/** Move mouse to next valid position, returns true if mouse moved */
-	bool MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition);
 
 	/** Called once a mouse has been processed */
 	UFUNCTION()
@@ -122,9 +119,6 @@ protected:
 	* @param _Mouse to cleanup
 	*/
 	void CleanupProcessedMouse(AMM_Mouse* _Mouse);
-
-	/** When a mouse has reached the end of the grid for their team */
-	void MouseGoalReached(AMM_Mouse* _NextMouse, ETeam _iTeam);
 
 #pragma endregion
 
@@ -154,6 +148,7 @@ protected:
 
 #pragma region Helpers
 
+public:
 	/** Helpers for converting coordinates to world and back */
 	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const;
 
@@ -162,7 +157,17 @@ protected:
 	/** Direction along the grid the team goes */
 	EDirection GetDirectionFromTeam(ETeam _Team) const;
 
+	/** Will check one slot in a given direction, and return true if its free, setting CurrentPosition */
+	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction) const;
+
+	/** Will check for the lowest possible free slot below without passing through a taken element, and return true if its free, setting CurrentPosition */
+	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const;
+
+	/** Will check one slot ahead horizontally, based on the given direction, and return true if its free, setting CurrentPosition */
+	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const;
+
 #pragma endregion
+
 
 #pragma region Debug
 
@@ -184,8 +189,6 @@ protected:
 	/** Called on tick when the debug grid is enabled, to draw visuals representing grid elements */
 	void DisplayDebugVisualiseGrid();
 
-	/** Displays a path in world space using colored boxes, increasing in size down the path */
-	void DebugPath(TArray<FIntVector2D> ValidPath) const;
 
 #pragma endregion
 

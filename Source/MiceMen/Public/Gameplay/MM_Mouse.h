@@ -41,7 +41,7 @@ protected:
 
 public:
 	/** Stores team */
-	void SetupMouse(ETeam _Team);
+	void SetupMouse(ETeam _Team, FIntVector2D& _FinalGridCoordinates);
 
 	ETeam GetTeam() const { return CurrentTeam; };
 
@@ -59,20 +59,41 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void BN_StartMovement(const TArray<FVector>& _Path);
 
+	/** Attempt to move the mouse, return true is movement successful */
+	bool AttemptPerformMovement();
+
+	/** Gets a valid path for this mouse, horizontal direction based on the team to move towards */
+	TArray<FIntVector2D> GetMovementPath() const;
+
+protected:
+	/** Move mouse to next valid position, returns true if mouse moved */
+	bool BeginMove(FIntVector2D& _NewPosition);
+
+	/** Update the grid based on the new position */
+	void ProcessUpdatedPosition(const FIntVector2D& _NewPosition);
+
+
 #pragma endregion
 
 #pragma region Goal
 
 public:
-	/** Called when a mouse has reached the end of the grid */
-	void GoalReached();
-
 	bool HasReachedEnd() const { return bGoalReached; };
 
 protected:
+	/** When a mouse has reached the end of the grid for their team */
+	void GoalReached();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnGoalReached();
+
+#pragma endregion
+
+#pragma region Debug
+
+protected:
+	/** Displays a path in world space using colored boxes, increasing in size down the path */
+	void DebugPath(TArray<FIntVector2D> ValidPath) const;
 
 #pragma endregion
 
