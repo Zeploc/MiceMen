@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Base/MM_Enums.h"
 #include "MM_ColumnControl.generated.h"
 
 /**
@@ -98,11 +99,11 @@ public:
 	void EndGrab();
 
 	/** Toggles whether the column should display as interactable, and for which team */
-	void DisplayGrabbable(bool _bGrabbable, int _Team = -1);
+	void DisplayGrabbable(bool _bGrabbable, ETeam _Team = ETeam::E_NONE);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_DisplayGrabbable(bool _bGrabbable, int _Team);
+		void BI_DisplayGrabbable(bool _bGrabbable, ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_BeginGrab();

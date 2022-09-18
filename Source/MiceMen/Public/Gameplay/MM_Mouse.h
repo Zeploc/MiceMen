@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Grid/MM_GridElement.h"
+#include "Base/MM_Enums.h"
 #include "MM_Mouse.generated.h"
 
 /**
@@ -40,9 +41,9 @@ protected:
 
 public:
 	/** Stores team */
-	void SetupMouse(int _iTeam);
+	void SetupMouse(ETeam _Team);
 
-	int GetTeam() { return iTeam; };
+	ETeam GetTeam() { return CurrentTeam; };
 
 #pragma endregion
 
@@ -82,7 +83,7 @@ protected:
 protected:
 	/** The mouse's team */
 	UPROPERTY(BlueprintReadOnly)
-		int iTeam = -1;
+		ETeam CurrentTeam = ETeam::E_NONE;
 
 #pragma endregion
 

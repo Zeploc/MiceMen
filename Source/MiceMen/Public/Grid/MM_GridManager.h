@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Grid/IntVector2D.h"
+#include "Base/MM_Enums.h"
 #include "MM_GridManager.generated.h"
 
 class AMM_ColumnControl;
@@ -36,7 +37,7 @@ public:
 	bool IsStalemate() const;
 
 	/** When a stalemate win condition occurs, get the further ahead mouse as the winning team */
-	int GetWinningStalemateTeam() const;
+	ETeam GetWinningStalemateTeam() const;
 
 protected:
 	// Begin and End play events
@@ -106,7 +107,7 @@ protected:
 	void CleanupProcessedMouse(AMM_Mouse* _Mouse);
 
 	/** When a mouse has reached the end of the grid for their team */
-	void MouseGoalReached(AMM_Mouse* _NextMouse, int _iTeam);		
+	void MouseGoalReached(AMM_Mouse* _NextMouse, ETeam _iTeam);
 
 #pragma endregion
 
@@ -118,10 +119,10 @@ public:
 
 
 	UFUNCTION(BlueprintPure)
-		bool IsTeamInColumn(int _Column, int _Team);
+		bool IsTeamInColumn(int _Column, ETeam _Team);
 
 	UFUNCTION(BlueprintPure)
-		TArray<int> GetTeamColumns(int _Team);
+		TArray<int> GetTeamColumns(ETeam _Team);
 
 	UFUNCTION(BlueprintPure)
 		TMap<int, AMM_ColumnControl*> GetColumnControls() {	return ColumnControls; }
@@ -150,7 +151,7 @@ public:
 	
 	/** Shows a visual for the all the grid elements stored in the grid object */
 	UFUNCTION(BlueprintCallable)
-		void SetDebugVisualGrid(bool _Enabled);
+		void SetDebugVisualGrid(bool _bEnabled);
 
 	/** Toggles the grid visual */
 	UFUNCTION(BlueprintCallable)
@@ -234,7 +235,7 @@ protected:
 	 * @key the team
 	 * @value the array of mice in the team
 	 */
-	TMap<int, TArray<AMM_Mouse*>> MiceTeams;
+	TMap<ETeam, TArray<AMM_Mouse*>> MiceTeams;
 
 
 #pragma endregion
@@ -254,7 +255,7 @@ protected:
 	 * @key the column by x axis
 	 * @value the array of teams on that column
 	 */
-	TMap<int, TArray<int>> OccupiedTeamsPerColumn;
+	TMap<int, TArray<ETeam>> OccupiedTeamsPerColumn;
 
 	/**
 	 * Interactable controls for each column.

@@ -152,7 +152,7 @@ void AMM_GridManager::PopulateGrid()
 
 		// Store new column in for game play use
 		MiceColumns.Add(x, TArray<AMM_Mouse*>());
-		OccupiedTeamsPerColumn.Add(x, TArray<int>());
+		OccupiedTeamsPerColumn.Add(x, TArray<ETeam>());
 
 		// For each row, add to column array
 		for (int y = 0; y < GridSize.Y; y++)
@@ -221,19 +221,19 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 void AMM_GridManager::PopulateMice(int _MicePerTeam)
 {
 	// Define team initial position ranges
-	FIntVector2D TeamRanges[] =
-	{
-		// Left size, to the size of team size
-		FIntVector2D(0, TeamSize - 1),
-		// Right side, starting to the right of the center blocks to the end of the grid
-		FIntVector2D(TeamSize + GapSize, GridSize.X - 1)
-	};
+	TMap<ETeam, FIntVector2D> TeamRanges;
 
-	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateMice | Populating mice with team ranges %s and %s"), *TeamRanges[0].ToString(), *TeamRanges[1].ToString());
+	// Left size, to the size of team size
+	TeamRanges.Add(ETeam::E_TEAM_A, FIntVector2D(0, TeamSize - 1));
+
+	// Right side, starting to the right of the center blocks to the end of the grid
+	TeamRanges.Add(ETeam::E_TEAM_B, FIntVector2D(TeamSize + GapSize, GridSize.X - 1));
+
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateMice | Populating mice with team ranges %s and %s"), *TeamRanges[ETeam::E_TEAM_A].ToString(), *TeamRanges[ETeam::E_TEAM_B].ToString());
 
 	// Place mice for each team,
 	// Note: Possibility for more than 2 teams
-	for (int iTeam = 0; iTeam < 2; iTeam++)
+	for (ETeam iTeam = ETeam::E_TEAM_A; iTeam < ETeam::E_MAX; iTeam++)
 	{
 		// Add initial team array and store in game mode
 		MiceTeams.Add(iTeam, TArray<AMM_Mouse*>());
@@ -250,7 +250,7 @@ void AMM_GridManager::PopulateMice(int _MicePerTeam)
 			FIntVector2D NewRandomMousePosition = GridObject->GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
 
 			// Get final position for mice (auto moves on initial placement)
-			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NewRandomMousePosition, iTeam == 0 ? 1 : -1);
+			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NewRandomMousePosition, iTeam == ETeam::E_TEAM_A ? 1 : -1);
 			NewRandomMousePosition = ValidPath.Last();
 
 			// Get coordinates in world
@@ -325,17 +325,20 @@ void AMM_GridManager::BeginProcessMice()
 
 void AMM_GridManager::StoreOrderedMiceToProcess()
 {
-	TArray<int> OrderedTeamsToProcess;
+	TArray<ETeam> OrderedTeamsToProcess;
 
 	if (MMGameMode && MMGameMode->GetCurrentPlayer())
 	{
 		// Order the process of mice, starting with the current player's team
-		int CurrentPlayerTeam = MMGameMode->GetCurrentPlayer()->GetCurrentTeam();
+		ETeam CurrentPlayerTeam = MMGameMode->GetCurrentPlayer()->GetCurrentTeam();
 		OrderedTeamsToProcess.Add(CurrentPlayerTeam);
-		OrderedTeamsToProcess.Add(1 - CurrentPlayerTeam);
+		ETeam SecondTeam = ETeam::E_TEAM_B;
+		if (CurrentPlayerTeam == ETeam::E_TEAM_B)
+			SecondTeam = ETeam::E_TEAM_A;
+		OrderedTeamsToProcess.Add(SecondTeam);
 	}
 
-	for (int iTeam : OrderedTeamsToProcess)
+	for (ETeam iTeam : OrderedTeamsToProcess)
 	{
 		// Mice for this team not added, cannot process
 		if (!MiceTeams.Contains(iTeam))
@@ -378,7 +381,7 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 						bool bIsMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
 
 						// Team is going left
-						if (iTeam == 1)
+						if (iTeam == ETeam::E_TEAM_B)
 						{
 							bIsMoreForward = Coordinates.X < OrderedMouse->GetCoordinates().X;
 						}
@@ -419,7 +422,7 @@ void AMM_GridManager::ProcessCompletedMouseMovement(AMM_Mouse* _Mouse)
 			return;
 		}
 
-		int MouseTeam = _Mouse->GetTeam();
+		ETeam MouseTeam = _Mouse->GetTeam();
 
 		MMGameMode->AddScore(MouseTeam);
 
@@ -506,10 +509,10 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	GridObject->SetGridElement(_Mouse->GetCoordinates(), nullptr);
 	RemoveMouseFromColumn(_Mouse->GetCoordinates().X, _Mouse);
 
-	int iTeam = _Mouse->GetTeam();
+	ETeam iTeam = _Mouse->GetTeam();
 
 	// If the mouse is at the end
-	if ((FinalPosition.X <= 0 && iTeam == 1) || (FinalPosition.X >= GridSize.X - 1 && iTeam == 0))
+	if ((FinalPosition.X <= 0 && iTeam == ETeam::E_TEAM_B) || (FinalPosition.X >= GridSize.X - 1 && iTeam == ETeam::E_TEAM_A))
 	{
 		// Mouse Completed
 		MouseGoalReached(_Mouse, iTeam);
@@ -532,7 +535,7 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition)
 {
 	// Calculate Path
-	int Direction = _NextMouse->GetTeam() == 0 ? 1 : -1;
+	int Direction = _NextMouse->GetTeam() == ETeam::E_TEAM_A ? 1 : -1;
 	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(_NextMouse->GetCoordinates(), Direction);
 	_FinalPosition = ValidPath.Last();
 
@@ -563,7 +566,7 @@ bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosit
 	return true;
 }
 
-void AMM_GridManager::MouseGoalReached(AMM_Mouse* _NextMouse, int _iTeam)
+void AMM_GridManager::MouseGoalReached(AMM_Mouse* _NextMouse, ETeam _iTeam)
 {
 	// Check valid
 	if (!_NextMouse)
@@ -591,7 +594,7 @@ void AMM_GridManager::RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse)
 	MiceColumns[_Column].Remove(_Mouse);
 	
 	// Check the column for this mouse's team
-	int TeamToCheck = _Mouse->GetTeam();
+	ETeam TeamToCheck = _Mouse->GetTeam();
 	// Remove from available list initially
 	OccupiedTeamsPerColumn[_Column].Remove(TeamToCheck);
 
@@ -613,7 +616,7 @@ void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
 	MiceColumns[_Column].Add(_Mouse);
 
 	// Check the column for this mouse's team
-	int TeamToCheck = _Mouse->GetTeam();
+	ETeam TeamToCheck = _Mouse->GetTeam();
 
 	// Add team id if not already in array for this column
 	OccupiedTeamsPerColumn[_Column].AddUnique(TeamToCheck);
@@ -660,7 +663,7 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 	BeginProcessMice();
 }
 
-bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
+bool AMM_GridManager::IsTeamInColumn(int _Column, ETeam _Team)
 {
 	if (!OccupiedTeamsPerColumn.Contains(_Column))
 	{
@@ -670,7 +673,7 @@ bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
 	return OccupiedTeamsPerColumn[_Column].Contains(_Team);
 }
 
-TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
+TArray<int> AMM_GridManager::GetTeamColumns(ETeam _Team)
 {
 	TArray<int> AvailableColumns;
 
@@ -706,9 +709,9 @@ TArray<int> AMM_GridManager::GetTeamColumns(int _Team)
 
 bool AMM_GridManager::IsStalemate() const
 {
-	TArray<int> MiceTeamsArray;
+	TArray<ETeam> MiceTeamsArray;
 	MiceTeams.GenerateKeyArray(MiceTeamsArray);
-	for (int iTeam : MiceTeamsArray)
+	for (ETeam iTeam : MiceTeamsArray)
 	{
 		// If any team doesn't have one mice, its not a "stalemate"
 		if (MiceTeams[iTeam].Num() != 1)
@@ -720,19 +723,25 @@ bool AMM_GridManager::IsStalemate() const
 	return true;
 }
 
-int AMM_GridManager::GetWinningStalemateTeam() const
+ETeam AMM_GridManager::GetWinningStalemateTeam() const
 {
-	TArray<int> TeamDistances;
-	TArray<int> MiceTeamsArray;
+	TMap<ETeam, int> TeamDistances;
+	TArray<ETeam> MiceTeamsArray;
 	MiceTeams.GenerateKeyArray(MiceTeamsArray);
-	TeamDistances.SetNum(MiceTeams.Num());
-	for (int iTeam : MiceTeamsArray)
+
+	for (ETeam iTeam = ETeam::E_TEAM_A; iTeam < ETeam::E_MAX; iTeam++)
+	{
+		TeamDistances.Add(iTeam, 0);
+	}
+	for (ETeam iTeam : MiceTeamsArray)
 	{
 		if (MiceTeams[iTeam].IsValidIndex(0))
 		{
 			AMM_Mouse* RemainingMouse = MiceTeams[iTeam][0];
+
+			int GridMultiply = iTeam == ETeam::E_TEAM_A ? 0 : 1;
 			// Get the distance from the team starting point
-			int Distance = FMath::Abs(((GridSize.X - 1) * iTeam) - RemainingMouse->GetCoordinates().X);
+			int Distance = FMath::Abs(((GridSize.X - 1) * GridMultiply) - RemainingMouse->GetCoordinates().X);
 
 			TeamDistances[iTeam] = Distance;
 		}
@@ -742,26 +751,24 @@ int AMM_GridManager::GetWinningStalemateTeam() const
 	if (TeamDistances.Num() >= 2)
 	{
 		// Check if same distance, tie situation
-		if (TeamDistances[0] == TeamDistances[1])
+		if (TeamDistances[ETeam::E_TEAM_A] == TeamDistances[ETeam::E_TEAM_B])
 		{
 			// -1 meaning tie, ie no winner
-			return -1;
+			return ETeam::E_NONE;
 		}
 
 		// Check winning team based on further distance
-		int WinningTeam = 0;
-		if (TeamDistances[1] > TeamDistances[0])
+		ETeam WinningTeam = ETeam::E_TEAM_A;
+		if (TeamDistances[ETeam::E_TEAM_B] > TeamDistances[ETeam::E_TEAM_A])
 		{
-			WinningTeam = 1;
+			WinningTeam = ETeam::E_TEAM_B;
 		}
 		return WinningTeam;
-	}
-	
+	}	
 
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::GetWinningStalemateTeam | Failed to get winning stalemate team, returned -2!"));
 
-	return -2;
-
+	return ETeam::E_MAX;
 }
 
 // ################################ Grid Debugging ################################
@@ -792,10 +799,10 @@ void AMM_GridManager::ToggleDebugVisualGrid()
 
 bool AMM_GridManager::DebugCheckAllMiceProcessed() const
 {
-	for (int iTeam = 0; iTeam < 2; iTeam++)
+	for (ETeam CurrentTeam = ETeam::E_TEAM_A; CurrentTeam < ETeam::E_MAX; CurrentTeam++)
 	{
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::BeginProcessMice | Checking ordered mice team %i"), iTeam);
-		for (AMM_Mouse* Mouse : MiceTeams[iTeam])
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::BeginProcessMice | Checking ordered mice team %i"), CurrentTeam);
+		for (AMM_Mouse* Mouse : MiceTeams[CurrentTeam])
 		{
 			if (Mouse && !MiceToProcessMovement.Contains(Mouse))
 			{

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Base/MM_Enums.h"
 #include "MM_PlayerController.generated.h"
 
 
@@ -34,7 +35,7 @@ protected:
 #pragma region Setup
 
 public:
-	void SetupPlayer(int _Team);
+	void SetupPlayer(ETeam _Team);
 
 	/** Changes player to AI */
 	virtual void SetAsAI();
@@ -59,7 +60,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintPure)
-		int GetCurrentTeam() { return CurrentTeam; }
+		ETeam GetCurrentTeam() { return CurrentTeam; }
 
 	UFUNCTION(BlueprintPure)
 		bool IsAI() { return bIsAI; }
@@ -84,7 +85,7 @@ protected:
 protected:
 	/** The team this player is on */
 	UPROPERTY(BlueprintReadOnly)
-		int CurrentTeam = -1;
+		ETeam CurrentTeam = ETeam::E_NONE;
 
 	/** Whether this player is an AI player or a human player */
 	UPROPERTY(BlueprintReadOnly)

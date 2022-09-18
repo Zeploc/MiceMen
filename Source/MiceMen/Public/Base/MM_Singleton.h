@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "MM_Enums.h"
 #include "MM_Singleton.generated.h"
 
 /**
@@ -19,6 +20,6 @@ public:
 
 	/** The colours for the teams */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TMap<int, FLinearColor> TeamColours;
+		TMap<ETeam, FLinearColor> TeamColours;
 	
 };

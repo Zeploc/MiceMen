@@ -22,9 +22,9 @@ void AMM_Mouse::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMM_Mouse::SetupMouse(int _iTeam)
+void AMM_Mouse::SetupMouse(ETeam _Team)
 {
-	iTeam = _iTeam;
+	CurrentTeam = _Team;
 }
 
 void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& _Path)

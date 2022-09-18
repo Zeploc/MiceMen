@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Grid/IntVector2D.h"
+#include "Base/MM_Enums.h"
 #include "MM_GameMode.generated.h"
 
 class APlayerController;
@@ -12,27 +13,6 @@ class AMM_PlayerController;
 class AMM_GridManager;
 class AMM_Mouse;
 class ULocalPlayer;
-
-/** Gameplay mode to choose how it players */
-UENUM(BlueprintType)
-enum class EGameType : uint8
-{
-	E_NONE		UMETA(DisplayName = "None"),
-
-	/** Player versing Player, turn based one screen */
-	E_PVP		UMETA(DisplayName = "Player VS Player"),
-	/** Player versing AI, the AI will automatically take a their turn */
-	E_PVAI		UMETA(DisplayName = "Player VS AI"),
-	/**  For visualizing the game, AI's take turns making their moves until the game ends */
-	E_AIVAI		UMETA(DisplayName = "AI VS AI"),
-	/** No column or turn restrictions, for playing around, testing interactions and movement */
-	E_SANDBOX	UMETA(DisplayName = "Sandbox"),
-	/** Runs an instant test to look for any problems */
-	E_TEST		UMETA(DisplayName = "Test"),
-
-
-	E_MAX		UMETA(DisplayName = "MAX")
-};
 
 /**
  * Control for the main game play, grid systems and players
@@ -143,20 +123,20 @@ public:
 	 * such as initial points.
 	 * @param _iTeam - team to setup
 	 */
-	void AddTeam(int _iTeam);
+	void AddTeam(ETeam _Team);
 
 	/**
 	 * Checks if a team has completed all their mice.
 	 * @return true if a team has won and the game should end
 	 */
-	bool HasTeamWon(int _TeamToCheck);
+	bool HasTeamWon(ETeam _TeamToCheck) const;
 
 protected:
 	/** Called when a team has completed in getting all their mice to the other side of the grid */
-	void TeamWon(int _iTeam);
+	void TeamWon(ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnTeamWon(int _iTeam);
+		void BI_OnTeamWon(ETeam _Team);
 
 #pragma endregion
 
@@ -165,14 +145,14 @@ protected:
 public:
 	/** Get the current score from a given team */
 	UFUNCTION(BlueprintPure)
-		int GetTeamScore(int _Team);
+		int GetTeamScore(ETeam _Team) const;
 
 	/**
 		* When a mouse reaches the end and should score a point.
 		* @param _Mouse - the mouse that completed
 		* @return true if the game has reached a win condition
 		*/
-	void AddScore(int _Team);
+	void AddScore(ETeam _Team);
 
 #pragma endregion
 
@@ -183,7 +163,7 @@ public:
 	void CheckStalemateMice();
 
 	/**  Find winning team in a stalemate situation */
-	int GetWinningStalemateTeam();
+	ETeam GetWinningStalemateTeam();
 
 #pragma endregion
 
@@ -207,7 +187,7 @@ protected:
 
 	/** The current team points, Team ID to number of points */
 	UPROPERTY(BlueprintReadOnly)
-		TMap<int, int> TeamPoints;
+		TMap<ETeam, int> TeamPoints;
 
 	/** When a stalemate is entered, this value will count up per turn */
 	UPROPERTY(BlueprintReadOnly)

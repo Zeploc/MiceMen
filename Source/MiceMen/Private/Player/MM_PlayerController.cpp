@@ -25,7 +25,7 @@ void AMM_PlayerController::OnPossess(APawn* _Pawn)
 	MMPawn = Cast<AMM_GameViewPawn>(_Pawn);
 }
 
-void AMM_PlayerController::SetupPlayer(int _Team)
+void AMM_PlayerController::SetupPlayer(ETeam _Team)
 {
 	CurrentTeam = _Team;
 }

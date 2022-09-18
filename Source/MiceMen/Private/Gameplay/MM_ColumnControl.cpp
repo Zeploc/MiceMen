@@ -167,7 +167,7 @@ void AMM_ColumnControl::LockInCollumn()
 	}
 }
 
-void AMM_ColumnControl::DisplayGrabbable(bool _bGrabbable, int _Team /* = -1*/)
+void AMM_ColumnControl::DisplayGrabbable(bool _bGrabbable, ETeam _Team /* = ETeam::E_NONE*/)
 {
 	BI_DisplayGrabbable(_bGrabbable, _Team);
 }

@@ -173,9 +173,9 @@ void AMM_GameMode::EndGame()
 	BI_OnGameEnded();
 }
 
-void AMM_GameMode::AddTeam(int _iTeam)
+void AMM_GameMode::AddTeam(ETeam _Team)
 {
-	TeamPoints.Add(_iTeam, 0);
+	TeamPoints.Add(_Team, 0);
 }
 
 void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
@@ -184,8 +184,13 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 
 	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
 	{
+		ETeam NewTeam = ETeam::E_TEAM_A;
+		// Second player joins team B
+		if (AllPlayers.Num() >= 1)
+			NewTeam = ETeam::E_TEAM_B;
+
 		// Current length of players is next player index
-		MMController->SetupPlayer(AllPlayers.Num());
+		MMController->SetupPlayer(NewTeam);
 		AllPlayers.Add(MMController);
 
 		// Store first local player
@@ -281,7 +286,7 @@ void AMM_GameMode::CheckStalemateMice()
 	}	
 }
 
-int AMM_GameMode::GetWinningStalemateTeam()
+ETeam AMM_GameMode::GetWinningStalemateTeam()
 {
 	if (GridManager)
 	{
@@ -289,10 +294,10 @@ int AMM_GameMode::GetWinningStalemateTeam()
 	}
 
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::GetWinningStalemateTeam | Failed to get winning stalemate team, GridManager not valid!"));
-	return 0;
+	return ETeam::E_NONE;
 }
 
-void AMM_GameMode::AddScore(int _Team)
+void AMM_GameMode::AddScore(ETeam _Team)
 {
 	// Increment score by 1, will set score if the team already exists
 	TeamPoints.Add(_Team, GetTeamScore(_Team) + 1);
@@ -304,17 +309,17 @@ void AMM_GameMode::AddScore(int _Team)
 	}
 }
 
-int AMM_GameMode::GetTeamScore(int _Team)
+int AMM_GameMode::GetTeamScore(ETeam _Team) const
 {
 	int CurrentScore = 0;
-	if (int* FoundScore = TeamPoints.Find(_Team))
+	if (const int* FoundScore = TeamPoints.Find(_Team))
 	{
 		CurrentScore = *FoundScore;
 	}
 	return CurrentScore;
 }
 
-bool AMM_GameMode::HasTeamWon(int _TeamToCheck)
+bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
 {
 	// If a team has scored all their mice
 	if (TeamPoints[_TeamToCheck] >= InitialMiceCount)
@@ -370,14 +375,12 @@ bool AMM_GameMode::SetupGridManager()
 	return true;
 }
 
-
-
-void AMM_GameMode::TeamWon(int _iTeam)
+void AMM_GameMode::TeamWon(ETeam _Team)
 {
-	if (_iTeam < -1)
+	if (_Team == ETeam::E_MAX)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Valid Team won!"));
 		return;
 	}
-	BI_OnTeamWon(_iTeam);
+	BI_OnTeamWon(_Team);
 }
