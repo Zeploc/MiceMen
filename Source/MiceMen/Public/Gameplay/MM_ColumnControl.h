@@ -74,11 +74,11 @@ public:
 
 	FVector GetOriginalColumnLocation() { return OriginalColumnLocation; }
 
-	int GetCurrentColumnDirection() { return CurrentDirectionChange; }
+	EDirection GetCurrentColumnDirection() { return CurrentDirectionChange; }
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)
-		void BN_DirectionChanged(int _NewDirection);
+		void BN_DirectionChanged(EDirection _NewDirection);
 
 protected:
 	/**
@@ -131,7 +131,7 @@ protected:
 	 * The active grid slot change, 1 for up, -1 for down, 0 for no change.
 	 * Updated while the player interacts with the column
 	 */
-	int CurrentDirectionChange = 0;
+	EDirection CurrentDirectionChange = EDirection::E_NONE;
 
 	/** The column is actively lerping to the preview position */
 	bool bLerp = false;

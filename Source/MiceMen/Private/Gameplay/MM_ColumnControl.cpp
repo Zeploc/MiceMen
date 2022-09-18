@@ -50,7 +50,7 @@ void AMM_ColumnControl::MoveColumnBackToOriginalPosition()
 	}
 }
 
-void AMM_ColumnControl::BN_DirectionChanged_Implementation(int _NewDirection)
+void AMM_ColumnControl::BN_DirectionChanged_Implementation(EDirection _NewDirection)
 {
 
 }
@@ -94,7 +94,7 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 {
 	PreviewLocation = _NewLocation;
 
-	int NewDirectionChange = 0;
+	EDirection NewDirectionChange = EDirection::E_NONE;
 
 	// Limit to only one grid slot movement
 	PreviewLocation.Z = FMath::Clamp(PreviewLocation.Z, OriginalColumnLocation.Z - GridElementHeight, OriginalColumnLocation.Z + GridElementHeight);
@@ -103,19 +103,19 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 	if (abs(_NewLocation.Z - OriginalColumnLocation.Z) < SnapSize)
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z;
-		NewDirectionChange = 0;
+		NewDirectionChange = EDirection::E_NONE;
 	}
 	// Snap upwards
 	else if (_NewLocation.Z > OriginalColumnLocation.Z + (GridElementHeight - SnapSize))
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight;
-		NewDirectionChange = 1;
+		NewDirectionChange = EDirection::E_UP;
 	}
 	// Snap downwards
 	else if (_NewLocation.Z < OriginalColumnLocation.Z - (GridElementHeight - SnapSize))
 	{
 		PreviewLocation.Z = OriginalColumnLocation.Z - GridElementHeight;
-		NewDirectionChange = -1;
+		NewDirectionChange = EDirection::E_DOWN;
 	}
 
 	// Check position is new slot and update
@@ -131,9 +131,10 @@ void AMM_ColumnControl::EndGrab()
 	bGrabbed = false;
 
 	// Set snap to point based on current direction
-	if (CurrentDirectionChange != 0)
+	if (CurrentDirectionChange != EDirection::E_NONE)
 	{
-		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight * CurrentDirectionChange;
+		int DirectionValue = CurrentDirectionChange == EDirection::E_UP ? 1 : -1;
+		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight * DirectionValue;
 	}
 	else
 	{
@@ -150,10 +151,10 @@ void AMM_ColumnControl::LockInCollumn()
 	bLerp = false;
 
 	// Column move complete, turn has ended if the direction was changed ie not 0
-	AdjustCompleteDelegate.Broadcast(CurrentDirectionChange != 0);
+	AdjustCompleteDelegate.Broadcast(CurrentDirectionChange != EDirection::E_NONE);
 
 	// New direction chosen, update grid manager
-	if (CurrentDirectionChange != 0)
+	if (CurrentDirectionChange != EDirection::E_NONE)
 	{
 		MoveColumnBackToOriginalPosition();
 		if (GridManager)

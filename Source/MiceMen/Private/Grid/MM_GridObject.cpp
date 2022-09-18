@@ -110,10 +110,10 @@ bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement*
 
 // ################################ Grid Helpers ################################
 
-AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, int _Direction)
+AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Direction)
 {
 	FIntVector2D LastColumnCoord = { _Column, 0 };
-	if (_Direction > 0)
+	if (_Direction == EDirection::E_UP)
 	{
 		LastColumnCoord = { _Column, GridSize.Y - 1 };
 	}
@@ -134,7 +134,7 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, int _Direction)
 		// if direction is negative/down, will start at the top and go down
 		// Otherwise will start at 0 and go up
 		int y = i;
-		if (_Direction < 0)
+		if (_Direction == EDirection::E_DOWN)
 		{
 			y = GridSize.Y - 1 - i;
 		}
@@ -269,12 +269,13 @@ bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 	return bFoundFreeSlot;
 }
 
-bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, int _Direction)
+bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction)
 {
-	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(_Direction, 0));
+	int HorizontalDirection = _Direction == EDirection::E_RIGHT ? 1 : -1;
+	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(HorizontalDirection, 0));
 }
 
-TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition, int _iHorizontalDirection /*= 1*/)
+TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection /*= EDirection::E_RIGHT*/)
 {
 	// Setup initial variables
 	TArray<FIntVector2D> Path = { _StartingPosition };
@@ -296,7 +297,7 @@ TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition
 			bHasMove = true;
 		}
 		// If valid move ahead, has move can be set to true
-		if (FindFreeSlotAhead(NewPosition, _iHorizontalDirection))
+		if (FindFreeSlotAhead(NewPosition, _HorizontalDirection))
 		{
 			bHasMove = true;
 		}

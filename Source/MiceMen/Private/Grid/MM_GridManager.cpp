@@ -250,7 +250,7 @@ void AMM_GridManager::PopulateMice(int _MicePerTeam)
 			FIntVector2D NewRandomMousePosition = GridObject->GetRandomGridCoordInColumnRange(TeamRanges[iTeam].X, TeamRanges[iTeam].Y);
 
 			// Get final position for mice (auto moves on initial placement)
-			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NewRandomMousePosition, iTeam == ETeam::E_TEAM_A ? 1 : -1);
+			TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(NewRandomMousePosition, GetDirectionFromTeam(iTeam));
 			NewRandomMousePosition = ValidPath.Last();
 
 			// Get coordinates in world
@@ -301,6 +301,16 @@ FTransform AMM_GridManager::GetWorldTransformFromCoord(FIntVector2D _Coords) con
 	GridElementTransform.SetLocation(NewRelativeLocation);
 
 	return GridElementTransform;
+}
+
+EDirection AMM_GridManager::GetDirectionFromTeam(ETeam _Team) const
+{
+	EDirection Direction = EDirection::E_LEFT;
+	if (_Team == ETeam::E_TEAM_A)
+	{
+		Direction = EDirection::E_RIGHT;
+	}
+	return Direction;
 }
 
 void AMM_GridManager::BeginProcessMice()
@@ -535,7 +545,7 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 bool AMM_GridManager::MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition)
 {
 	// Calculate Path
-	int Direction = _NextMouse->GetTeam() == ETeam::E_TEAM_A ? 1 : -1;
+	EDirection Direction = GetDirectionFromTeam(_NextMouse->GetTeam());
 	TArray<FIntVector2D> ValidPath = GridObject->GetValidPath(_NextMouse->GetCoordinates(), Direction);
 	_FinalPosition = ValidPath.Last();
 
@@ -622,10 +632,10 @@ void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
 	OccupiedTeamsPerColumn[_Column].AddUnique(TeamToCheck);
 }
 
-void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
+void AMM_GridManager::AdjustColumn(int _Column, EDirection _Direction)
 {
-	// If direction is 0, no change will occur
-	if (_Direction == 0)
+	// If direction is not up or down, no change will occur
+	if (_Direction != EDirection::E_UP && _Direction != EDirection::E_DOWN)
 	{
 		return;
 	}

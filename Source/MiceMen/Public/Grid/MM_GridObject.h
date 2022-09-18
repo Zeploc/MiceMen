@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "IntVector2D.h"
+#include "Base/MM_Enums.h"
 #include "MM_GridObject.generated.h"
 
 class AMM_GridElement;
@@ -38,7 +39,7 @@ public:
 	bool SetGridElement(const FIntVector2D& _Coord, AMM_GridElement* _GridElement);
 
 	/** Moves the column up or down by 1 and returns the last element */
-	AMM_GridElement* MoveColumnElements(int _Column, int _Direction);
+	AMM_GridElement* MoveColumnElements(int _Column, EDirection _Direction);
 
 #pragma endregion
 
@@ -73,7 +74,7 @@ public:
 
 	// TODO Move to mouse for dynamic movement
 	/** Gets a valid path for an element, giving the horizontal direction to move towards */
-	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, int _iHorizontalDirection = 1);
+	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection = EDirection::E_RIGHT);
 
 #pragma endregion
 
@@ -87,7 +88,7 @@ public:
 	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition);
 
 	/** Will check one slot ahead horizontally, based on the given direction, and return true if its free, setting CurrentPosition */
-	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, int _Direction);
+	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction);
 
 	TArray<FIntVector2D> GetFreeSlots() { return FreeSlots; }
 

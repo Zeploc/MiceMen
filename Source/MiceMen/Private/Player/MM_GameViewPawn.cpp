@@ -229,7 +229,7 @@ void AMM_GameViewPawn::EndGrab()
 void AMM_GameViewPawn::UpdateColumnInteractionCount()
 {
 	// The column is not being moved, no action needed
-	if (CurrentColumn->GetCurrentColumnDirection() == 0)
+	if (CurrentColumn->GetCurrentColumnDirection() == EDirection::E_NONE)
 	{
 		return;
 	}

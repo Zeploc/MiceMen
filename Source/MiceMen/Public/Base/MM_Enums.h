@@ -61,6 +61,8 @@ enum class EDirection : uint8
 
 	E_RIGHT			UMETA(DisplayName = "Right"),
 	E_LEFT			UMETA(DisplayName = "Left"),
+	E_UP			UMETA(DisplayName = "Up"),
+	E_DOWN			UMETA(DisplayName = "Down"),
 
 	E_MAX			UMETA(DisplayName = "Max"),
 };

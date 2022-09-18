@@ -115,7 +115,7 @@ protected:
 
 public:
 	/** Moves the specified column in a direction, either up or down (1 or -1) */
-	void AdjustColumn(int _Column, int _Direction);
+	void AdjustColumn(int _Column, EDirection _Direction);
 
 
 	UFUNCTION(BlueprintPure)
@@ -142,6 +142,9 @@ protected:
 	TArray<FVector> PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const;
 
 	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords) const;
+
+	/** Direction along the grid the team goes */
+	EDirection GetDirectionFromTeam(ETeam _Team) const;
 
 #pragma endregion
 
