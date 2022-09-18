@@ -24,11 +24,31 @@ public:
 	// Sets default values for this actor's properties
 	AMM_Mouse();
 
+#pragma region Virtual Overriden
+
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+#pragma endregion
+
+#pragma region Team
+
+public:
+	/** Stores team */
 	void SetupMouse(int _iTeam);
 
+	int GetTeam() { return iTeam; };
+
+#pragma endregion
+
+#pragma region Movement
+
+public:
 	/**
 	 * Override for visual movement,
 	 * call MouseMovementEndDelegate once complete, or game will halt.
@@ -38,34 +58,50 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void BN_StartMovement(const TArray<FVector>& _Path);
 
+#pragma endregion
+
+#pragma region Goal
+
+public:
 	/** Called when a mouse has reached the end of the grid */
-	void MouseComplete();
+	void GoalReached();
 
-
-	int GetTeam() {
-		return  iTeam;
-	};
-	bool IsMouseComplete() {
-		return  bMouseComplete;
-	};
+	bool HasMouseReachedEnd() { return bGoalReached; };
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_MouseComplete();
-public:	
-	/** Executed when the movement has been made, to continue the next event */
-	UPROPERTY(BlueprintAssignable, BlueprintCallable)
-	FMouseMovementEndDelegate MouseMovementEndDelegate;
+		void BI_OnGoalReached();
+
+#pragma endregion
+
+//-------------------------------------------------------
+
+#pragma region Team Variables
 
 protected:
 	/** The mouse's team */
 	UPROPERTY(BlueprintReadOnly)
 		int iTeam = -1;
+
+#pragma endregion
+
+#pragma region Movement Variables
+
+public:
+	/** Executed when the movement has been made, to continue the next event */
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+		FMouseMovementEndDelegate MouseMovementEndDelegate;
+
+#pragma endregion
+
+#pragma region Goal Variables
+
+protected:
 	/** Whether the mouse has reached the other side of the grid */
 	UPROPERTY(BlueprintReadOnly)
-		bool bMouseComplete = false;
+		bool bGoalReached = false;
+
+#pragma endregion
+
 };

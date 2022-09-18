@@ -1,7 +1,7 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
 
-#include "MM_PlayerController.h"
+#include "Player/MM_PlayerController.h"
 
 #include "Player/MM_GameViewPawn.h"
 #include "Base/MM_GameMode.h"

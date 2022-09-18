@@ -38,9 +38,9 @@ void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& _Path)
 	SetActorLocation(_Path.Last());
 }
 
-void AMM_Mouse::MouseComplete()
+void AMM_Mouse::GoalReached()
 {
-	bMouseComplete = true;
-	BI_MouseComplete();
+	bGoalReached = true;
+	BI_OnGoalReached();
 }
 

@@ -3,7 +3,7 @@
 
 #include "Grid/MM_GridObject.h"
 
-#include "MM_GridElement.h"
+#include "Grid/MM_GridElement.h"
 #include "MiceMen.h"
 
 void UMM_GridObject::SetupGrid(FIntVector2D _GridSize)
@@ -64,7 +64,7 @@ int UMM_GridObject::CoordToIndex(int _X, int _Y) const
 	return _X * GridSize.Y + _Y;
 }
 
-bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, class AMM_GridElement* _GridElement)
+bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement* _GridElement)
 {
 
 #if !UE_BUILD_SHIPPING

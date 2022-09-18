@@ -3,7 +3,7 @@
 
 #include "Grid/MM_GridElement.h"
 
-#include "MM_GridManager.h"
+#include "Grid/MM_GridManager.h"
 #include "Gameplay/MM_ColumnControl.h"
 #include "Base/MM_GameMode.h"
 #include "MiceMen.h"

@@ -1,7 +1,7 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
 
-#include "MM_GameViewPawn.h"
+#include "Player/MM_GameViewPawn.h"
 
 #include "CineCameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -212,7 +212,7 @@ void AMM_GameViewPawn::EndGrab()
 
 	// Bind new delegate for column movement
 	CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::ColumnAdjusted);
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on adjustment complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 	// Tell the current column it has been released
 	CurrentColumn->EndGrab();

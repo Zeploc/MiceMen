@@ -1,7 +1,7 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
 
-#include "MM_GameMode.h"
+#include "Base/MM_GameMode.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
@@ -20,7 +20,7 @@ AMM_GameMode::AMM_GameMode()
 	DefaultPawnClass = AMM_GameViewPawn::StaticClass();
 }
 
-class AMM_GridManager* AMM_GameMode::GetGridManager()
+AMM_GridManager* AMM_GameMode::GetGridManager()
 {
 	return GridManager;
 }
@@ -226,7 +226,7 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 	BI_OnSwitchTurns(CurrentPlayer);
 }
 
-void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
+void AMM_GameMode::PlayerTurnComplete(AMM_PlayerController* _Player)
 {
 	// Was not the player's current turn
 	if (_Player != CurrentPlayer)
@@ -252,12 +252,6 @@ void AMM_GameMode::PlayerTurnComplete(class AMM_PlayerController* _Player)
 			TeamWon(GetWinningStalemateTeam());
 			return;
 		}
-	}
-
-	// Should be caught on mouse complete, but here as a safety catch
-	if (CheckWinCondition())
-	{
-		return;
 	}
 
 	// Get next player, wrap around if at the end
@@ -296,18 +290,16 @@ int AMM_GameMode::GetWinningStalemateTeam()
 	return 0;
 }
 
-bool AMM_GameMode::MouseCompleted(AMM_Mouse* _Mouse)
+void AMM_GameMode::AddScore(int _Team)
 {
-	if (!_Mouse)
-		return false;
-
-	int CurrentMouseTeam = _Mouse->GetTeam();
-
 	// Increment score by 1, will set score if the team already exists
-	TeamPoints.Add(CurrentMouseTeam, GetTeamScore(CurrentMouseTeam) + 1);
+	TeamPoints.Add(_Team, GetTeamScore(_Team) + 1);
 
-	// Check win condition and return if the game is complete
-	return CheckWinCondition();
+	// If mouse complete was winning mouse, stop processing mice
+	if (HasTeamWon(_Team))
+	{
+		TeamWon(_Team);
+	}
 }
 
 int AMM_GameMode::GetTeamScore(int _Team)
@@ -320,19 +312,14 @@ int AMM_GameMode::GetTeamScore(int _Team)
 	return CurrentScore;
 }
 
-bool AMM_GameMode::CheckWinCondition()
+bool AMM_GameMode::HasTeamWon(int _TeamToCheck)
 {
-	TArray<int> Teams;
-	TeamPoints.GenerateKeyArray(Teams);
-	for (int iTeam : Teams)
+	// If a team has scored all their mice
+	if (TeamPoints[_TeamToCheck] >= InitialMiceCount)
 	{
-		// If a team has scored all their mice
-		if (TeamPoints[iTeam] >= InitialMiceCount)
-		{
-			TeamWon(iTeam);
-			return true;
-		}
+		return true;
 	}
+	
 	// No team has won yet
 	return false;
 }

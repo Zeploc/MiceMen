@@ -36,11 +36,34 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UBoxComponent* GrabbableBox;
 
+#pragma region Virtual Overriden
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+#pragma endregion
+
+#pragma region Management
+
+public:
 	/** Sets initial values and sizes for the column */
 	void SetupColumn(int _ColumnID, AMM_GridManager* _GridManager);
 
-	/** Called when the player interacts with the column, sets initial values, returns true if successful */
-	bool BeginGrab();
+	/** Locks the column into the slot, calling events to update the grid elements */
+	void LockInCollumn();
+
+	int GetColumnIndex() { return ControllingColumn; }
+
+#pragma endregion
+
+#pragma region Location
+
+public:
 	/**
 	* Called when the grabbed location has been moved by the player,
 	* used to visually update the position of the column. 
@@ -48,56 +71,102 @@ public:
 	*/
 	void UpdatePreviewLocation(FVector _NewLocation);
 
-	/** Called when the player released the column, will update the preview position */
-	void EndGrab();
+	FVector GetOriginalColumnLocation() { return OriginalColumnLocation; }
 
-	/** Locks the column into the slot, calling events to update the grid elements */
-	void LockInCollumn();
-
-	/** Toggles whether the column should display as interactable, and for which team */
-	void DisplayGrabbable(bool _bGrabbable, int _Team = -1);
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	FVector GetOriginalColumnLocation() {
-		return OriginalColumnLocation;			
-	}
-	int GetColumnIndex() {
-		return ControllingColumn;
-	}
-	int GetCurrentColumnDirection() {
-		return CurrentDirectionChange;
-	}
+	int GetCurrentColumnDirection() { return CurrentDirectionChange; }
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintNativeEvent)
+		void BN_DirectionChanged(int _NewDirection);
 
+protected:
 	/**
-	* Moves column base position to original position relative to the grid. 
+	* Moves column base position to original position relative to the grid.
 	* Will reattach the grid elements to maintain their transforms
 	*/
 	void MoveColumnBackToOriginalPosition();
 
+#pragma endregion
+
+#pragma region Interaction
+
+public:
+	/** Called when the player interacts with the column, sets initial values, returns true if successful */
+	bool BeginGrab();
+
+	/** Called when the player released the column, will update the preview position */
+	void EndGrab();
+
+	/** Toggles whether the column should display as interactable, and for which team */
+	void DisplayGrabbable(bool _bGrabbable, int _Team = -1);
+
+protected:
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_DisplayGrabbable(bool _bGrabbable, int _Team);
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_BeginGrab();
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void BI_EndGrab();
 
-	UFUNCTION(BlueprintNativeEvent)
-		void BN_DirectionChanged(int _NewDirection);
+#pragma endregion
+
+//-------------------------------------------------------
+
+#pragma region Location Variables
 
 public:
 	/** The speed the column lerps to the preview location (dragged or released) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float LerpSpeed = 10.0f;
 
+	/** The distance away from a slot which the column will snap to when held */
+	UPROPERTY(BlueprintReadOnly)
+		float SnapSize = 40.0f;
+
+protected:
+	/**
+	 * The active grid slot change, 1 for up, -1 for down, 0 for no change.
+	 * Updated while the player interacts with the column
+	 */
+	int CurrentDirectionChange = 0;
+
+	/** The column is actively lerping to the preview position */
+	bool bLerp = false;
+		
+	/** The location the column will lerp towards */
+	FVector PreviewLocation;
+
+	/** The initial column position before it was moved, used to return back to */
+	FVector OriginalColumnLocation;
+
+#pragma endregion
+
+#pragma region Interaction Variables
+
+protected:
+	/** True when the column is held by the player */
+	bool bGrabbed = false;
+
+#pragma endregion
+
+#pragma region Management Variables
+
+public:
 	/** Called when the column slots into place */
 	FColumnAdjustCompleteDelegate AdjustCompleteDelegate;
 
+protected:
+	/** The column index linked to the x axis on the grid */
+	int ControllingColumn = -1;
+
+	/** The full column height in world space */
+	float ColumnHeight;
+
+#pragma endregion
+
+#pragma region Grid Variables
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -106,27 +175,7 @@ protected:
 	/** The stored height for a grid element, retrieved from the grid manager */
 	UPROPERTY(BlueprintReadOnly)
 		float GridElementHeight = 100.0f;
-	/** The distance away from a slot which the column will snap to when held */
-	UPROPERTY(BlueprintReadOnly)
-		float SnapSize = 40.0f;
 
-	/** The column index linked to the x axis on the grid */
-	int ControllingColumn = -1;
+#pragma endregion
 
-	/**
-	 * The active grid slot change, 1 for up, -1 for down, 0 for no change.
-	 * Updated while the player interacts with the column
-	 */
-	int CurrentDirectionChange = 0;
-
-	/** True when the column is held by the player */
-	bool bGrabbed = false;
-	/** The column is actively lerping to the preview position */
-	bool bLerp = false;
-	/** The location the column will lerp towards */
-	FVector PreviewLocation;
-	/** The initial column position before it was moved, used to return back to */
-	FVector OriginalColumnLocation;
-	/** The full column height in world space */
-	float ColumnHeight;
 };

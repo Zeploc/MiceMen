@@ -22,38 +22,47 @@ class MICEMEN_API AMM_GridElement : public AActor
 public:
 	AMM_GridElement();
 
+#pragma region Grid
+
+public:
 	/** Stores initial information for the grid element */
-	virtual void SetupGridInfo(class AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
+	virtual void SetupGridInfo(AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates);
 
 	/** Changes the grid position, updating the column this element is linked to */
 	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
 
-	/** Called when grid object is cleaning up elements */
-	virtual void CleanUp();
-
 	UFUNCTION(BlueprintPure)
-	FIntVector2D GetCoordinates() {
-		return Coordinates;
-	}
+		FIntVector2D GetCoordinates() {	return Coordinates; }
 
 	UFUNCTION(BlueprintPure)
 		AMM_GridManager* GetGridManager();
 
-protected:
+#pragma endregion
 
+#pragma region Cleanup
 
 public:
+	/** Called when grid object is cleaning up elements */
+	virtual void CleanUp();
+
+#pragma endregion
+
+//-------------------------------------------------------
+
+#pragma region Grid Variables
 
 protected:
 	/** The current grid coordinates of this element */
 	UPROPERTY(BlueprintReadOnly)
 		FIntVector2D Coordinates;
 
-	/** The column this element is currently linked to */
-	UPROPERTY(BlueprintReadOnly)
-	AMM_ColumnControl* CurrentColumn;
-
 	UPROPERTY(BlueprintReadOnly)
 		AMM_GridManager* GridManager;
+
+	/** The column this element is currently linked to */
+	UPROPERTY(BlueprintReadOnly)
+		AMM_ColumnControl* CurrentColumn;
+
+#pragma endregion
 
 };

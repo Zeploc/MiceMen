@@ -1,4 +1,4 @@
-
+// Copyright Alex Coultas, Mice Men Example Project
 
 #pragma once
 
@@ -10,11 +10,10 @@
 
 /**
 * Custom 2D Integer vector
-* Existing Interger Vector, FIntVector2D, has very limiting support,
+* Existing Integer Vector, FIntVector2D, has very limiting support,
 * where FIntVector2D has a functionality needed, so custom vector created merging the two
 * keeping what is useful
 */
-
 
 #if !CPP      //noexport class
 /**
@@ -41,18 +40,9 @@ struct FIntVector2D
 		{
 			int32 X, Y;
 		};
-
-		UE_DEPRECATED(all, "For internal use only")
-			int32 XY[2];
 	};
 
-public:
-
-	/** An int point with zeroed values. */
-	static const FIntVector2D ZeroValue;
-
-	/** An int point with INDEX_NONE values. */
-	static const FIntVector2D NoneValue;
+#pragma region Constructors
 
 public:
 
@@ -91,8 +81,11 @@ public:
 	 */
 	explicit FORCEINLINE FIntVector2D(EForceInit);
 
-public:
+#pragma endregion
 
+#pragma region Operator Overloaders
+
+public:
 	/**
 	 * Compares points for equality.
 	 *
@@ -181,13 +174,16 @@ public:
 	 */
 	FIntVector2D operator-(const FIntVector2D& Other) const;
 
+#pragma endregion
+
+#pragma region Helper Functions
+
+public:
 	/**
 	 * Is vector equal to zero.
 	 * @return is zero
 	*/
 	bool IsZero() const;
-
-public:
 
 	/**
 	 * Gets the maximum value in the point.
@@ -217,16 +213,30 @@ public:
 	 */
 	FString ToString() const;
 
-public:
-
 	/**
 	 * Gets the number of components a point has.
 	 *
 	 * @return Number of components point has.
 	 */
-	static int32 Num();
-};
 
+	static int32 Num();
+
+#pragma endregion
+
+//-------------------------------------------------------
+
+#pragma region Base Variables
+
+public:
+	/** An int point with zeroed values. */
+	static const FIntVector2D ZeroValue;
+
+	/** An int point with INDEX_NONE values. */
+	static const FIntVector2D NoneValue;
+
+#pragma endregion
+
+};
 
 FORCEINLINE FIntVector2D::FIntVector2D()
 {
@@ -261,7 +271,6 @@ FORCEINLINE bool FIntVector2D::operator==(const FIntVector2D& Other) const
 	return X == Other.X && Y == Other.Y;
 }
 
-
 FORCEINLINE bool FIntVector2D::operator!=(const FIntVector2D& Other) const
 {
 	return X != Other.X || Y != Other.Y;
@@ -275,7 +284,6 @@ FORCEINLINE FIntVector2D& FIntVector2D::operator*=(int32 Scale)
 	return *this;
 }
 
-
 FORCEINLINE FIntVector2D& FIntVector2D::operator/=(int32 Divisor)
 {
 	X /= Divisor;
@@ -283,7 +291,6 @@ FORCEINLINE FIntVector2D& FIntVector2D::operator/=(int32 Divisor)
 
 	return *this;
 }
-
 
 FORCEINLINE FIntVector2D& FIntVector2D::operator+=(const FIntVector2D& Other)
 {
@@ -293,7 +300,6 @@ FORCEINLINE FIntVector2D& FIntVector2D::operator+=(const FIntVector2D& Other)
 	return *this;
 }
 
-
 FORCEINLINE FIntVector2D& FIntVector2D::operator-=(const FIntVector2D& Other)
 {
 	X -= Other.X;
@@ -301,7 +307,6 @@ FORCEINLINE FIntVector2D& FIntVector2D::operator-=(const FIntVector2D& Other)
 
 	return *this;
 }
-
 
 FORCEINLINE FIntVector2D& FIntVector2D::operator=(const FIntVector2D& Other)
 {
@@ -311,18 +316,15 @@ FORCEINLINE FIntVector2D& FIntVector2D::operator=(const FIntVector2D& Other)
 	return *this;
 }
 
-
 FORCEINLINE FIntVector2D FIntVector2D::operator*(int32 Scale) const
 {
 	return FIntVector2D(*this) *= Scale;
 }
 
-
 FORCEINLINE FIntVector2D FIntVector2D::operator/(int32 Divisor) const
 {
 	return FIntVector2D(*this) /= Divisor;
 }
-
 
 FORCEINLINE FIntVector2D FIntVector2D::operator+(const FIntVector2D& Other) const
 {
@@ -334,24 +336,20 @@ FORCEINLINE FIntVector2D FIntVector2D::operator-(const FIntVector2D& Other) cons
 	return FIntVector2D(*this) -= Other;
 }
 
-
 FORCEINLINE int32 FIntVector2D::GetMax() const
 {
 	return FMath::Max(X, Y);
 }
-
 
 FORCEINLINE int32 FIntVector2D::GetMin() const
 {
 	return FMath::Min(X, Y);
 }
 
-
 FORCEINLINE int32 FIntVector2D::Num()
 {
 	return 2;
 }
-
 
 FORCEINLINE int32 FIntVector2D::Size() const
 {
@@ -364,7 +362,6 @@ FORCEINLINE bool FIntVector2D::IsZero() const
 {
 	return *this == ZeroValue;
 }
-
 
 FORCEINLINE FString FIntVector2D::ToString() const
 {

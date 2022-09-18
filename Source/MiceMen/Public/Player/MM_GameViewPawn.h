@@ -32,66 +32,113 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UCineCameraComponent* GameCamera;
 
-	// Called every frame
+#pragma region Virtual Overriden
+
+public:
+	/** Called every frame */
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
+	/** Called to bind functionality to input */
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	/** Called on the beginning of the players turn, stores available columns to interact with */
-	void BeginTurn();
-	/** Stores a column as grabbable to interact with during the player's current turn */
-	void AddColumnAsGrabbable(int Column);
-	/** Used by AI to select a random column to move */
-	void TakeRandomTurn();
-
-	/** Gets the current interactable columns for this player */
-	UFUNCTION(BlueprintPure)
-		TArray<AMM_ColumnControl*> GetCurrentColumnControls()
-	{
-		return CurrentColumnControls;
-	};
-
-	UFUNCTION(BlueprintPure)
-		bool IsTurnActive()
-	{
-		return bTurnActive;
-	};
-
 protected:
-	// Called when the game starts or when spawned
+	/** Called when the game starts or when spawned */
 	virtual void BeginPlay() override;
 
 	/** Called when the pawn is possessed by a controller, stores MM controller */
 	virtual void PossessedBy(AController* _NewController);
 
-	/** Handles the player interaction for initial grabbing of a column */
-	void BeginGrab();
-	/** Called from tick, updates the columns projected position based on the cursor position  */
-	void HandleGrab();
-	/** Released the current column */
-	void EndGrab();
+#pragma endregion
 
+#pragma region Turns
+
+public:
+	/** Called on the beginning of the players turn, stores available columns to interact with */
+	void BeginTurn();
+
+	/** Used by AI to select a random column to move */
+	void TakeRandomTurn();
+
+	UFUNCTION(BlueprintPure)
+		bool IsTurnActive() { return bTurnActive; };
+
+protected:
+	/** Called when the turn ends, cleans up columns information */
+	void TurnEnded();
+
+#pragma endregion
+
+#pragma region Columns
+
+public:
+	/** Stores a column as grabbable to interact with during the player's current turn */
+	void AddColumnAsGrabbable(int Column);
+
+	/** Gets the current interactable columns for this player */
+	UFUNCTION(BlueprintPure)
+		TArray<AMM_ColumnControl*> GetCurrentColumnControls() { return CurrentColumnControls; };
+
+protected:
 	/** Updates column interaction count, and last interacted column */
 	void UpdateColumnInteractionCount();
 
 	/** Called once a column has been moved, and passed in true if the column had changed, completing the turn */
 	void ColumnAdjusted(bool _TurnComplete);
-	/** Called when the turn ends, cleans up columns information */
-	void TurnEnded();
 
+#pragma endregion
+
+#pragma region Interaction
+
+protected:
+	/** Handles the player interaction for initial grabbing of a column */
+	void BeginGrab();
+
+	/** Called from tick, updates the columns projected position based on the cursor position  */
+	void HandleGrab();
+
+	/** Released the current column */
+	void EndGrab();
+	
+#pragma endregion
+
+#pragma region Getters
+
+protected:
 	UFUNCTION(BlueprintPure)
 		AMM_GridManager* GetGridManager();
+
 	UFUNCTION(BlueprintPure)
 		AMM_GameMode* GetGamemode();
 
+#pragma endregion
 
+//-------------------------------------------------------
+
+#pragma region Turn Variables
+
+protected:
+	/** Whether this player's turn is currently active */
+	UPROPERTY(BlueprintReadOnly)
+		bool bTurnActive = false;
+
+#pragma endregion
+
+#pragma region Interaction Variables
 
 public:
 	/** The distance the player can interact when grabbing */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float InteractTraceDistance = 100000.0f;
 
+protected:
+	/** The offset from the initial grab of the current column */
+	FVector HitColumnOffset;
+
+#pragma endregion
+
+#pragma region Column Variables
+
+public:
 	/**
 	 * Maximum times the same column can be moved by the player.
 	 * Superseded if all mouse on that same column
@@ -105,24 +152,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		AMM_ColumnControl* CurrentColumn;
 
-	UPROPERTY(BlueprintReadOnly)
-		AMM_PlayerController* MMPlayerController;
-
-
-	UPROPERTY(BlueprintReadOnly)
-		AMM_GameMode* MMGameMode;
-
-	UPROPERTY()
-		AMM_GridManager* GridManager;
-
-	/** The offset from the initial grab of the current column */
-	FVector HitColumnOffset;
-
-	/** Whether this player's turn is currently active */
-	UPROPERTY(BlueprintReadOnly)
-		bool bTurnActive = false;
-
 	/** The available columns for this player to interact with */
+	UPROPERTY()
 	TArray<AMM_ColumnControl*> CurrentColumnControls;
 
 	/** Linked to the current column on release, for when the column slots into place */
@@ -130,6 +161,24 @@ protected:
 
 	/** The last column that was moved by this player */
 	int LastMovedColumn = -1;
+
 	/** The amount of times the LastMovedColumn has been moved in a row */
 	int SameMovedColumnCount = 0;
+
+#pragma endregion
+
+#pragma region References Variables
+
+protected:
+	UPROPERTY(BlueprintReadOnly)
+		AMM_PlayerController* MMPlayerController;
+
+	UPROPERTY(BlueprintReadOnly)
+		AMM_GameMode* MMGameMode;
+
+	UPROPERTY()
+		AMM_GridManager* GridManager;
+
+#pragma endregion
+
 };

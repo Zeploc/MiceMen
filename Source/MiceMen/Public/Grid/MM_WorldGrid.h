@@ -32,5 +32,4 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 		FIntVector2D GridSize;
 
-protected:
 };
