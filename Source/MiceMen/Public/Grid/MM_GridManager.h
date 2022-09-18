@@ -27,11 +27,22 @@ public:
 	// Sets default values for this actor's properties
 	AMM_GridManager();
 
-#pragma region Game Loop
+#pragma region Core
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+protected:
+	// Begin and End play events
+	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
+
+#pragma endregion
+
+#pragma region Stalemate
+
+public:
 
 	/** A check for if only one mouse per team exists */
 	bool IsStalemate() const;
@@ -39,10 +50,6 @@ public:
 	/** When a stalemate win condition occurs, get the further ahead mouse as the winning team */
 	ETeam GetWinningStalemateTeam() const;
 
-protected:
-	// Begin and End play events
-	virtual void BeginPlay() override;
-	void EndPlay(EEndPlayReason::Type _EndPlayReason);
 
 #pragma endregion
 
@@ -59,7 +66,7 @@ public:
 	void RebuildGrid(int _InitialMiceCount);
 
 	UFUNCTION(BlueprintPure)
-		FIntVector2D GetGridSize() const { return GridSize; }
+	FIntVector2D GetGridSize() const { return GridSize; }
 
 protected:
 
@@ -73,14 +80,14 @@ protected:
 	void PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
 
 	/** Places initial mice for each team, based on _MicePerTeam */
-	void PopulateMice(int _MicePerTeam);
+	void PopulateTeams(int _MicePerTeam);
 
 #pragma endregion
 
 #pragma region Mouse Processing
 
 protected:
-
+		
 	/** Starts processing all mice, starting with the current players team */
 	void BeginProcessMice();
 
@@ -90,15 +97,25 @@ protected:
 	/** Ends the players turn when there are no more mice to process. */
 	void ProcessMiceComplete();
 
+	// TODO: MOVE TO MOUSE and Add as friend
 	/** Handles moving mouse and updating grid */
 	void ProcessMouse(AMM_Mouse* _Mouse);
+
+	/** Checks mouse is valid to process, will continue to next mouse if it is not */
+	bool CheckMouse(AMM_Mouse* _Mouse);
+
+	/** Attempt to move the mouse, return true is movement successful */
+	bool AttemptPerformMouseMovement(AMM_Mouse* _Mouse, FIntVector2D& _FinalPosition);
+
+	/** Update the grid based on the new position */
+	void ProcessUpdatedMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewPosition);
 
 	/** Move mouse to next valid position, returns true if mouse moved */
 	bool MoveMouse(AMM_Mouse* _NextMouse, FIntVector2D& _FinalPosition);
 
 	/** Called once a mouse has been processed */
 	UFUNCTION()
-		void ProcessCompletedMouseMovement(AMM_Mouse* _Mouse);
+	void ProcessCompletedMouseMovement(AMM_Mouse* _Mouse);
 
 	/**
 	* Clears from processing and unbinds delegates.
@@ -117,15 +134,14 @@ public:
 	/** Moves the specified column in a direction, either up or down (1 or -1) */
 	void AdjustColumn(int _Column, EDirection _Direction);
 
+	UFUNCTION(BlueprintPure)
+	bool IsTeamInColumn(int _Column, ETeam _Team) const;
 
 	UFUNCTION(BlueprintPure)
-		bool IsTeamInColumn(int _Column, ETeam _Team) const;
+	TArray<int> GetTeamColumns(ETeam _Team) const;
 
 	UFUNCTION(BlueprintPure)
-		TArray<int> GetTeamColumns(ETeam _Team) const;
-
-	UFUNCTION(BlueprintPure)
-		TMap<int, AMM_ColumnControl*> GetColumnControls() const {	return ColumnControls; }
+	TMap<int, AMM_ColumnControl*> GetColumnControls() const {	return ColumnControls; }
 
 protected:
 	/** Removes mouse from specified column, updating team/mouse variables */
@@ -154,11 +170,11 @@ public:
 	
 	/** Shows a visual for the all the grid elements stored in the grid object */
 	UFUNCTION(BlueprintCallable)
-		void SetDebugVisualGrid(bool _bEnabled);
+	void SetDebugVisualGrid(bool _bEnabled);
 
 	/** Toggles the grid visual */
 	UFUNCTION(BlueprintCallable)
-		void ToggleDebugVisualGrid();
+	void ToggleDebugVisualGrid();
 
 	/** Checks all mice are included in the mice that are set to be processed */
 	bool DebugCheckAllMiceProcessed() const;
@@ -182,13 +198,13 @@ public:
 	/** Configuration of classes to spawn */
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<AMM_GridBlock> GridBlockClass;
+	TSubclassOf<AMM_GridBlock> GridBlockClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<AMM_Mouse> MouseClass;
+	TSubclassOf<AMM_Mouse> MouseClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		TSubclassOf<AMM_ColumnControl> ColumnControlClass;
+	TSubclassOf<AMM_ColumnControl> ColumnControlClass;
 
 #pragma endregion
 
@@ -198,16 +214,16 @@ public:
 
 	/** World space width for one grid element */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		float GridElementWidth = 100.0f;
+	float GridElementWidth = 100.0f;
 
 	/** World space height for one grid element */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		float GridElementHeight = 100.0f;
+	float GridElementHeight = 100.0f;
 
 protected:
 	/** The grid size set by the game mode used to populate the grid */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		FIntVector2D GridSize;
+	FIntVector2D GridSize;
 
 	/** The current size of the gap between teams along the x axis */
 	int GapSize;
@@ -217,7 +233,7 @@ protected:
 
 	/** The main control object for grid elements */
 	UPROPERTY()
-		UMM_GridObject* GridObject;
+	UMM_GridObject* GridObject;
 
 #pragma endregion
 
@@ -225,19 +241,19 @@ protected:
 
 protected:
 	/**
-	 * Active list of mice.
-	 */
+	* Active list of mice.
+	*/
 	UPROPERTY()
-		TArray<AMM_Mouse*> Mice;
+	TArray<AMM_Mouse*> Mice;
 
 	/** Current Mice to process movement from a column change. */
 	TArray<AMM_Mouse*> MiceToProcessMovement;
 
 	/**
-	 * Active list of mice per team.
-	 * @key the team
-	 * @value the array of mice in the team
-	 */
+	* Active list of mice per team.
+	* @key the team
+	* @value the array of mice in the team
+	*/
 	TMap<ETeam, TArray<AMM_Mouse*>> MiceTeams;
 
 
@@ -247,27 +263,27 @@ protected:
 
 protected:
 	/**
-	 * Active list of all the mice per column.
-	 * @key the column by x axis
-	 * @value the array of mice in that column
-	 */
+	* Active list of all the mice per column.
+	* @key the column by x axis
+	* @value the array of mice in that column
+	*/
 	TMap<int, TArray<AMM_Mouse*>> MiceColumns;
 
 	/**
-	 * Active list of columns for what teams are occupying
-	 * @key the column by x axis
-	 * @value the array of teams on that column
-	 */
+	* Active list of columns for what teams are occupying
+	* @key the column by x axis
+	* @value the array of teams on that column
+	*/
 	TMap<int, TArray<ETeam>> OccupiedTeamsPerColumn;
 
 	/**
-	 * Interactable controls for each column.
-	 */
+	* Interactable controls for each column.
+	*/
 	TMap<int, AMM_ColumnControl*> ColumnControls;
 
 	/** The last moved column to stop repeat moves */
 	UPROPERTY(BlueprintReadOnly)
-		int LastMovedColumn = -1;
+	int LastMovedColumn = -1;
 
 #pragma endregion
 

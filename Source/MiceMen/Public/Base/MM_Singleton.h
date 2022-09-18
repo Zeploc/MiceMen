@@ -20,6 +20,6 @@ public:
 
 	/** The colours for the teams */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TMap<ETeam, FLinearColor> TeamColours;
+	TMap<ETeam, FLinearColor> TeamColours;
 	
 };

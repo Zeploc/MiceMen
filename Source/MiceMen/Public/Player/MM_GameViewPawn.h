@@ -27,12 +27,12 @@ public:
 	AMM_GameViewPawn();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		USceneComponent* SceneRoot;
+	USceneComponent* SceneRoot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		UCineCameraComponent* GameCamera;
+	UCineCameraComponent* GameCamera;
 
-#pragma region Virtual Overriden
+#pragma region Core
 
 public:
 	/** Called every frame */
@@ -60,7 +60,7 @@ public:
 	void TakeRandomTurn();
 
 	UFUNCTION(BlueprintPure)
-		bool IsTurnActive() const { return bTurnActive; };
+	bool IsTurnActive() const { return bTurnActive; };
 
 protected:
 	/** Called when the turn ends, cleans up columns information */
@@ -76,7 +76,7 @@ public:
 
 	/** Gets the current interactable columns for this player */
 	UFUNCTION(BlueprintPure)
-		TArray<AMM_ColumnControl*> GetCurrentColumnControls() const { return CurrentColumnControls; };
+	TArray<AMM_ColumnControl*> GetCurrentColumnControls() const { return CurrentColumnControls; };
 
 protected:
 	/** Updates column interaction count, and last interacted column */
@@ -105,10 +105,10 @@ protected:
 
 protected:
 	UFUNCTION(BlueprintPure)
-		AMM_GridManager* GetGridManager();
+	AMM_GridManager* GetGridManager();
 
 	UFUNCTION(BlueprintPure)
-		AMM_GameMode* GetGamemode();
+	AMM_GameMode* GetGamemode();
 
 #pragma endregion
 
@@ -119,7 +119,7 @@ protected:
 protected:
 	/** Whether this player's turn is currently active */
 	UPROPERTY(BlueprintReadOnly)
-		bool bTurnActive = false;
+	bool bTurnActive = false;
 
 #pragma endregion
 
@@ -128,7 +128,7 @@ protected:
 public:
 	/** The distance the player can interact when grabbing */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		float InteractTraceDistance = 100000.0f;
+	float InteractTraceDistance = 100000.0f;
 
 protected:
 	/** The offset from the initial grab of the current column */
@@ -140,17 +140,17 @@ protected:
 
 public:
 	/**
-	 * Maximum times the same column can be moved by the player.
-	 * Superseded if all mouse on that same column
-	 * Stored in pawn to have the ability to change it per player
-	 */
+	* Maximum times the same column can be moved by the player.
+	* Superseded if all mouse on that same column
+	* Stored in pawn to have the ability to change it per player
+	*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		int SameColumnMax = 6;
+	int SameColumnMax = 6;
 
 protected:
 	/** The column currently grabbed by the player */
 	UPROPERTY(BlueprintReadOnly)
-		AMM_ColumnControl* CurrentColumn;
+	AMM_ColumnControl* CurrentColumn;
 
 	/** The available columns for this player to interact with */
 	UPROPERTY()
@@ -171,13 +171,13 @@ protected:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-		AMM_PlayerController* MMPlayerController;
+	AMM_PlayerController* MMPlayerController;
 
 	UPROPERTY(BlueprintReadOnly)
-		AMM_GameMode* MMGameMode;
+	AMM_GameMode* MMGameMode;
 
 	UPROPERTY()
-		AMM_GridManager* GridManager;
+	AMM_GridManager* GridManager;
 
 #pragma endregion
 

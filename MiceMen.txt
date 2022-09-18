@@ -15,26 +15,30 @@ Todo:
 - Displace array instead of moving along
 - Performance
 - When all mice get stuck at the middle (no way to pass)
+- In test blue team won with 11? only happened once
 
+- Remove redundant
+- Less condensed code (readable)
+- Comments above ifs explaining what they are checking
+- Functions returning bool that are confusing bool return
+- Commenting clear
 
-- Class declarations at the top
-- Break into functions for different levels of code/logic
-- Functions for cleanliness preferred
-- Use regions #pragma region AND #pragma endregion
+Functions
+-Does it tell me what it actually does
+-Does it do just that, or is there other things it is doing as well
+
 - const reference function parameters
-- const functions when don't need to modify functions
-- Function/Variable Headers
-	@param
-- Commenting
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 - Check UPROPERTY and UFUNCTIONS are relevant
 - Move functions else where (librarys/components) where appropriate
-- Inlines for single use functions?
 
-- Match func order between h and cpp?
-- Order of functions based on process order?
+- HARD AI
+
 
 - Ratio blocks so there are enough empty ones?
+
+
+
 - Visual/Gameplay
 - UI control starting mice in gameplay
 - UI control grid size in game
@@ -45,6 +49,7 @@ To put in readme:
 - Debug methods
 - Controller/local player setup
 - Further decisions for if networked
+- Pragma Region explanation (collapse/expand)
 
 
 Gamemode

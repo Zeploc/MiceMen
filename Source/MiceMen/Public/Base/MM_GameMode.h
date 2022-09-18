@@ -25,7 +25,7 @@ class MICEMEN_API AMM_GameMode : public AGameModeBase
 public:
 	AMM_GameMode();
 
-#pragma region Virtual Overriden
+#pragma region Core
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,41 +42,41 @@ protected:
 public:
 	/** Starts game with a certain game play type */
 	UFUNCTION(BlueprintCallable)
-		void BeginGame(EGameType _GameType);
+	void BeginGame(EGameType _GameType);
 
 	/** Clean up grid and restore to starting state */
 	void CleanupGame();
 
 	/** Completes the game, and cleans up all grid systems */
 	UFUNCTION(BlueprintCallable)
-		void EndGame();
+	void EndGame();
 
 	/**  Resets the board and players */
 	UFUNCTION(BlueprintCallable)
-		void RestartGame();
+	void RestartGame();
 
 	/** Changes current mode to test and switches players to AI */
 	UFUNCTION(BlueprintCallable)
-		void SwitchToTest();
+	void SwitchToTestMode();
 
 	UFUNCTION(BlueprintPure)
-		EGameType GetCurrentGameType() const { return CurrentGameType; }
+	EGameType GetCurrentGameType() const { return CurrentGameType; }
 
 protected:
 	/** Called when the game is ready and game play mode can be chosen */
 	void GameReady();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnGameReady();
+	void BI_OnGameReady();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnGameBegun();
+	void BI_OnGameBegun();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnGameEnded();
+	void BI_OnGameEnded();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnGameRestarted();
+	void BI_OnGameRestarted();
 
 #pragma endregion
 
@@ -84,7 +84,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintPure)
-		AMM_GridManager* GetGridManager();
+	AMM_GridManager* GetGridManager();
 
 protected:
 	/** Creates grid and basic setup, uses AMM_WorldGrid to position the grid*/
@@ -104,14 +104,14 @@ public:
 
 	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
-		AMM_PlayerController* GetCurrentPlayer() const { return CurrentPlayer; }
+	AMM_PlayerController* GetCurrentPlayer() const { return CurrentPlayerController; }
 
 protected:
 	/** Will change turns to a different player */
 	void SwitchTurns(AMM_PlayerController* _Player);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnSwitchTurns(AMM_PlayerController* _Player);
+	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
 
 #pragma endregion
 
@@ -136,7 +136,7 @@ protected:
 	void TeamWon(ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnTeamWon(ETeam _Team);
+	void BI_OnTeamWon(ETeam _Team);
 
 #pragma endregion
 
@@ -145,7 +145,7 @@ protected:
 public:
 	/** Get the current score from a given team */
 	UFUNCTION(BlueprintPure)
-		int GetTeamScore(ETeam _Team) const;
+	int GetTeamScore(ETeam _Team) const;
 
 	/**
 		* When a mouse reaches the end and should score a point.
@@ -174,24 +174,24 @@ public:
 public:
 	/**  The amount of turns the game will last for when entered stalemate (one mouse per team) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		int StalemateTurns = 8;
+	int StalemateTurns = 8;
 
 	/**  The starting number of mice on each team */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		int InitialMiceCount = 12;
+	int InitialMiceCount = 12;
 
 protected:
 	/** The current game play type */
 	UPROPERTY(BlueprintReadOnly)
-		EGameType CurrentGameType = EGameType::E_NONE;
+	EGameType CurrentGameType = EGameType::E_NONE;
 
 	/** The current team points, Team ID to number of points */
 	UPROPERTY(BlueprintReadOnly)
-		TMap<ETeam, int> TeamPoints;
+	TMap<ETeam, int> TeamPoints;
 
 	/** When a stalemate is entered, this value will count up per turn */
 	UPROPERTY(BlueprintReadOnly)
-		int StalemateCount = -1;
+	int StalemateCount = -1;
 
 #pragma endregion
 
@@ -199,19 +199,19 @@ protected:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-		TArray<AMM_PlayerController*> AllPlayers;
+	TArray<AMM_PlayerController*> AllPlayers;
 
 	/** The current player whos turn it is */
 	UPROPERTY(BlueprintReadOnly)
-		AMM_PlayerController* CurrentPlayer;
+	AMM_PlayerController* CurrentPlayerController;
 
 	/* Stored local player to switch controller*/
 	UPROPERTY()
-		ULocalPlayer* FirstLocalPlayer;
+	ULocalPlayer* FirstLocalPlayer;
 
 	/**  Store the second player controller for cleanup */
 	UPROPERTY(BlueprintReadOnly)
-		APlayerController* SecondLocalPlayerController;
+	APlayerController* SecondLocalPlayerController;
 
 #pragma endregion
 
@@ -219,16 +219,16 @@ protected:
 
 public:
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<AMM_GridManager> GridManagerClass;
+	TSubclassOf<AMM_GridManager> GridManagerClass;
 
 protected:
 	/** The main manager for the grid elements and systems */
 	UPROPERTY(BlueprintReadOnly)
-		AMM_GridManager* GridManager;
+	AMM_GridManager* GridManager;
 
 	/** The grid size if no AMM_WorldGrid exists in the level */
 	UPROPERTY(EditDefaultsOnly)
-		FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
+	FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
 
 #pragma endregion
 

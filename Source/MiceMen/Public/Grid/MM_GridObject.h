@@ -107,24 +107,24 @@ protected:
 #pragma region Grid Variables
 
 protected:
-		/**
-		 * One dimensional array for two dimensional grid
-		 */
-		TArray<AMM_GridElement*> Grid;
+	/**
+	* One dimensional array for two dimensional grid
+	*/
+	TArray<AMM_GridElement*> Grid;
 
-		/** The size of the grid */
-		FIntVector2D GridSize;
+	/** The size of the grid */
+	FIntVector2D GridSize;
 
 #pragma endregion
 
 #pragma region Free Slot Variables
 
 protected:
-		/**
-		 * List of available free slots updated by the grid.
-		 * Removes the need to iterate all slots
-		 */
-		TArray<FIntVector2D> FreeSlots;
+	/**
+	* List of available free slots updated by the grid.
+	* Removes the need to iterate all slots
+	*/
+	TArray<FIntVector2D> FreeSlots;
 
 #pragma endregion
 

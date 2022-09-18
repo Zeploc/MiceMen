@@ -30,6 +30,6 @@ protected:
 public:	
 	/** The amount of elements on the x and y axis for the grid */
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-		FIntVector2D GridSize;
+	FIntVector2D GridSize;
 
 };

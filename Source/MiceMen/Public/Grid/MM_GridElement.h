@@ -32,10 +32,10 @@ public:
 	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
 
 	UFUNCTION(BlueprintPure)
-		FIntVector2D GetCoordinates() const {	return Coordinates; }
+	FIntVector2D GetCoordinates() const {	return Coordinates; }
 
 	UFUNCTION(BlueprintPure)
-		AMM_GridManager* GetGridManager();
+	AMM_GridManager* GetGridManager();
 
 #pragma endregion
 
@@ -54,14 +54,14 @@ public:
 protected:
 	/** The current grid coordinates of this element */
 	UPROPERTY(BlueprintReadOnly)
-		FIntVector2D Coordinates;
+	FIntVector2D Coordinates;
 
 	UPROPERTY(BlueprintReadOnly)
-		AMM_GridManager* GridManager;
+	AMM_GridManager* GridManager;
 
 	/** The column this element is currently linked to */
 	UPROPERTY(BlueprintReadOnly)
-		AMM_ColumnControl* CurrentColumn;
+	AMM_ColumnControl* CurrentColumn;
 
 #pragma endregion
 

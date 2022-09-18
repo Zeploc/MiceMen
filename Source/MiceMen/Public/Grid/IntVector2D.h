@@ -10,8 +10,8 @@
 
 /**
 * Custom 2D Integer vector
-* Existing Integer Vector, FIntVector2D, has very limiting support,
-* where FIntVector2D has a functionality needed, so custom vector created merging the two
+* Existing Integer Vector, FIntVector2, has very limiting support,
+* where FIntVector has a functionality needed, so custom vector created merging the two
 * keeping what is useful
 */
 

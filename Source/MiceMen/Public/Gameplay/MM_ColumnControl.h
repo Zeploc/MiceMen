@@ -32,12 +32,12 @@ public:
 	AMM_ColumnControl();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		USceneComponent* SceneRoot;
+	USceneComponent* SceneRoot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		UBoxComponent* GrabbableBox;
+	UBoxComponent* GrabbableBox;
 
-#pragma region Virtual Overriden
+#pragma region Core
 
 public:
 	// Called every frame
@@ -78,7 +78,7 @@ public:
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)
-		void BN_DirectionChanged(EDirection _NewDirection);
+	void BN_DirectionChanged(EDirection _NewDirection);
 
 protected:
 	/**
@@ -103,13 +103,13 @@ public:
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_DisplayGrabbable(bool _bGrabbable, ETeam _Team);
+	void BI_DisplayGrabbable(bool _bGrabbable, ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_BeginGrab();
+	void BI_BeginGrab();
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_EndGrab();
+	void BI_EndGrab();
 
 #pragma endregion
 
@@ -120,11 +120,11 @@ protected:
 public:
 	/** The speed the column lerps to the preview location (dragged or released) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float LerpSpeed = 10.0f;
+	float LerpSpeed = 10.0f;
 
 	/** The distance away from a slot which the column will snap to when held */
 	UPROPERTY(BlueprintReadOnly)
-		float SnapSize = 40.0f;
+	float SnapSize = 40.0f;
 
 protected:
 	/**
@@ -175,7 +175,7 @@ protected:
 
 	/** The stored height for a grid element, retrieved from the grid manager */
 	UPROPERTY(BlueprintReadOnly)
-		float GridElementHeight = 100.0f;
+	float GridElementHeight = 100.0f;
 
 #pragma endregion
 

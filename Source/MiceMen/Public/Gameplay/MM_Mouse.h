@@ -25,7 +25,7 @@ public:
 	// Sets default values for this actor's properties
 	AMM_Mouse();
 
-#pragma region Virtual Overriden
+#pragma region Core
 
 public:
 	// Called every frame
@@ -72,7 +72,7 @@ public:
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void BI_OnGoalReached();
+	void BI_OnGoalReached();
 
 #pragma endregion
 
@@ -83,7 +83,7 @@ protected:
 protected:
 	/** The mouse's team */
 	UPROPERTY(BlueprintReadOnly)
-		ETeam CurrentTeam = ETeam::E_NONE;
+	ETeam CurrentTeam = ETeam::E_NONE;
 
 #pragma endregion
 
@@ -92,7 +92,7 @@ protected:
 public:
 	/** Executed when the movement has been made, to continue the next event */
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
-		FMouseMovementEndDelegate MovementEndDelegate;
+	FMouseMovementEndDelegate MovementEndDelegate;
 
 #pragma endregion
 
@@ -101,7 +101,7 @@ public:
 protected:
 	/** Whether the mouse has reached the other side of the grid */
 	UPROPERTY(BlueprintReadOnly)
-		bool bGoalReached = false;
+	bool bGoalReached = false;
 
 #pragma endregion
 

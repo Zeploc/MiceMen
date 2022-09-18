@@ -73,7 +73,7 @@ void AMM_GridManager::RebuildGrid(int _InitialMiceCount)
 
 	// Populate grid elements
 	PopulateGrid();
-	PopulateMice(_InitialMiceCount);
+	PopulateTeams(_InitialMiceCount);
 }
 
 void AMM_GridManager::CreateGrid()
@@ -218,21 +218,21 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 	}
 }
 
-void AMM_GridManager::PopulateMice(int _MicePerTeam)
+void AMM_GridManager::PopulateTeams(int _MicePerTeam)
 {
 	// Define team initial position ranges
 	TMap<ETeam, FIntVector2D> TeamRanges;
 
-	// Left size, to the size of team size
+	//TODO: Refine comments
+	// Define left side range in grid, to the size of team size
 	TeamRanges.Add(ETeam::E_TEAM_A, FIntVector2D(0, TeamSize - 1));
 
-	// Right side, starting to the right of the center blocks to the end of the grid
+	//Define right side range in grid, starting to the right of the center blocks to the end of the grid
 	TeamRanges.Add(ETeam::E_TEAM_B, FIntVector2D(TeamSize + GapSize, GridSize.X - 1));
 
 	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateMice | Populating mice with team ranges %s and %s"), *TeamRanges[ETeam::E_TEAM_A].ToString(), *TeamRanges[ETeam::E_TEAM_B].ToString());
 
-	// Place mice for each team,
-	// Note: Possibility for more than 2 teams
+	// Place mice for each team
 	for (ETeam iTeam = ETeam::E_TEAM_A; iTeam < ETeam::E_MAX; iTeam++)
 	{
 		// Add initial team array and store in game mode
@@ -487,34 +487,68 @@ void AMM_GridManager::CleanupProcessedMouse(AMM_Mouse* _Mouse)
 
 void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 {
-	// Check if mouse valid, otherwise go on to next
-	if (!_Mouse)
+	// Check the mouse is valid to process
+	if (!CheckMouse(_Mouse))
 	{
-		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessMouse | Mouse not valid for processing!"));
-
-		// Remove null ptr from array
-		if (MiceToProcessMovement.IsValidIndex(0) && MiceToProcessMovement[0] == _Mouse)
-		{
-			MiceToProcessMovement.RemoveAt(0);
-		}
-
-		ProcessCompletedMouseMovement(_Mouse);
 		return;
 	}
 
+	FIntVector2D FinalPosition;
+	bool bMovementSuccesful = AttemptPerformMouseMovement(_Mouse, FinalPosition);
+	if (!bMovementSuccesful)
+	{
+		return;
+	}
+
+	ProcessUpdatedMousePosition(_Mouse, FinalPosition);
+
+	// If test mode, move delegate is not fired on mouse, go straight to on processed
+	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
+	{
+		ProcessCompletedMouseMovement(_Mouse);
+	}
+}
+
+bool AMM_GridManager::CheckMouse(AMM_Mouse* _Mouse)
+{
+	// Check if mouse valid
+	if (_Mouse)
+	{
+		return true;
+	}
+
+	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::ProcessMouse | Mouse not valid for processing!"));
+
+	// Remove null ptr from array
+	if (MiceToProcessMovement.IsValidIndex(0) && MiceToProcessMovement[0] == _Mouse)
+	{
+		MiceToProcessMovement.RemoveAt(0);
+	}
+
+	// Mouse not valid, go on to next mouse
+	ProcessCompletedMouseMovement(_Mouse);
+
+	return false;
+}
+
+bool AMM_GridManager::AttemptPerformMouseMovement(AMM_Mouse* _Mouse, FIntVector2D& _FinalPosition)
+{
 	// Set up delegate for when movement is complete
 	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
 
 	// Move Mouse to next position
-	FIntVector2D FinalPosition;
-	bool bSuccessfulMovement = MoveMouse(_Mouse, FinalPosition);
+	bool bSuccessfulMovement = MoveMouse(_Mouse, _FinalPosition);
 	if (!bSuccessfulMovement)
 	{
 		// Mouse didn't move, go on to the next mouse
 		ProcessCompletedMouseMovement(_Mouse);
-		return;
 	}
 
+	return bSuccessfulMovement;
+}
+
+void AMM_GridManager::ProcessUpdatedMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewPosition)
+{
 	// Remove mouse from previous location
 	GridObject->SetGridElement(_Mouse->GetCoordinates(), nullptr);
 	RemoveMouseFromColumn(_Mouse->GetCoordinates().X, _Mouse);
@@ -522,7 +556,7 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	ETeam iTeam = _Mouse->GetTeam();
 
 	// If the mouse is at the end
-	if ((FinalPosition.X <= 0 && iTeam == ETeam::E_TEAM_B) || (FinalPosition.X >= GridSize.X - 1 && iTeam == ETeam::E_TEAM_A))
+	if ((_NewPosition.X <= 0 && iTeam == ETeam::E_TEAM_B) || (_NewPosition.X >= GridSize.X - 1 && iTeam == ETeam::E_TEAM_A))
 	{
 		// Mouse Completed
 		MouseGoalReached(_Mouse, iTeam);
@@ -530,15 +564,9 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	// Not at the end, set coordinates to end path position
 	else
 	{
-		GridObject->SetGridElement(FinalPosition, _Mouse);
-		AddMouseToColumn(FinalPosition.X, _Mouse);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMouse | Mouse New position for team %i at %s"), iTeam, *FinalPosition.ToString());
-	}
-
-	// If test mode, move delegate is not fired on mouse, go straight to on processed
-	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
-	{
-		ProcessCompletedMouseMovement(_Mouse);
+		GridObject->SetGridElement(_NewPosition, _Mouse);
+		AddMouseToColumn(_NewPosition.X, _Mouse);
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMouse | Mouse New position for team %i at %s"), iTeam, *_NewPosition.ToString());
 	}
 }
 

@@ -22,7 +22,7 @@ class MICEMEN_API AMM_PlayerController : public APlayerController
 public:
 	AMM_PlayerController();
 
-#pragma region Virtual Overriden
+#pragma region Core
 
 	virtual void OnPossess(APawn* _Pawn) override;
 
@@ -60,10 +60,10 @@ public:
 
 public:
 	UFUNCTION(BlueprintPure)
-		ETeam GetCurrentTeam() const { return CurrentTeam; }
+	ETeam GetCurrentTeam() const { return CurrentTeam; }
 
 	UFUNCTION(BlueprintPure)
-		bool IsAI() const { return bIsAI; }
+	bool IsAI() const { return bIsAI; }
 
 #pragma endregion
 
@@ -73,10 +73,10 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-		AMM_GameViewPawn* MMPawn;
+	AMM_GameViewPawn* MMPawn;
 
 	UPROPERTY(BlueprintReadOnly)
-		AMM_GameMode* MMGameMode;
+	AMM_GameMode* MMGameMode;
 
 #pragma endregion
 
@@ -85,11 +85,11 @@ protected:
 protected:
 	/** The team this player is on */
 	UPROPERTY(BlueprintReadOnly)
-		ETeam CurrentTeam = ETeam::E_NONE;
+	ETeam CurrentTeam = ETeam::E_NONE;
 
 	/** Whether this player is an AI player or a human player */
 	UPROPERTY(BlueprintReadOnly)
-		bool bIsAI = false;
+	bool bIsAI = false;
 
 #pragma endregion
 

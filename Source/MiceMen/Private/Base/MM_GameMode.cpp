@@ -87,6 +87,7 @@ void AMM_GameMode::GameReady()
 
 void AMM_GameMode::BeginGame(EGameType _GameType)
 {
+	// Not all players
 	if (AllPlayers.Num() < 2)
 	{
 		return;
@@ -120,7 +121,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		break;
 	case EGameType::E_TEST:
 	{
-		// Fall down (set players to AI)
+		// Fall through (set players to AI)
 	}
 	case EGameType::E_AIVAI:
 	{
@@ -128,7 +129,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		{
 			AllPlayers[0]->SetAsAI();
 		}
-		// Fall down
+		// Fall through
 	}
 	case EGameType::E_PVAI:
 	{
@@ -152,7 +153,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 	BI_OnGameBegun();
 }
 
-void AMM_GameMode::SwitchToTest()
+void AMM_GameMode::SwitchToTestMode()
 {
 	CurrentGameType = EGameType::E_TEST;
 
@@ -184,20 +185,25 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 
 	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
 	{
-		ETeam NewTeam = ETeam::E_TEAM_A;
-		// Second player joins team B
-		if (AllPlayers.Num() >= 1)
-			NewTeam = ETeam::E_TEAM_B;
+		ETeam NewPlayerTeam;
 
-		// Current length of players is next player index
-		MMController->SetupPlayer(NewTeam);
-		AllPlayers.Add(MMController);
-
-		// Store first local player
-		if (MMController->GetLocalPlayer() && !FirstLocalPlayer)
+		// First player is team A
+		if (AllPlayers.Num() == 0)
 		{
+			NewPlayerTeam = ETeam::E_TEAM_A;
+
+			// Store first local player
 			FirstLocalPlayer = MMController->GetLocalPlayer();
 		}
+		// Second player joins team B
+		else
+		{
+			NewPlayerTeam = ETeam::E_TEAM_B;
+		}
+
+		// Set up player as selected team
+		MMController->SetupPlayer(NewPlayerTeam);
+		AllPlayers.Add(MMController);
 
 		// Currently only requires two players
 		if (AllPlayers.Num() >= 2)
@@ -214,34 +220,35 @@ void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 		return;
 	}
 
+	// Store new player as current
+	CurrentPlayerController = _Player;
 	// Begin player turn
-	CurrentPlayer = _Player;
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
-	CurrentPlayer->BeginTurn();
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+	CurrentPlayerController->BeginTurn();
 
 	// Since this is local, set the new player to active input
 	// Note: In a network or splitscreen situation this would not be necessary as each client has their own input
 	// And would send events to the server
 	if (FirstLocalPlayer)
 	{
-		FirstLocalPlayer->SwitchController(CurrentPlayer);
+		FirstLocalPlayer->SwitchController(CurrentPlayerController);
 	}
 
-	BI_OnSwitchTurns(CurrentPlayer);
+	BI_OnSwitchTurns(CurrentPlayerController);
 }
 
 void AMM_GameMode::PlayerTurnComplete(AMM_PlayerController* _Player)
 {
 	// Was not the player's current turn
-	if (_Player != CurrentPlayer)
+	if (_Player != CurrentPlayerController)
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::TurnEnded | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayer->GetCurrentTeam(), *CurrentPlayer->GetName());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::TurnEnded | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
 		return;
 	}
 
 	// End turn for current player
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed player's turn %s as %i"), *CurrentPlayer->GetName(), CurrentPlayer->GetCurrentTeam());
-	CurrentPlayer->TurnEnded();
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed player's turn %s as %i"), *CurrentPlayerController->GetName(), CurrentPlayerController->GetCurrentTeam());
+	CurrentPlayerController->TurnEnded();
 	
 	// If stalemate is active, increase counter for turn taken
 	if (StalemateCount >= 0)
@@ -330,7 +337,6 @@ bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
 	// No team has won yet
 	return false;
 }
-
 
 bool AMM_GameMode::SetupGridManager()
 {

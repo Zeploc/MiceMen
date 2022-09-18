@@ -28,6 +28,7 @@ enum class EGameType : uint8
 	E_MAX		UMETA(DisplayName = "MAX")
 };
 
+/** TODO */
 UENUM(BlueprintType)
 enum class ETeam : uint8
 {
@@ -39,21 +40,37 @@ enum class ETeam : uint8
 	E_MAX			UMETA(DisplayName = "Max"),
 };
 
-FORCEINLINE ETeam& operator++(ETeam& t) {
-	if (t == ETeam::E_MAX)
-		return t;
+/** Increments team, used for iterating through teams */
+FORCEINLINE ETeam& operator++(ETeam& Team)
+{
+	if (Team == ETeam::E_MAX)
+	{
+		return Team;
+	}
+
+	// Get integer type
 	using IntType = typename std::underlying_type<ETeam>::type;
-	int EnumInt = static_cast<IntType>(t) + 1;
-	t = static_cast<ETeam>(EnumInt);
-	return t;
+
+	// Convert enum to type
+	int EnumInt = static_cast<IntType>(Team);
+
+	// Increment
+	EnumInt++;
+
+	// Convert back to enum
+	Team = static_cast<ETeam>(EnumInt);
+
+	return Team;
 }
 
-FORCEINLINE ETeam operator++(ETeam& t, int) {
-	ETeam result = t;
-	++t;
-	return result;
+FORCEINLINE ETeam operator++(ETeam& Team, int)
+{
+	ETeam Result = Team;
+	++Team;
+	return Result;
 }
 
+/** TODO */
 UENUM(BlueprintType)
 enum class EDirection : uint8
 {
