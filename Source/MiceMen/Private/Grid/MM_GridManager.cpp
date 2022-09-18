@@ -27,11 +27,9 @@ AMM_GridManager::AMM_GridManager()
 	ColumnControlClass = AMM_ColumnControl::StaticClass();
 }
 
-
 void AMM_GridManager::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AMM_GridManager::EndPlay(EEndPlayReason::Type _EndPlayReason)
@@ -46,7 +44,9 @@ void AMM_GridManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	if (bDebugGridEnabled)
+	{
 		DisplayDebugVisualiseGrid();
+	}
 }
 
 void AMM_GridManager::SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode)
@@ -96,7 +96,9 @@ void AMM_GridManager::GridCleanUp()
 	for (AMM_ColumnControl* Column : Columns)
 	{
 		if (Column)
+		{
 			Column->Destroy();
+		}
 	}
 	ColumnControls.Empty();
 
@@ -159,7 +161,6 @@ void AMM_GridManager::PopulateGrid()
 			PopulateGridElement({ x, y }, NewColumnControl);
 		}
 	}
-
 }
 
 void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl)
@@ -170,27 +171,27 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 	// Prepare center pieces, creates blocking center where mice can't cross at the start
 	// If gap size is 1, alternating blocks will be either side
 	// If gap size is 0, will have one side place a block every third y pos, and the other side the opposite
-	bool IsPresetCenterBlock = _NewCoord.X >= TeamSize - 1 && _NewCoord.X <= TeamSize + GapSize;
+	bool bIsPresetCenterBlock = _NewCoord.X >= TeamSize - 1 && _NewCoord.X <= TeamSize + GapSize;
 	
 	// Default to not have preset block
-	bool isPresetBlockFilled = false;
-	if (IsPresetCenterBlock)
+	bool bisPresetBlockFilled = false;
+	if (bIsPresetCenterBlock)
 	{
 		// Center column
 		if (_NewCoord.X == TeamSize)
 		{
 			// If its not every third block, vertical position not dividable by 3
-			isPresetBlockFilled = _NewCoord.Y % 3 != 0;
+			bisPresetBlockFilled = _NewCoord.Y % 3 != 0;
 		}
 		else
 		{
 			// If every third block, vertical position dividable by 3
-			isPresetBlockFilled = _NewCoord.Y % 3 == 0;
+			bisPresetBlockFilled = _NewCoord.Y % 3 == 0;
 		}
 	}
 
 	// Initial testing random bool for placement unless overridden by center blocks
-	if ((FMath::RandBool() && !IsPresetCenterBlock) || isPresetBlockFilled)
+	if ((FMath::RandBool() && !bIsPresetCenterBlock) || bisPresetBlockFilled)
 	{
 		// Create new Grid block object
 		AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);
@@ -203,7 +204,9 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 
 		// Add to column array and attach
 		if (NewColumnControl)
+		{
 			NewGridBlock->AttachToActor(NewColumnControl, FAttachmentTransformRules::KeepWorldTransform);
+		}
 		GridObject->SetGridElement(_NewCoord, NewGridBlock);
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PlaceBlock | Adding grid block at %s"), *_NewCoord.ToString());
@@ -217,7 +220,6 @@ void AMM_GridManager::PopulateGridElement(FIntVector2D _NewCoord, AMM_ColumnCont
 
 void AMM_GridManager::PopulateMice(int _MicePerTeam)
 {
-
 	// Define team initial position ranges
 	FIntVector2D TeamRanges[] =
 	{
@@ -270,10 +272,8 @@ void AMM_GridManager::PopulateMice(int _MicePerTeam)
 			MiceTeams[iTeam].Add(NewMouse);
 
 			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateMice | Adding mice for team %i at %s"), iTeam, *NewRandomMousePosition.ToString());
-
 		}
 	}
-
 }
 
 TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const
@@ -375,14 +375,16 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 					if (Coordinates.Y == OrderedMouse->GetCoordinates().Y)
 					{
 						// Check if the mouse is more forward, direction based on the team
-						bool isMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
+						bool bIsMoreForward = Coordinates.X > OrderedMouse->GetCoordinates().X;
 
 						// Team is going left
 						if (iTeam == 1)
-							isMoreForward = Coordinates.X < OrderedMouse->GetCoordinates().X;
+						{
+							bIsMoreForward = Coordinates.X < OrderedMouse->GetCoordinates().X;
+						}
 
 						// Mouse is not more forward, go to next
-						if (!isMoreForward)
+						if (!bIsMoreForward)
 							continue;
 					}
 
@@ -390,8 +392,6 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 					CurrentTeamMiceToProcess.Insert(TeamMouse, i);
 					break;
 				}
-
-
 			}
 			// Add to end (if not already) to ensure they are added to process
 			CurrentTeamMiceToProcess.AddUnique(TeamMouse);
@@ -400,7 +400,6 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 			//// Set up delegate for when movement is complete
 			//TeamMouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
 		}
-
 
 		MiceToProcessMovement.Append(CurrentTeamMiceToProcess);
 	}
@@ -412,7 +411,7 @@ void AMM_GridManager::ProcessCompletedMouseMovement(AMM_Mouse* _Mouse)
 	CleanupProcessedMouse(_Mouse);
 
 	// Check mouse has reached the end
-	if (_Mouse && _Mouse->HasMouseReachedEnd())
+	if (_Mouse && _Mouse->HasReachedEnd())
 	{
 		if (!MMGameMode)
 		{
@@ -469,7 +468,7 @@ void AMM_GridManager::CleanupProcessedMouse(AMM_Mouse* _Mouse)
 	if (_Mouse)
 	{
 		MiceToProcessMovement.Remove(_Mouse);
-		_Mouse->MouseMovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);			
+		_Mouse->MovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);			
 	}
 }
 
@@ -491,12 +490,12 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	}
 
 	// Set up delegate for when movement is complete
-	_Mouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
+	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::ProcessCompletedMouseMovement);
 
 	// Move Mouse to next position
 	FIntVector2D FinalPosition;
-	bool SuccessfulMovement = MoveMouse(_Mouse, FinalPosition);
-	if (!SuccessfulMovement)
+	bool bSuccessfulMovement = MoveMouse(_Mouse, FinalPosition);
+	if (!bSuccessfulMovement)
 	{
 		// Mouse didn't move, go on to the next mouse
 		ProcessCompletedMouseMovement(_Mouse);
@@ -514,7 +513,6 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	{
 		// Mouse Completed
 		MouseGoalReached(_Mouse, iTeam);
-
 	}
 	// Not at the end, set coordinates to end path position
 	else
@@ -665,7 +663,9 @@ void AMM_GridManager::AdjustColumn(int _Column, int _Direction)
 bool AMM_GridManager::IsTeamInColumn(int _Column, int _Team)
 {
 	if (!OccupiedTeamsPerColumn.Contains(_Column))
+	{
 		return false;
+	}
 
 	return OccupiedTeamsPerColumn[_Column].Contains(_Team);
 }
@@ -712,7 +712,9 @@ bool AMM_GridManager::IsStalemate() const
 	{
 		// If any team doesn't have one mice, its not a "stalemate"
 		if (MiceTeams[iTeam].Num() != 1)
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -778,9 +780,9 @@ void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath)
 	}
 }
 
-void AMM_GridManager::SetDebugVisualGrid(bool _Enabled)
+void AMM_GridManager::SetDebugVisualGrid(bool _bEnabled)
 {
-	bDebugGridEnabled = _Enabled;
+	bDebugGridEnabled = _bEnabled;
 }
 
 void AMM_GridManager::ToggleDebugVisualGrid()
@@ -804,7 +806,6 @@ bool AMM_GridManager::DebugCheckAllMiceProcessed() const
 	}
 	return true;
 }
-
 
 void AMM_GridManager::DisplayDebugVisualiseGrid()
 {

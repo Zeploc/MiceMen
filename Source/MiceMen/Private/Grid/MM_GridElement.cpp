@@ -12,6 +12,7 @@ AMM_GridElement::AMM_GridElement()
 {
 
 }
+
 void AMM_GridElement::SetupGridInfo(AMM_GridManager* _GridManager, FIntVector2D _GridCoordinates)
 {
 	GridManager = _GridManager;
@@ -62,10 +63,14 @@ AMM_GridManager* AMM_GridElement::GetGridManager()
 {
 	// Should be set in SetupGridInfo()
 	if (GridManager)
+	{
 		return GridManager;
+	}
 
 	if (!GetWorld())
+	{
 		return nullptr;
+	}
 
 	// Defaults to grabbing from the gamemode
 	if (AMM_GameMode* MMGamemode = GetWorld()->GetAuthGameMode<AMM_GameMode>())

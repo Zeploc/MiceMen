@@ -101,7 +101,6 @@ void AMM_GameViewPawn::BeginTurn()
 		if (MMPlayerController->IsAI())
 			TakeRandomTurn();
 	}
-
 }
 
 void AMM_GameViewPawn::TakeRandomTurn()
@@ -320,7 +319,6 @@ AMM_GridManager* AMM_GameViewPawn::GetGridManager()
 		return nullptr;
 
 	GridManager = MMGameMode->GetGridManager();
-
 
 	return GridManager;
 }

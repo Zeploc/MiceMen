@@ -8,21 +8,18 @@ AMM_Mouse::AMM_Mouse()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
 void AMM_Mouse::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame
 void AMM_Mouse::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AMM_Mouse::SetupMouse(int _iTeam)
@@ -30,11 +27,10 @@ void AMM_Mouse::SetupMouse(int _iTeam)
 	iTeam = _iTeam;
 }
 
-
 void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& _Path)
 {
 	// Default behavior, should be overridden
-	MouseMovementEndDelegate.Broadcast(this);
+	MovementEndDelegate.Broadcast(this);
 	SetActorLocation(_Path.Last());
 }
 

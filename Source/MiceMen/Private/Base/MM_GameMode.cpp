@@ -51,6 +51,7 @@ void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
 		UGameplayStatics::RemovePlayer(SecondLocalPlayerController, true);
 	}
 }
+
 void AMM_GameMode::RestartGame()
 {
 	CleanupGame();
@@ -107,7 +108,6 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		RestartPlayer(PlayerController);
 	}
 
-
 	// Setup
 	SetupGridManager();
 	CheckStalemateMice();
@@ -128,7 +128,6 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		{
 			AllPlayers[0]->SetAsAI();
 		}
-
 		// Fall down
 	}
 	case EGameType::E_PVAI:
@@ -146,14 +145,12 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		break;
 	}
 
-
 	// Start random players turn
 	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
 	SwitchTurns(AllPlayers[IntialPlayer]);
 	
 	BI_OnGameBegun();
 }
-
 
 void AMM_GameMode::SwitchToTest()
 {
@@ -208,7 +205,9 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
 {
 	if (!_Player)
+	{
 		return;
+	}
 
 	// Begin player turn
 	CurrentPlayer = _Player;
@@ -258,11 +257,14 @@ void AMM_GameMode::PlayerTurnComplete(AMM_PlayerController* _Player)
 	int NextPlayer = AllPlayers.Find(_Player);
 	NextPlayer++;
 	if (NextPlayer > AllPlayers.Num() - 1)
+	{
 		NextPlayer = 0;
+	}
 
 	// Switch to next player
 	SwitchTurns(AllPlayers[NextPlayer]);
 }
+
 void AMM_GameMode::CheckStalemateMice()
 {
 	// If more than 0, already in stalemate mode
@@ -328,11 +330,15 @@ bool AMM_GameMode::HasTeamWon(int _TeamToCheck)
 bool AMM_GameMode::SetupGridManager()
 {
 	if (!GetWorld())
+	{
 		return false;
+	}
 	
 	// Check valid manager class
 	if (!GridManagerClass)
+	{
 		GridManagerClass = AMM_GridManager::StaticClass();
+	}
 
 	UE_LOG(LogTemp, Display, TEXT("AMM_GameMode::SetupGridManager | Setting up Grid Manager with class %s"), *GridManagerClass->GetName());
 

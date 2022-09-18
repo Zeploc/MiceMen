@@ -66,11 +66,12 @@ int UMM_GridObject::CoordToIndex(int _X, int _Y) const
 
 bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement* _GridElement)
 {
-
 #if !UE_BUILD_SHIPPING
 	FString ElementDisplay = "none";
 	if (_GridElement)
+	{
 		ElementDisplay = _GridElement->GetName();
+	}
 	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | %s to %s"), *_Coord.ToString(), *ElementDisplay);
 #endif
 
@@ -85,10 +86,11 @@ bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement*
 	// Update grid element if valid/not empty and update FreeSlots map
 	if (_GridElement)
 	{
-
 		// Only update if a change in coordinates occurred
 		if (_GridElement->GetCoordinates() != _Coord)
+		{
 			_GridElement->UpdateGridPosition(_Coord);
+		}
 
 		// Update Free slots to no longer have this element
 		FreeSlots.Remove(_Coord);
@@ -107,12 +109,14 @@ bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement*
 }
 
 // ################################ Grid Helpers ################################
+
 AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, int _Direction)
 {
 	FIntVector2D LastColumnCoord = { _Column, 0 };
 	if (_Direction > 0)
+	{
 		LastColumnCoord = { _Column, GridSize.Y - 1 };
-
+	}
 
 	// Find Last element and remove from grid
 	AMM_GridElement* LastElement = GetGridElement(LastColumnCoord);
@@ -131,7 +135,9 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, int _Direction)
 		// Otherwise will start at 0 and go up
 		int y = i;
 		if (_Direction < 0)
+		{
 			y = GridSize.Y - 1 - i;
+		}
 
 		// Store current element
 		FIntVector2D CurrentSlot = { _Column, y };
@@ -146,7 +152,6 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, int _Direction)
 
 		// Save current element for next
 		NextElement = CurrentElement;
-
 	}
 
 	return LastElement;
@@ -215,11 +220,12 @@ FIntVector2D UMM_GridObject::GetRandomGridCoordInRange(int _MinX, int _MaxX, int
 
 bool UMM_GridObject::IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY) const
 {
-	return (
-		// Check within X range
-		_Coord.X >= _MinX && _Coord.X <= _MaxX &&
-		// Check within Y Range
-		_Coord.Y >= _MinY && _Coord.Y <= _MaxY);
+	// Check within X range
+	bool bWithinX = _Coord.X >= _MinX && _Coord.X <= _MaxX;
+	// Check within Y Range
+	bool bWithinY = _Coord.Y >= _MinY && _Coord.Y <= _MaxY;
+
+	return (bWithinX && bWithinY);
 }
 
 bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction)
@@ -243,7 +249,7 @@ bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIn
 
 bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 {
-	bool FoundFreeSlot = false;
+	bool bFoundFreeSlot = false;
 
 	// If not currently on lowest slot
 	while (_CurrentPosition.Y > 0)
@@ -251,7 +257,7 @@ bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 		// Check if free slot below
 		if (FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(0, -1)))
 		{
-			FoundFreeSlot = true;
+			bFoundFreeSlot = true;
 		}
 		// No free slot below, exit loop
 		else
@@ -260,7 +266,7 @@ bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 		}
 	}
 
-	return FoundFreeSlot;
+	return bFoundFreeSlot;
 }
 
 bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, int _Direction)
@@ -275,11 +281,11 @@ TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition
 	FIntVector2D LastPosition = _StartingPosition;
 
 	// Loop while valid move
-	bool HasMove = true;
-	while (HasMove)
+	bool bHasMove = true;
+	while (bHasMove)
 	{
 		// Set initial valid move to false
-		HasMove = false;
+		bHasMove = false;
 		// Start at last position
 		FIntVector2D NewPosition = LastPosition;
 		// If valid move down, has move can be set to true
@@ -287,17 +293,17 @@ TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition
 		if (FindFreeSlotBelow(NewPosition))
 		{
 			Path.Add(NewPosition);
-			HasMove = true;
+			bHasMove = true;
 		}
 		// If valid move ahead, has move can be set to true
 		if (FindFreeSlotAhead(NewPosition, _iHorizontalDirection))
 		{
-			HasMove = true;
+			bHasMove = true;
 		}
 
 		// If a valid move was found, set last position and store in path
 		// Otherwise will exit the while loop, having reached the final position
-		if (HasMove)
+		if (bHasMove)
 		{
 			LastPosition = NewPosition;
 			// Adds position to end if it was not added (slot was found from ahead check)
@@ -310,14 +316,19 @@ TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition
 	return Path;
 }
 
-
 void UMM_GridObject::OutputColumnDisplace(AMM_GridElement* NextElement, AMM_GridElement* CurrentElement, FIntVector2D& CurrentSlot)
 {
 	FString NextElementDisplay = "none";
 	if (NextElement)
+	{
 		NextElementDisplay = NextElement->GetName();
+	}
+
 	FString CurrentElementDisplay = "none";
 	if (CurrentElement)
+	{
 		CurrentElementDisplay = CurrentElement->GetName();
+	}
+
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Setting element %s at %s which was previously %s"), *NextElementDisplay, *CurrentSlot.ToString(), *CurrentElementDisplay);
 }

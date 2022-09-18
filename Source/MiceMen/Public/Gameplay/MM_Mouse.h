@@ -66,7 +66,7 @@ public:
 	/** Called when a mouse has reached the end of the grid */
 	void GoalReached();
 
-	bool HasMouseReachedEnd() { return bGoalReached; };
+	bool HasReachedEnd() { return bGoalReached; };
 
 protected:
 
@@ -91,7 +91,7 @@ protected:
 public:
 	/** Executed when the movement has been made, to continue the next event */
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
-		FMouseMovementEndDelegate MouseMovementEndDelegate;
+		FMouseMovementEndDelegate MovementEndDelegate;
 
 #pragma endregion
 

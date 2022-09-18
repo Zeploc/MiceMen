@@ -16,8 +16,7 @@ AMM_WorldGrid::AMM_WorldGrid()
 // Called when the game starts or when spawned
 void AMM_WorldGrid::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame

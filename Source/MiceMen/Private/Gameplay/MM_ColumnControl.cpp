@@ -23,11 +23,9 @@ AMM_ColumnControl::AMM_ColumnControl()
 	GrabbableBox->SetCollisionProfileName(FName("GridColumn"));
 }
 
-// Called when the game starts or when spawned
 void AMM_ColumnControl::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 void AMM_ColumnControl::MoveColumnBackToOriginalPosition()
