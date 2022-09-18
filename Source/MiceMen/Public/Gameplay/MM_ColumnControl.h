@@ -58,7 +58,7 @@ public:
 	/** Locks the column into the slot, calling events to update the grid elements */
 	void LockInCollumn();
 
-	int GetColumnIndex() { return ControllingColumn; }
+	int GetColumnIndex() const { return ControllingColumn; }
 
 #pragma endregion
 
@@ -72,9 +72,9 @@ public:
 	*/
 	void UpdatePreviewLocation(FVector _NewLocation);
 
-	FVector GetOriginalColumnLocation() { return OriginalColumnLocation; }
+	FVector GetOriginalColumnLocation() const { return OriginalColumnLocation; }
 
-	EDirection GetCurrentColumnDirection() { return CurrentDirectionChange; }
+	EDirection GetCurrentColumnDirection() const { return CurrentDirectionChange; }
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)

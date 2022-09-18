@@ -59,7 +59,7 @@ public:
 	void RebuildGrid(int _InitialMiceCount);
 
 	UFUNCTION(BlueprintPure)
-		FIntVector2D GetGridSize() { return GridSize; }
+		FIntVector2D GetGridSize() const { return GridSize; }
 
 protected:
 
@@ -119,13 +119,13 @@ public:
 
 
 	UFUNCTION(BlueprintPure)
-		bool IsTeamInColumn(int _Column, ETeam _Team);
+		bool IsTeamInColumn(int _Column, ETeam _Team) const;
 
 	UFUNCTION(BlueprintPure)
-		TArray<int> GetTeamColumns(ETeam _Team);
+		TArray<int> GetTeamColumns(ETeam _Team) const;
 
 	UFUNCTION(BlueprintPure)
-		TMap<int, AMM_ColumnControl*> GetColumnControls() {	return ColumnControls; }
+		TMap<int, AMM_ColumnControl*> GetColumnControls() const {	return ColumnControls; }
 
 protected:
 	/** Removes mouse from specified column, updating team/mouse variables */
@@ -169,7 +169,7 @@ protected:
 	void DisplayDebugVisualiseGrid();
 
 	/** Displays a path in world space using colored boxes, increasing in size down the path */
-	void DebugPath(TArray<FIntVector2D> ValidPath);
+	void DebugPath(TArray<FIntVector2D> ValidPath) const;
 
 #pragma endregion
 

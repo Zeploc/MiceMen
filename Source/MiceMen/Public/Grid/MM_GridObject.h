@@ -53,10 +53,10 @@ public:
 	int CoordToIndex(int _X, int _Y) const;
 
 	/** Gets random coordinate in grid, optional search for free slot */
-	FIntVector2D GetRandomGridCoord(bool _bFreeSlot = true);
+	FIntVector2D GetRandomGridCoord(bool _bFreeSlot = true) const;
 
 	/** Gets random coordinate in grid based on a given column (x axis) range */
-	FIntVector2D GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true);
+	FIntVector2D GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true) const;
 
 	/**
 	* Gets random coordinate in range either as a free slot or any.
@@ -74,7 +74,7 @@ public:
 
 	// TODO Move to mouse for dynamic movement
 	/** Gets a valid path for an element, giving the horizontal direction to move towards */
-	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection = EDirection::E_RIGHT);
+	TArray<FIntVector2D> GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection = EDirection::E_RIGHT) const;
 
 #pragma endregion
 
@@ -82,15 +82,15 @@ public:
 
 public:
 	/** Will check one slot in a given direction, and return true if its free, setting CurrentPosition */
-	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction);
+	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction) const;
 
 	/** Will check for the lowest possible free slot below without passing through a taken element, and return true if its free, setting CurrentPosition */
-	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition);
+	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const;
 
 	/** Will check one slot ahead horizontally, based on the given direction, and return true if its free, setting CurrentPosition */
-	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction);
+	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const;
 
-	TArray<FIntVector2D> GetFreeSlots() { return FreeSlots; }
+	TArray<FIntVector2D> GetFreeSlots() const { return FreeSlots; }
 
 #pragma endregion
 

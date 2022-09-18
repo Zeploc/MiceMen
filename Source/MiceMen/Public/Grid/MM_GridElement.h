@@ -32,7 +32,7 @@ public:
 	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
 
 	UFUNCTION(BlueprintPure)
-		FIntVector2D GetCoordinates() {	return Coordinates; }
+		FIntVector2D GetCoordinates() const {	return Coordinates; }
 
 	UFUNCTION(BlueprintPure)
 		AMM_GridManager* GetGridManager();

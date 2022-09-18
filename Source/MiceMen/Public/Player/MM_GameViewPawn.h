@@ -60,7 +60,7 @@ public:
 	void TakeRandomTurn();
 
 	UFUNCTION(BlueprintPure)
-		bool IsTurnActive() { return bTurnActive; };
+		bool IsTurnActive() const { return bTurnActive; };
 
 protected:
 	/** Called when the turn ends, cleans up columns information */
@@ -76,7 +76,7 @@ public:
 
 	/** Gets the current interactable columns for this player */
 	UFUNCTION(BlueprintPure)
-		TArray<AMM_ColumnControl*> GetCurrentColumnControls() { return CurrentColumnControls; };
+		TArray<AMM_ColumnControl*> GetCurrentColumnControls() const { return CurrentColumnControls; };
 
 protected:
 	/** Updates column interaction count, and last interacted column */

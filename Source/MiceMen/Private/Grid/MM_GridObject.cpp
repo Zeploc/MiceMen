@@ -157,12 +157,12 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Dir
 	return LastElement;
 }
 
-FIntVector2D UMM_GridObject::GetRandomGridCoord(bool _bFreeSlot /*= true*/)
+FIntVector2D UMM_GridObject::GetRandomGridCoord(bool _bFreeSlot /*= true*/) const
 {
 	return GetRandomGridCoordInRange(0, GridSize.X, 0, GridSize.Y, _bFreeSlot);
 }
 
-FIntVector2D UMM_GridObject::GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot /*= true*/)
+FIntVector2D UMM_GridObject::GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot /*= true*/) const
 {
 	return GetRandomGridCoordInRange(_MinX, _MaxX, 0, GridSize.Y, _bFreeSlot);
 }
@@ -228,7 +228,7 @@ bool UMM_GridObject::IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _
 	return (bWithinX && bWithinY);
 }
 
-bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction)
+bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction) const
 {
 	// Test against next coordinates
 	FIntVector2D TestCoords = _CurrentPosition;
@@ -247,7 +247,7 @@ bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIn
 	return true;
 }
 
-bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
+bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const
 {
 	bool bFoundFreeSlot = false;
 
@@ -269,13 +269,13 @@ bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition)
 	return bFoundFreeSlot;
 }
 
-bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction)
+bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const
 {
 	int HorizontalDirection = _Direction == EDirection::E_RIGHT ? 1 : -1;
 	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(HorizontalDirection, 0));
 }
 
-TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection /*= EDirection::E_RIGHT*/)
+TArray<FIntVector2D> UMM_GridObject::GetValidPath(FIntVector2D _StartingPosition, EDirection _HorizontalDirection /*= EDirection::E_RIGHT*/) const
 {
 	// Setup initial variables
 	TArray<FIntVector2D> Path = { _StartingPosition };

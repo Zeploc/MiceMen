@@ -60,10 +60,10 @@ public:
 
 public:
 	UFUNCTION(BlueprintPure)
-		ETeam GetCurrentTeam() { return CurrentTeam; }
+		ETeam GetCurrentTeam() const { return CurrentTeam; }
 
 	UFUNCTION(BlueprintPure)
-		bool IsAI() { return bIsAI; }
+		bool IsAI() const { return bIsAI; }
 
 #pragma endregion
 

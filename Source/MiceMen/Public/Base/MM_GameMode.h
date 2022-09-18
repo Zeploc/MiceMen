@@ -60,7 +60,7 @@ public:
 		void SwitchToTest();
 
 	UFUNCTION(BlueprintPure)
-		EGameType GetCurrentGameType() { return CurrentGameType; }
+		EGameType GetCurrentGameType() const { return CurrentGameType; }
 
 protected:
 	/** Called when the game is ready and game play mode can be chosen */
@@ -104,7 +104,7 @@ public:
 
 	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
-		AMM_PlayerController* GetCurrentPlayer() { return CurrentPlayer; }
+		AMM_PlayerController* GetCurrentPlayer() const { return CurrentPlayer; }
 
 protected:
 	/** Will change turns to a different player */
@@ -163,7 +163,7 @@ public:
 	void CheckStalemateMice();
 
 	/**  Find winning team in a stalemate situation */
-	ETeam GetWinningStalemateTeam();
+	ETeam GetWinningStalemateTeam() const;
 
 #pragma endregion
 

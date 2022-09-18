@@ -673,7 +673,7 @@ void AMM_GridManager::AdjustColumn(int _Column, EDirection _Direction)
 	BeginProcessMice();
 }
 
-bool AMM_GridManager::IsTeamInColumn(int _Column, ETeam _Team)
+bool AMM_GridManager::IsTeamInColumn(int _Column, ETeam _Team) const
 {
 	if (!OccupiedTeamsPerColumn.Contains(_Column))
 	{
@@ -683,7 +683,7 @@ bool AMM_GridManager::IsTeamInColumn(int _Column, ETeam _Team)
 	return OccupiedTeamsPerColumn[_Column].Contains(_Team);
 }
 
-TArray<int> AMM_GridManager::GetTeamColumns(ETeam _Team)
+TArray<int> AMM_GridManager::GetTeamColumns(ETeam _Team) const
 {
 	TArray<int> AvailableColumns;
 
@@ -783,7 +783,7 @@ ETeam AMM_GridManager::GetWinningStalemateTeam() const
 
 // ################################ Grid Debugging ################################
 
-void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath)
+void AMM_GridManager::DebugPath(TArray<FIntVector2D> ValidPath) const
 {
 	auto colour = FLinearColor::MakeRandomColor();
 	for (int i = 0; i < ValidPath.Num(); i++)

@@ -43,7 +43,7 @@ public:
 	/** Stores team */
 	void SetupMouse(ETeam _Team);
 
-	ETeam GetTeam() { return CurrentTeam; };
+	ETeam GetTeam() const { return CurrentTeam; };
 
 #pragma endregion
 
@@ -67,7 +67,7 @@ public:
 	/** Called when a mouse has reached the end of the grid */
 	void GoalReached();
 
-	bool HasReachedEnd() { return bGoalReached; };
+	bool HasReachedEnd() const { return bGoalReached; };
 
 protected:
 

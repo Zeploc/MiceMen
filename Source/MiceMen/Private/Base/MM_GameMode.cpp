@@ -286,7 +286,7 @@ void AMM_GameMode::CheckStalemateMice()
 	}	
 }
 
-ETeam AMM_GameMode::GetWinningStalemateTeam()
+ETeam AMM_GameMode::GetWinningStalemateTeam() const
 {
 	if (GridManager)
 	{
