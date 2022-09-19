@@ -29,6 +29,8 @@ Functions
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 - Check UPROPERTY and UFUNCTIONS are relevant
 - Move functions else where (librarys/components) where appropriate
+- const in for loops
+- For loops map use TPair<>&
 
 - HARD AI
 

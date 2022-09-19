@@ -114,10 +114,7 @@ protected:
 	UFUNCTION()
 	void ProcessCompletedMouseMovement(AMM_Mouse* _Mouse);
 
-	/**
-	* Clears from processing and unbinds delegates.
-	* @param _Mouse to cleanup
-	*/
+	/** Clears Mouse from processing and unbinds delegates. */
 	void CleanupProcessedMouse(AMM_Mouse* _Mouse);
 
 #pragma endregion
@@ -226,7 +223,7 @@ public:
 protected:
 	/** The grid size set by the game mode used to populate the grid */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FIntVector2D GridSize;
+	FIntVector2D GridSize = FIntVector2D(19, 13);
 
 	/** The current size of the gap between teams along the x axis */
 	int GapSize;

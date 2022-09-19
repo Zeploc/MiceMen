@@ -21,7 +21,6 @@ AMM_GridManager::AMM_GridManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	GridSize = FIntVector2D(19, 13);
 	GridBlockClass = AMM_GridBlock::StaticClass();
 	MouseClass = AMM_Mouse::StaticClass();
 	ColumnControlClass = AMM_ColumnControl::StaticClass();
