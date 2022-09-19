@@ -117,50 +117,35 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Dir
 
 	// Get initial values
 	int StartingGridIndex = CoordToIndex(_Column, 0);	
-	int TopBlock = GridSize.Y - 1;
 	AMM_GridElement* WrappingElement = nullptr;
 
-	// Calculate column range based on direction (exclude element that wraps around)
-	int SliceStart = 0;
-	int SliceEnd = TopBlock;
+	int BottomBlockIndex = StartingGridIndex;
+	int TopBlockIndex = StartingGridIndex + GridSize.Y - 1;
 
-	// Skip first element which will move to the top
+	// Downwards means bottom element wrapping
 	if (_Direction == EDirection::E_DOWN)
 	{
-		SliceStart += 1;
+		WrappingElement = Grid[BottomBlockIndex];
+		// Remove bottom element
+		Grid.RemoveAt(BottomBlockIndex);
+		// Insert element at the top
+		Grid.Insert(WrappingElement, TopBlockIndex);
 	}
-	// Skip top element which will move to the bottom
+	// Upwards means the top element wrapping
 	else if (_Direction == EDirection::E_UP)
 	{
-		SliceEnd -= 1;
-	}
-
-	// Store new column slice
-	TArray<AMM_GridElement*> ColumnSlice;
-	for (int y = SliceStart; y <= SliceEnd; y++)
-	{
-		ColumnSlice.Add(Grid[StartingGridIndex + y]);
-	}
-
-	// Add last element at new position
-	if (_Direction == EDirection::E_DOWN)
-	{
-		// Add bottom element to the end of the array (at the top)
-		WrappingElement = Grid[StartingGridIndex];
-		ColumnSlice.Add(WrappingElement);
-	}
-	else if (_Direction == EDirection::E_UP)
-	{
-		// Insert top element at the start/bottom
-		WrappingElement = Grid[StartingGridIndex + TopBlock];
-		ColumnSlice.Insert(WrappingElement, 0);
+		WrappingElement = Grid[TopBlockIndex];
+		// Remove top element
+		Grid.RemoveAt(TopBlockIndex);
+		// Insert element at the top
+		Grid.Insert(WrappingElement, BottomBlockIndex);
 	}
 
 	// Update each element with its new position and store new free slots
-	for (int y = 0; y < ColumnSlice.Num(); y++)
+	for (int y = 0; y < GridSize.Y; y++)
 	{
-		AMM_GridElement* CurrentElement = ColumnSlice[y];
 		const FIntVector2D ElementCoord = { _Column, y };
+		AMM_GridElement* CurrentElement = GetGridElement(ElementCoord);
 
 		// Assign element to new coordinate
 		bool bSetElementSuccess = SetGridElement(ElementCoord, CurrentElement);
