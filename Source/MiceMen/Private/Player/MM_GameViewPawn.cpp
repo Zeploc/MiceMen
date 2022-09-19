@@ -73,28 +73,43 @@ void AMM_GameViewPawn::BeginTurn()
 		TArray<int> AvailableColumns = GridManager->GetTeamColumns(MMPlayerController->GetCurrentTeam());
 		int FallbackColumn = -1;
 
-		// For each available column
-		for (int Column : AvailableColumns)
+		// Sandbox add all
+		if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_SANDBOX)
 		{
-			FallbackColumn = Column;
-
-			// Check if this column was already moved a specific amount of times in a row
-			if (Column == LastMovedColumn && SameMovedColumnCount >= SameColumnMax)
+			// Add all columns as interactable
+			TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
+			TArray<int> AllColumnIndexes;
+			AllColumnControls.GenerateKeyArray(AllColumnIndexes);
+			for (int Column : AllColumnIndexes)
 			{
-				// Don't add column to movable
-				continue;
+				CurrentColumnControls.Add(AllColumnControls[Column]);
+			}
+		}
+		else
+		{
+			// For each available column
+			for (int Column : AvailableColumns)
+			{
+				FallbackColumn = Column;
+
+				// Check if this column was already moved a specific amount of times in a row
+				if (Column == LastMovedColumn && SameMovedColumnCount >= SameColumnMax)
+				{
+					// Don't add column to movable
+					continue;
+				}
+
+				AddColumnAsGrabbable(Column);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
 			}
 
-			AddColumnAsGrabbable(Column);
-			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
-		}
-
-		// If no available columns, use fall back,
-		// for situations such as when all mice are on the same column but it was moved more than the max
-		if (CurrentColumnControls.Num() <= 0 && FallbackColumn >= 0)
-		{
-			AddColumnAsGrabbable(FallbackColumn);
-			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
+			// If no available columns, use fall back,
+			// for situations such as when all mice are on the same column but it was moved more than the max
+			if (CurrentColumnControls.Num() <= 0 && FallbackColumn >= 0)
+			{
+				AddColumnAsGrabbable(FallbackColumn);
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
+			}
 		}
 
 		// If player is AI, auto take the turn
