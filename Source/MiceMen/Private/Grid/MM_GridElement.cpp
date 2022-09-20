@@ -70,13 +70,8 @@ AMM_GridManager* AMM_GridElement::GetGridManager()
 		return GridManager;
 	}
 
-	if (!GetWorld())
-	{
-		return nullptr;
-	}
-
 	// Defaults to grabbing from the game mode
-	if (AMM_GameMode* MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>())
+	if (MMGameMode)
 	{
 		GridManager = MMGameMode->GetGridManager();
 	}

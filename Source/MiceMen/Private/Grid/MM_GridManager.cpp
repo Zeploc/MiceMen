@@ -52,7 +52,7 @@ void AMM_GridManager::SetupGridVariables(FIntVector2D _GridSize, AMM_GameMode* _
 {
 	GridSize = _GridSize;
 	MMGameMode = _MMGameMode;
-	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGridVariables | Setup grid with size %s and gamemode %s"), *GridSize.ToString(), MMGameMode ? *MMGameMode->GetName() : "none");
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGridVariables | Setup grid with size %s and gamemode %s"), *GridSize.ToString(), MMGameMode ? *MMGameMode->GetName() : TEXT("none"));
 }
 
 void AMM_GridManager::RebuildGrid(const int _InitialMiceCount)
