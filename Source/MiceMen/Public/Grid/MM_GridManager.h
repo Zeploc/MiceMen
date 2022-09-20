@@ -57,13 +57,13 @@ public:
 
 public:
 	/** Stores initial information */
-	void SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode);
+	void SetupGridVariables(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode);
 
-	/** Sets up grid object */
+	/** Sets up grid object and initial sizes */
 	void CreateGrid();
 
 	/** Cleans up grid and recreates it */
-	void RebuildGrid(int _InitialMiceCount);
+	void RebuildGrid(const int _InitialMiceCount);
 
 	UFUNCTION(BlueprintPure)
 	FIntVector2D GetGridSize() const { return GridSize; }
@@ -164,7 +164,6 @@ public:
 	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const;
 
 #pragma endregion
-
 
 #pragma region Debug
 

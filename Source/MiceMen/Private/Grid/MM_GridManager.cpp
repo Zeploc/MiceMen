@@ -48,16 +48,16 @@ void AMM_GridManager::Tick(float DeltaTime)
 	}
 }
 
-void AMM_GridManager::SetupGrid(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode)
+void AMM_GridManager::SetupGridVariables(FIntVector2D _GridSize, AMM_GameMode* _MMGameMode)
 {
 	GridSize = _GridSize;
 	MMGameMode = _MMGameMode;
 	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGrid | Setup grid with size %s and gamemode %s"), *GridSize.ToString(), *MMGameMode->GetName());
 }
 
-void AMM_GridManager::RebuildGrid(int _InitialMiceCount)
+void AMM_GridManager::RebuildGrid(const int _InitialMiceCount)
 {
-	// Empty old grid and remove
+	// Empty old grid and clear containers
 	GridCleanUp();
 
 	// Check grid size is valid
@@ -67,7 +67,7 @@ void AMM_GridManager::RebuildGrid(int _InitialMiceCount)
 		return;
 	}
 
-	// Create new grid
+	// Create new grid and setup sizes
 	CreateGrid();
 
 	// Populate grid elements

@@ -368,7 +368,7 @@ bool AMM_GameMode::SetupGridManager()
 
 	// Spawn Grid manager
 	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
-	GridManager->SetupGrid(NewGridSize, this);
+	GridManager->SetupGridVariables(NewGridSize, this);
 	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
 	GridManager->RebuildGrid(InitialMiceCount);
 
