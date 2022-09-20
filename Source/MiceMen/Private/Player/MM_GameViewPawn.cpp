@@ -149,7 +149,7 @@ void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)
 	if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
 	{
 		// Display column as grabbable with a highlight and store
-		AllColumnControls[Column]->DisplayGrabbable(true, MMPlayerController->GetCurrentTeam());
+		AllColumnControls[Column]->DisplayAsGrabbable(true, MMPlayerController->GetCurrentTeam());
 		CurrentColumnControls.Add(AllColumnControls[Column]);
 	}
 }
@@ -317,7 +317,7 @@ void AMM_GameViewPawn::TurnEnded()
 	{
 		if (Column)
 		{
-			Column->DisplayGrabbable(false);
+			Column->DisplayAsGrabbable(false);
 			Column->AdjustCompleteDelegate.RemoveAll(this);
 		}
 	}

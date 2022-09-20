@@ -27,7 +27,7 @@ public:
 
 public:
 	/** Stores initial information for the grid element */
-	virtual void SetupGridInfo(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates);
+	virtual void SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates);
 
 	/** Changes the grid position, updating the column this element is linked to */
 	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);

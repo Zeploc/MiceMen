@@ -77,7 +77,7 @@ protected:
 	void PopulateGrid();
 
 	/** Decides what element to place, either block or empty */
-	void PlaceGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* NewColumnControl);
+	void PlaceGridElement(FIntVector2D _NewCoord, AMM_ColumnControl* _ColumnControl);
 
 	/** Places initial mice for each team, based on _MicePerTeam */
 	void PopulateTeams(int _MicePerTeam);
@@ -91,7 +91,7 @@ public:
 	void RemoveMouse(AMM_Mouse* _Mouse);
 
 	/** Moves a mouse to a new location, clearing the old location */
-	void MoveMouse(AMM_Mouse* _Mouse, FIntVector2D _NewCoord);
+	void SetMousePosition(AMM_Mouse* _Mouse, FIntVector2D _NewCoord);
 
 protected:
 		
@@ -101,8 +101,11 @@ protected:
 	/** Find all the mice to process and store them in order of position and team */
 	void StoreOrderedMiceToProcess();
 
+	/* Add mouse to array based on positioning so lower forward mice go first */
+	void InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*> _CurrentTeamMiceToProcess);
+	
 	/** Ends the players turn when there are no more mice to process. */
-	void ProcessMiceComplete();
+	void ProcessMiceComplete() const;
 
 	/** Handles moving mouse and updating grid */
 	void ProcessMouse(AMM_Mouse* _Mouse);
@@ -152,7 +155,7 @@ public:
 	FTransform GetWorldTransformFromCoord(FIntVector2D _Coords) const;
 
 	/** Direction along the grid the team goes */
-	EDirection GetDirectionFromTeam(ETeam _Team) const;
+	static EDirection GetDirectionFromTeam(ETeam _Team);
 
 	/** Will check one slot in a given direction, and return true if its free, setting CurrentPosition */
 	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction) const;
@@ -183,7 +186,7 @@ public:
 
 protected:
 	/** Called on tick when the debug grid is enabled, to draw visuals representing grid elements */
-	void DisplayDebugVisualiseGrid();
+	void DisplayDebugGrid() const;
 
 
 #pragma endregion
@@ -297,7 +300,7 @@ protected:
 #pragma region Debug Variables
 
 	/** Whether the debug grid is currently visualized */
-	bool bDebugGridEnabled = false;
+	bool bDisplayDebugGrid = false;
 
 #pragma endregion
 

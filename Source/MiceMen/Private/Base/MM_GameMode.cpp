@@ -29,6 +29,7 @@ void AMM_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Create second local player
 	SecondLocalPlayerController = UGameplayStatics::CreatePlayer(GetWorld());
 }
 
@@ -87,18 +88,19 @@ void AMM_GameMode::GameReady()
 
 void AMM_GameMode::BeginGame(EGameType _GameType)
 {
-	// Not all players
+	// Not all players joined, cannot begin
 	if (AllPlayers.Num() < 2)
 	{
 		return;
 	}
+	// No valid game type set, cannot begin
 	if (_GameType == EGameType::E_NONE || _GameType == EGameType::E_MAX)
 	{
 		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::BeginGame | No gametype selected!"));
 		return;
 	}
 
-	// Restart players
+	// Reset and Restart players
 	for (AMM_PlayerController* PlayerController : AllPlayers)
 	{
 		if (!PlayerController)
@@ -111,7 +113,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 
 	// Setup
 	SetupGridManager();
-	CheckStalemateMice();
+	CheckForStalemate();
 
 	// Setup game type
 	CurrentGameType = _GameType;
@@ -129,7 +131,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 		{
 			AllPlayers[0]->SetAsAI();
 		}
-		// Fall through
+		// Fall through to set second player to AI
 	}
 	case EGameType::E_PVAI:
 	{
@@ -148,9 +150,53 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 
 	// Start random players turn
 	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
-	SwitchTurns(AllPlayers[IntialPlayer]);
+	SwitchTurnToPlayer(AllPlayers[IntialPlayer]);
 	
 	BI_OnGameBegun();
+}
+
+bool AMM_GameMode::SetupGridManager()
+{
+	if (!GetWorld())
+	{
+		return false;
+	}
+	
+	// Initially set grid size to game mode default
+	FIntVector2D GridSize = DefaultGridSize;
+
+	// Initially Spawn grid at world zero
+	FTransform SpawnTransform = FTransform::Identity;
+
+	// Try find World Grid for overrides such as transform and grid size
+	AActor* FoundWorldGrid = UGameplayStatics::GetActorOfClass(GetWorld(), AMM_WorldGrid::StaticClass());
+	if (const AMM_WorldGrid* WorldGrid = Cast<AMM_WorldGrid>(FoundWorldGrid))
+	{
+		SpawnTransform = WorldGrid->GetActorTransform();
+		GridSize = WorldGrid->GridSize;
+	}
+
+	// Check valid manager class
+	if (!GridManagerClass)
+	{
+		// Set to static class if no valid class set
+		GridManagerClass = AMM_GridManager::StaticClass();
+	}
+	UE_LOG(LogTemp, Display, TEXT("AMM_GameMode::SetupGridManager | Setting up Grid Manager with class %s"), *GridManagerClass->GetName());
+	
+	// Spawn Grid manager
+	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
+	GridManager->SetupGridVariables(GridSize, this);
+	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
+	GridManager->RebuildGrid(InitialMiceCount);
+
+	if (!GridManager)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AMM_GameMode::SetupGridManager | Failed to spawn Grid Manager!"));
+		return false;
+	}
+
+	return true;
 }
 
 void AMM_GameMode::SwitchToTestMode()
@@ -183,71 +229,76 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 {
 	Super::PostLogin(_NewPlayer);
 
-	if (AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer))
+	AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer);
+	// Check player controller is valid and correct type
+	if (!MMController)
 	{
-		ETeam NewPlayerTeam;
+		return;
+	}
 
-		// First player is team A
-		if (AllPlayers.Num() == 0)
-		{
-			NewPlayerTeam = ETeam::E_TEAM_A;
+	ETeam NewPlayerTeam;
+	
+	// First player is team A
+	if (AllPlayers.Num() == 0)
+	{
+		NewPlayerTeam = ETeam::E_TEAM_A;
 
-			// Store first local player
-			FirstLocalPlayer = MMController->GetLocalPlayer();
-		}
-		// Second player joins team B
-		else
-		{
-			NewPlayerTeam = ETeam::E_TEAM_B;
-		}
+		// Store first local player
+		FirstLocalPlayer = MMController->GetLocalPlayer();
+	}
+	// Second player joins team B
+	else
+	{
+		NewPlayerTeam = ETeam::E_TEAM_B;
+	}
 
-		// Set up player as selected team
-		MMController->SetupPlayer(NewPlayerTeam);
-		AllPlayers.Add(MMController);
+	// Set up player as selected team
+	MMController->SetupPlayer(NewPlayerTeam);
+	AllPlayers.Add(MMController);
 
-		// Currently only requires two players
-		if (AllPlayers.Num() >= 2)
-		{
-			GameReady();
-		}
+	// Currently only requires two players to begin
+	if (AllPlayers.Num() >= 2)
+	{
+		GameReady();
 	}
 }
 
-void AMM_GameMode::SwitchTurns(AMM_PlayerController* _Player)
+void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* _Player)
 {
 	if (!_Player)
 	{
 		return;
 	}
-
+	
 	// Store new player as current
 	CurrentPlayerController = _Player;
-	// Begin player turn
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurns | Switching player to %i as %s"), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
-	CurrentPlayerController->BeginTurn();
-
-	// Since this is local, set the new player to active input
-	// Note: In a network or splitscreen situation this would not be necessary as each client has their own input
+	
+	// Since this is local, set the first local player to the new player to enable input
+	// Note: In a network or split-screen situation, this would not be necessary as each client has their own input
 	// And would send events to the server
 	if (FirstLocalPlayer)
 	{
 		FirstLocalPlayer->SwitchController(CurrentPlayerController);
-	}
+	}	
+	
+	// Begin player turn
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurnToPlayer | Switching player to %i as %s"), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+	CurrentPlayerController->BeginTurn();
 
 	BI_OnSwitchTurns(CurrentPlayerController);
 }
 
-void AMM_GameMode::PlayerTurnComplete(AMM_PlayerController* _Player)
+void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* _Player)
 {
 	// Was not the player's current turn
 	if (_Player != CurrentPlayerController)
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::TurnEnded | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameMode::ProcessTurnComplete | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
 		return;
 	}
 
 	// End turn for current player
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::PlayerTurnComplete | Completed player's turn %s as %i"), *CurrentPlayerController->GetName(), CurrentPlayerController->GetCurrentTeam());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::ProcessTurnComplete | Completed player's turn %s as %i"), *CurrentPlayerController->GetName(), CurrentPlayerController->GetCurrentTeam());
 	CurrentPlayerController->TurnEnded();
 	
 	// If stalemate is active, increase counter for turn taken
@@ -274,10 +325,10 @@ void AMM_GameMode::PlayerTurnComplete(AMM_PlayerController* _Player)
 	}
 
 	// Switch to next player
-	SwitchTurns(AllPlayers[NextPlayer]);
+	SwitchTurnToPlayer(AllPlayers[NextPlayer]);
 }
 
-void AMM_GameMode::CheckStalemateMice()
+void AMM_GameMode::CheckForStalemate()
 {
 	// If more than 0, already in stalemate mode
 	if (StalemateCount >= 0)
@@ -285,7 +336,7 @@ void AMM_GameMode::CheckStalemateMice()
 		return;
 	}
 
-	// Check if in stalemate with grid manager
+	// Check with grid manager if should currently be in stalemate 
 	if (GetGridManager() && GridManager->IsStalemate())
 	{
 		// Enter stalemate mode and begin counting turns
@@ -306,10 +357,10 @@ ETeam AMM_GameMode::GetWinningStalemateTeam() const
 
 void AMM_GameMode::AddScore(ETeam _Team)
 {
-	// Increment score by 1, will set score if the team already exists
+	// Increment score by 1, will set score if the team's score doesn't exists
 	TeamPoints.Add(_Team, GetTeamScore(_Team) + 1);
 
-	// If mouse complete was winning mouse, stop processing mice
+	// If a team has the winning number of points
 	if (HasTeamWon(_Team))
 	{
 		TeamWon(_Team);
@@ -334,59 +385,18 @@ bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
 		return true;
 	}
 	
-	// No team has won yet
+	// Team has won yet
 	return false;
-}
-
-bool AMM_GameMode::SetupGridManager()
-{
-	if (!GetWorld())
-	{
-		return false;
-	}
-	
-	// Check valid manager class
-	if (!GridManagerClass)
-	{
-		GridManagerClass = AMM_GridManager::StaticClass();
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("AMM_GameMode::SetupGridManager | Setting up Grid Manager with class %s"), *GridManagerClass->GetName());
-
-	FIntVector2D NewGridSize = DefaultGridSize;
-
-	// Default Spawn grid at world zero
-	FTransform SpawnTransform = FTransform::Identity;
-
-	// Try find GridTransform for overrides such as transform and grid size
-	AActor* FoundWorldGrid = UGameplayStatics::GetActorOfClass(GetWorld(), AMM_WorldGrid::StaticClass());
-	if (AMM_WorldGrid* WorldGrid = Cast<AMM_WorldGrid>(FoundWorldGrid))
-	{
-		SpawnTransform = WorldGrid->GetActorTransform();
-		NewGridSize = WorldGrid->GridSize;
-	}
-
-	// Spawn Grid manager
-	GridManager = GetWorld()->SpawnActorDeferred<AMM_GridManager>(GridManagerClass, SpawnTransform);
-	GridManager->SetupGridVariables(NewGridSize, this);
-	UGameplayStatics::FinishSpawningActor(GridManager, SpawnTransform);
-	GridManager->RebuildGrid(InitialMiceCount);
-
-	if (!GridManager)
-	{
-		UE_LOG(LogTemp, Error, TEXT("AMM_GameMode::SetupGridManager | Failed to spawn Grid Manager!"));
-		return false;
-	}
-
-	return true;
 }
 
 void AMM_GameMode::TeamWon(ETeam _Team)
 {
+	// Check valid team
 	if (_Team == ETeam::E_MAX)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Valid Team won!"));
 		return;
 	}
+	
 	BI_OnTeamWon(_Team);
 }

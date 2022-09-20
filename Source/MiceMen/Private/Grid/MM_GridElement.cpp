@@ -13,7 +13,7 @@ AMM_GridElement::AMM_GridElement()
 
 }
 
-void AMM_GridElement::SetupGridInfo(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates)
+void AMM_GridElement::SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates)
 {
 	GridManager = _GridManager;
 	Coordinates = _GridCoordinates;
@@ -24,9 +24,10 @@ void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
 {
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *_NewGridCoordiantes.ToString());
 
+	// Set new position
 	Coordinates = _NewGridCoordiantes;
 
-	// Checks grid manager is valid, should be set in setup grid info
+	// Checks grid manager is valid, should be set in SetupGridVariables()
 	if (!GetGridManager())
 	{
 		return;
@@ -39,7 +40,7 @@ void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
 		NewColumn = GridManager->GetColumnControls()[Coordinates.X];
 	}
 
-	// Switch to new column
+	// Check new column is different from current
 	if (NewColumn != CurrentColumn)
 	{
 		// Remove from previous column
@@ -57,12 +58,13 @@ void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
 
 void AMM_GridElement::CleanUp()
 {
-
+	GridManager = nullptr;
+	MMGameMode = nullptr;
 }
 
 AMM_GridManager* AMM_GridElement::GetGridManager()
 {
-	// Should be set in SetupGridInfo()
+	// Should be set in SetupGridVariables()
 	if (GridManager)
 	{
 		return GridManager;
@@ -73,10 +75,10 @@ AMM_GridManager* AMM_GridElement::GetGridManager()
 		return nullptr;
 	}
 
-	// Defaults to grabbing from the gamemode
-	if (AMM_GameMode* MMGamemode = GetWorld()->GetAuthGameMode<AMM_GameMode>())
+	// Defaults to grabbing from the game mode
+	if (AMM_GameMode* MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>())
 	{
-		GridManager = MMGamemode->GetGridManager();
+		GridManager = MMGameMode->GetGridManager();
 	}
 
 	return GridManager;

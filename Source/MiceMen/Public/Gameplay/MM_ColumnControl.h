@@ -56,7 +56,7 @@ public:
 	void SetupColumn(int _ColumnID, AMM_GridManager* _GridManager);
 
 	/** Locks the column into the slot, calling events to update the grid elements */
-	void LockInCollumn();
+	void LockInColumn();
 
 	int GetColumnIndex() const { return ControllingColumn; }
 
@@ -80,12 +80,11 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void BN_DirectionChanged(EDirection _NewDirection);
 
-protected:
 	/**
-	* Moves column base position to original position relative to the grid.
+	* Moves column position to the original position relative to the grid.
 	* Will reattach the grid elements to maintain their transforms
 	*/
-	void MoveColumnBackToOriginalPosition();
+	void ResetToDefaultPosition();
 
 #pragma endregion
 
@@ -99,11 +98,11 @@ public:
 	void EndGrab();
 
 	/** Toggles whether the column should display as interactable, and for which team */
-	void DisplayGrabbable(bool _bGrabbable, ETeam _Team = ETeam::E_NONE);
+	void DisplayAsGrabbable(bool _bGrabbable, ETeam _Team = ETeam::E_NONE);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_DisplayGrabbable(bool _bGrabbable, ETeam _Team);
+	void BI_OnDisplayAsGrabbable(bool _bGrabbable, ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_BeginGrab();

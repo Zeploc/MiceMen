@@ -87,7 +87,7 @@ public:
 	AMM_GridManager* GetGridManager();
 
 protected:
-	/** Creates grid and basic setup, uses AMM_WorldGrid to position the grid*/
+	/** Creates grid and basic setup, uses AMM_WorldGrid to position the grid, returns true if succesful*/
 	bool SetupGridManager();
 
 #pragma endregion
@@ -100,15 +100,15 @@ public:
 	* Will either complete the game or go to the next player.
 	* @param _Player the player who's turn just ended
 	*/
-	void PlayerTurnComplete(AMM_PlayerController* _Player);
+	void ProcessTurnComplete(AMM_PlayerController* _Player);
 
 	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
 	AMM_PlayerController* GetCurrentPlayer() const { return CurrentPlayerController; }
 
 protected:
-	/** Will change turns to a different player */
-	void SwitchTurns(AMM_PlayerController* _Player);
+	/** Will change the current turn to a different player */
+	void SwitchTurnToPlayer(AMM_PlayerController* _Player);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
@@ -159,8 +159,11 @@ public:
 #pragma region Stalemate
 
 public:
-	/**  Described as stalemate, when only 1 mouse exists per team */
-	void CheckStalemateMice();
+	/**
+	* Will check if should be in stalemate, and if so switch
+	* Stalemate is when only 1 mouse exists per team
+	*/
+	void CheckForStalemate();
 
 	/**  Find winning team in a stalemate situation */
 	ETeam GetWinningStalemateTeam() const;

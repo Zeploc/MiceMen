@@ -70,7 +70,7 @@ public:
 	FIntVector2D GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot = true) const;
 
 	/** Returns true if the given coordinate is with in the X and Y range on the grid */
-	bool IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY) const;
+	static bool IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY);
 
 #pragma endregion
 

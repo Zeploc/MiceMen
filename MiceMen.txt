@@ -4,39 +4,34 @@ Naming
 - MM_UI
 - BP_MM_UI
 
-- Find move line up in visual studio key
 
 Todo:
 
-- Add test to see if all mice that completed were correctly scored
-- Link sandbox mode
-
 - Going Player v Player then Run test doesn't start (and can't interact to start it, restart doesn't work until a few times?)
 - If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
-- Performance
 - When all mice get stuck at the middle (no way to pass)
 
-- Remove redundant
-- Less condensed code (readable)
+- const reference function parameters
+- Check UPROPERTY and UFUNCTIONS are relevant
+- For loops map use TPair<>&
 - Comments above ifs explaining what they are checking
 - Functions returning bool that are confusing bool return
 - Commenting clear
-
 Functions
 -Does it tell me what it actually does
 -Does it do just that, or is there other things it is doing as well
+Move static functions to helper utils?
+Go through todo comments
 
-- const reference function parameters
-- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
-- Check UPROPERTY and UFUNCTIONS are relevant
-- Move functions else where (librarys/components) where appropriate
-- const in for loops
-- For loops map use TPair<>&
+MoveColumnBackToOriginalPosition
 
 - HARD AI
 
-
+- Performance
+- Add test to see if all mice that completed were correctly scored
 - Ratio blocks so there are enough empty ones?
+- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
+- const in for loops
 
 
 - Display how team won (by how many points or stalemate by how far)
@@ -44,6 +39,7 @@ Functions
 - Visual/Gameplay
 - UI control starting mice in gameplay
 - UI control grid size in game
+
 -----------------------------------------------------------------------
 To put in readme:
 - Controls

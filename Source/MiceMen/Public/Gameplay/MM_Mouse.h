@@ -93,7 +93,7 @@ protected:
 
 protected:
 	/** Displays a path in world space using colored boxes, increasing in size down the path */
-	void DebugPath(TArray<FIntVector2D> ValidPath) const;
+	void DisplayDebugPath(TArray<FIntVector2D> ValidPath) const;
 
 #pragma endregion
 
