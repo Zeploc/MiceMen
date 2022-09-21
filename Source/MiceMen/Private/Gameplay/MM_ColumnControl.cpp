@@ -26,7 +26,7 @@ AMM_ColumnControl::AMM_ColumnControl()
 void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager)
 {
 	// Store variables
-	ControllingColumn = _ColumnID;
+	ControllingIndex = _ColumnID;
 	GridManager = _GridManager;
 	GridElementHeight = GridManager->GridElementHeight;
 
@@ -48,6 +48,8 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::Tick | TICK YOU BUGGER %i with name %s and lerp is %s"), ControllingIndex, *GetName(), bLerp ? TEXT("true") : TEXT("false"));
+	
 	// Grabbed or lerping
 	if (bGrabbed || bLerp)
 	{
@@ -55,6 +57,7 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 		const float LerpAlpha = FMath::Clamp(LerpSpeed * DeltaTime, 0.0f, 1.0f);
 		const FVector NewLocation = FMath::Lerp(GetActorLocation(), PreviewLocation, LerpAlpha);
 		SetActorLocation(NewLocation);
+		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::Tick | Lerping column %i"), ControllingIndex);
 	}
 	
 	// If column has been released but is still lerping, check if close enough to snap
@@ -75,8 +78,8 @@ bool AMM_ColumnControl::BeginGrab()
 	// Initial grab variables
 	bGrabbed = true;
 	bLerp = true;
-	OriginalColumnLocation = GetActorLocation();
-	PreviewLocation = OriginalColumnLocation;
+	OriginalLocation = GetActorLocation();
+	PreviewLocation = OriginalLocation;
 
 	BI_BeginGrab();
 
@@ -89,16 +92,16 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 
 	EDirection NewDirectionChange = EDirection::E_NONE;
 
-	const float MaxVerticalLocation = OriginalColumnLocation.Z + GridElementHeight;
-	const float MinVerticalLocation = OriginalColumnLocation.Z - GridElementHeight;
+	const float MaxVerticalLocation = OriginalLocation.Z + GridElementHeight;
+	const float MinVerticalLocation = OriginalLocation.Z - GridElementHeight;
 
 	// Limit movement to only one grid slot above or below original location
 	PreviewLocation.Z = FMath::Clamp(PreviewLocation.Z, MinVerticalLocation, MaxVerticalLocation);
 
 	// Snap when close to grid slot
-	if (abs(_NewLocation.Z - OriginalColumnLocation.Z) < SnapSize)
+	if (abs(_NewLocation.Z - OriginalLocation.Z) < SnapSize)
 	{
-		PreviewLocation.Z = OriginalColumnLocation.Z;
+		PreviewLocation.Z = OriginalLocation.Z;
 		NewDirectionChange = EDirection::E_NONE;
 	}
 	// Snap upwards
@@ -118,6 +121,10 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 	// Check position is new slot and update
 	if (CurrentDirectionChange != NewDirectionChange)
 	{
+		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::UpdatePreviewLocation | Updating Direction to %s"),
+			NewDirectionChange == EDirection::E_NONE ? TEXT("None") : NewDirectionChange == EDirection::E_DOWN ?
+			TEXT("Down"):
+			TEXT("Up"));
 		CurrentDirectionChange = NewDirectionChange;
 		BN_DirectionChanged(CurrentDirectionChange);
 	}
@@ -126,16 +133,19 @@ void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
 void AMM_ColumnControl::EndGrab()
 {
 	bGrabbed = false;
+	bLerp = true;
 
 	// Set snap to point based on current direction
 	if (CurrentDirectionChange != EDirection::E_NONE)
 	{
+		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::EndGrab | Direction change for column %i with name %s and lerp is %s"), ControllingIndex, *GetName(), bLerp ? TEXT("true") : TEXT("false"));
 		const int DirectionMultiplier = CurrentDirectionChange == EDirection::E_UP ? 1 : -1;
-		PreviewLocation.Z = OriginalColumnLocation.Z + GridElementHeight * DirectionMultiplier;
+		PreviewLocation.Z = OriginalLocation.Z + GridElementHeight * DirectionMultiplier;
 	}
 	else
 	{
-		PreviewLocation.Z = OriginalColumnLocation.Z;
+		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::EndGrab | No direction change for column %i"), ControllingIndex);
+		PreviewLocation.Z = OriginalLocation.Z;
 	}
 
 	BI_EndGrab();
@@ -143,6 +153,8 @@ void AMM_ColumnControl::EndGrab()
 
 void AMM_ColumnControl::LockInColumn()
 {
+	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::LockInColumn | Locking in column %i"), ControllingIndex);
+	
 	// Lock location and stop lerping movement
 	SetActorLocation(PreviewLocation);
 	bLerp = false;
@@ -157,11 +169,11 @@ void AMM_ColumnControl::LockInColumn()
 		ResetToDefaultPosition();
 		if (GridManager)
 		{
-			GridManager->AdjustColumn(ControllingColumn, CurrentDirectionChange);
+			GridManager->AdjustColumn(ControllingIndex, CurrentDirectionChange);
 		}
 		else
 		{
-			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_ColumnControl::UpdateCollumn | Grid Manager null for %i named %s"), ControllingColumn, *GetName());
+			UE_LOG(MiceMenEventLog, Error, TEXT("AMM_ColumnControl::UpdateCollumn | Grid Manager null for %i named %s"), ControllingIndex, *GetName());
 		}
 	}
 }
@@ -179,7 +191,7 @@ void AMM_ColumnControl::ResetToDefaultPosition()
 	}
 
 	// Reset position
-	SetActorLocation(OriginalColumnLocation);
+	SetActorLocation(OriginalLocation);
 
 	// Reattach Children
 	for (AActor* AttachedActor : AttachedActors)

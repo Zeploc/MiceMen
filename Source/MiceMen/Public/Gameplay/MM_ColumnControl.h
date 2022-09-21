@@ -58,7 +58,7 @@ public:
 	/** Locks the column into the slot, calling events to update the grid elements */
 	void LockInColumn();
 
-	int GetColumnIndex() const { return ControllingColumn; }
+	int GetColumnIndex() const { return ControllingIndex; }
 
 #pragma endregion
 
@@ -72,9 +72,9 @@ public:
 	*/
 	void UpdatePreviewLocation(FVector _NewLocation);
 
-	FVector GetOriginalColumnLocation() const { return OriginalColumnLocation; }
+	FVector GetOriginalLocation() const { return OriginalLocation; }
 
-	EDirection GetCurrentColumnDirection() const { return CurrentDirectionChange; }
+	EDirection GetCurrentDirection() const { return CurrentDirectionChange; }
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)
@@ -139,7 +139,7 @@ protected:
 	FVector PreviewLocation;
 
 	/** The initial column position before it was moved, used to return back to */
-	FVector OriginalColumnLocation;
+	FVector OriginalLocation;
 
 #pragma endregion
 
@@ -159,7 +159,7 @@ public:
 
 protected:
 	/** The column index linked to the x axis on the grid */
-	int ControllingColumn = -1;
+	int ControllingIndex = -1;
 
 	/** The full column height in world space */
 	float ColumnHeight;

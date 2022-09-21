@@ -5,12 +5,12 @@ Naming
 - BP_MM_UI
 
 
-Todo:
+Todo Gameplay:
 
-- Going Player v Player then Run test doesn't start (and can't interact to start it, restart doesn't work until a few times?)
-- If current team goes first, lands on next team mouse, then that team mouse goes, it is then floating
+- AI modes occasional do not start (column doesn't complete move)
 - When all mice get stuck at the middle (no way to pass)
 
+Todo Formatting:
 - const reference function parameters
 - Check UPROPERTY and UFUNCTIONS are relevant
 - For loops map use TPair<>&
@@ -23,8 +23,7 @@ Functions
 Move static functions to helper utils?
 Go through todo comments
 
-MoveColumnBackToOriginalPosition
-
+Todo Additional:
 - HARD AI
 
 - Performance
@@ -48,6 +47,7 @@ To put in readme:
 - Controller/local player setup
 - Further decisions for if networked
 - Pragma Region explanation (collapse/expand)
+- Unique situations found and solved (stalemate, non falling mouse)
 
 
 Gamemode

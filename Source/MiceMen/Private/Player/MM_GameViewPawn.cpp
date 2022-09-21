@@ -139,6 +139,8 @@ void AMM_GameViewPawn::TakeRandomTurn()
 		// Grab and move to determined location
 		// Note: Don't use pawn grab since its not based on mouse/input
 		CurrentColumn->BeginGrab();
+		
+		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomTurn | Chosen direction %i for column %i"), RandomDirection, RandomIndex);
 		CurrentColumn->UpdatePreviewLocation(NewLocation);
 		
 		// If testing mode, instantly move column
@@ -205,7 +207,7 @@ void AMM_GameViewPawn::BeginGrab()
 	if (CurrentColumnControls.Contains(NewColumn))
 	{
 		// Store and begin grab with new column
-		bool bGrabSuccessful = NewColumn->BeginGrab();
+		const bool bGrabSuccessful = NewColumn->BeginGrab();
 		// Check grab was accepted
 		if (bGrabSuccessful)
 		{
@@ -257,7 +259,7 @@ void AMM_GameViewPawn::EndGrab()
 void AMM_GameViewPawn::UpdateColumnInteractionCount()
 {
 	// The column is not being moved, no action needed
-	if (CurrentColumn->GetCurrentColumnDirection() == EDirection::E_NONE)
+	if (CurrentColumn->GetCurrentDirection() == EDirection::E_NONE)
 	{
 		return;
 	}

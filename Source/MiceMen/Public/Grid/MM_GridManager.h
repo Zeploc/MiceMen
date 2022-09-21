@@ -102,10 +102,10 @@ protected:
 	void StoreOrderedMiceToProcess();
 
 	/* Add mouse to array based on positioning so lower forward mice go first */
-	void InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*> _CurrentTeamMiceToProcess);
+	void InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*>& _CurrentTeamMiceToProcess);
 	
 	/** Ends the players turn when there are no more mice to process. */
-	void ProcessMiceComplete() const;
+	void ProcessMiceComplete();
 
 	/** Handles moving mouse and updating grid */
 	void ProcessMouse(AMM_Mouse* _Mouse);
@@ -258,6 +258,8 @@ protected:
 	*/
 	TMap<ETeam, TArray<AMM_Mouse*>> MiceTeams;
 
+	/* Used to keep track of the moved mice in process, only once none have moved will it complete */
+	int CurrentProcessedMovedMiceCount = 0;
 
 #pragma endregion
 

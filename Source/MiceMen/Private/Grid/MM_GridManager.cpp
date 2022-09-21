@@ -332,6 +332,7 @@ void AMM_GridManager::BeginProcessMice()
 	}
 
 	// Start processing, nullptr will ignore cleanup
+	CurrentProcessedMovedMiceCount = 0;
 	ProcessCompletedMouseMovement(nullptr);
 }
 
@@ -394,7 +395,7 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 	}
 }
 
-void AMM_GridManager::InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*> _CurrentTeamMiceToProcess)
+void AMM_GridManager::InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*>& _CurrentTeamMiceToProcess)
 {
 	const ETeam CurrentTeam = _TeamMouse->GetTeam();
 	
@@ -475,8 +476,16 @@ void AMM_GridManager::ProcessCompletedMouseMovement(AMM_Mouse* _Mouse)
 	}
 }
 
-void AMM_GridManager::ProcessMiceComplete() const
+void AMM_GridManager::ProcessMiceComplete()
 {
+	// Check if mice moved in the last process 
+	if (CurrentProcessedMovedMiceCount > 0)
+	{
+		// Since mice moved, run through mice to process again to make sure any mice that can move, will move
+		BeginProcessMice();
+		return;
+	}
+	
 	// Reached end, all mice processed
 	// TODO: Loses direct link to player that was taking the turn,
 	// if the turn is somehow switched while this is processing, it will end the wrong players turn
@@ -520,6 +529,9 @@ void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
 	{
 		return;
 	}
+
+	// A mice successfully moved
+	CurrentProcessedMovedMiceCount++;
 
 	// If test mode go straight to movement complete, as move delegate is not fired on mouse 
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)

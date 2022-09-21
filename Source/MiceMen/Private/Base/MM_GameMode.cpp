@@ -149,7 +149,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 	}
 
 	// Start random players turn
-	int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
+	const int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
 	SwitchTurnToPlayer(AllPlayers[IntialPlayer]);
 	
 	BI_OnGameBegun();
