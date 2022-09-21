@@ -47,7 +47,7 @@ void AMM_GameViewPawn::BeginPlay()
 	Super::BeginPlay();
 	
 	// Check game mode is set
-	GetGamemode();
+	GetMMGamemode();
 }
 // Called every frame
 void AMM_GameViewPawn::Tick(float DeltaTime)
@@ -64,93 +64,106 @@ void AMM_GameViewPawn::BeginTurn()
 {
 	bTurnActive = true;
 
-	// Store available columns
-	if (GetGridManager() && MMPlayerController)
+	// Check grid manager and player controller valid
+	if (!GetGridManager() || !MMPlayerController)
 	{
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Beginning turn for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+		return;
+	}
+	
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Beginning turn for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
+	// Check if sandbox mode
+	if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_SANDBOX)
+	{
+		// Add all columns as interactable
+		TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
+		for (const TPair<int, AMM_ColumnControl*> Column : AllColumnControls)
+		{
+			CurrentColumnControls.Add(Column.Value);
+		}
+	}
+	// Limit columns based on team and move limits
+	else
+	{
 		// Get available column indexes for this player
 		TArray<int> AvailableColumns = GridManager->GetTeamColumns(MMPlayerController->GetCurrentTeam());
 		int FallbackColumn = -1;
-
-		// Sandbox add all
-		if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_SANDBOX)
+		
+		// For each available column
+		for (const int Column : AvailableColumns)
 		{
-			// Add all columns as interactable
-			TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
-			TArray<int> AllColumnIndexes;
-			AllColumnControls.GenerateKeyArray(AllColumnIndexes);
-			for (int Column : AllColumnIndexes)
-			{
-				CurrentColumnControls.Add(AllColumnControls[Column]);
-			}
-		}
-		else
-		{
-			// For each available column
-			for (int Column : AvailableColumns)
-			{
-				FallbackColumn = Column;
+			FallbackColumn = Column;
 
-				// Check if this column was already moved a specific amount of times in a row
-				if (Column == LastMovedColumn && SameMovedColumnCount >= SameColumnMax)
-				{
-					// Don't add column to movable
-					continue;
-				}
-
-				AddColumnAsGrabbable(Column);
-				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
+			// Check if this column was already moved a specific amount of times in a row
+			if (Column == LastMovedColumn && SameMovedColumnCount >= SameColumnMax)
+			{
+				// Don't add column to movable
+				continue;
 			}
 
-			// If no available columns, use fall back,
-			// for situations such as when all mice are on the same column but it was moved more than the max
-			if (CurrentColumnControls.Num() <= 0 && FallbackColumn >= 0)
-			{
-				AddColumnAsGrabbable(FallbackColumn);
-				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
-			}
+			AddColumnAsGrabbable(Column);
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Available column %i"), Column);
 		}
 
-		// If player is AI, auto take the turn
-		if (MMPlayerController->IsAI())
-			TakeRandomTurn();
+		// If no available columns, use fall back,
+		// for situations such as when all mice are on the same column but it was moved more than the max
+		if (CurrentColumnControls.Num() <= 0 && FallbackColumn >= 0)
+		{
+			AddColumnAsGrabbable(FallbackColumn);
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Using fallback column %i"), FallbackColumn);
+		}
+	}
+
+	// If player is AI, auto take the turn
+	if (MMPlayerController->IsAI())
+	{
+		TakeRandomTurn();
 	}
 }
 
 void AMM_GameViewPawn::TakeRandomTurn()
 {
-	int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
+	// Find random column
+	const int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
 	CurrentColumn = CurrentColumnControls[RandomIndex];
-	int RandomDirection = FMath::RandBool() ? 1 : -1;
+	
+	// Find random direction
+	const int RandomDirection = FMath::RandBool() ? 1 : -1;
+	
 	if (CurrentColumn)
 	{
+		// Get new location of column
 		FVector NewLocation = CurrentColumn->GetActorLocation();
 		NewLocation.Z += RandomDirection * GridManager->GridElementHeight;
 
-		// Don't use pawn grab since its not based on mouse/input
+		// Grab and move to determined location
+		// Note: Don't use pawn grab since its not based on mouse/input
 		CurrentColumn->BeginGrab();
 		CurrentColumn->UpdatePreviewLocation(NewLocation);
+		
 		// If testing mode, instantly move column
-		if (GetGamemode() && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
+		if (GetMMGamemode() && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 		{
 			CurrentColumn->SetActorLocation(NewLocation);
 		}
+		
+		// Release the column to apply change
 		EndGrab();
 	}
 }
 
 void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)
 {
-	// Get all columns
+	// Get all columns in grid
 	TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
 
 	// Check column controls has the index and that it is a valid pointer
 	if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
 	{
+		AMM_ColumnControl* ColumnControl = AllColumnControls[Column];
 		// Display column as grabbable with a highlight and store
-		AllColumnControls[Column]->DisplayAsGrabbable(true, MMPlayerController->GetCurrentTeam());
-		CurrentColumnControls.Add(AllColumnControls[Column]);
+		ColumnControl->DisplayAsGrabbable(true, MMPlayerController->GetCurrentTeam());
+		CurrentColumnControls.Add(ColumnControl);
 	}
 }
 
@@ -182,13 +195,23 @@ void AMM_GameViewPawn::BeginGrab()
 
 	// Find column interacted with and check valid
 	AMM_ColumnControl* NewColumn = Cast<AMM_ColumnControl>(InteractHit.GetActor());
-	if (NewColumn && CurrentColumnControls.Contains(NewColumn))
+	if (!NewColumn)
+	{
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a column"));
+		return;
+	}
+
+	// Check column is interactable by this player
+	if (CurrentColumnControls.Contains(NewColumn))
 	{
 		// Store and begin grab with new column
-		if (NewColumn->BeginGrab())
+		bool bGrabSuccessful = NewColumn->BeginGrab();
+		// Check grab was accepted
+		if (bGrabSuccessful)
 		{
 			CurrentColumn = NewColumn;
 			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"), CurrentColumn->GetColumnIndex());
+			// Store offset from grab position to update location correctly
 			HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
 		}
 		else
@@ -198,14 +221,7 @@ void AMM_GameViewPawn::BeginGrab()
 	}
 	else
 	{
-		if (!CurrentColumnControls.Contains(NewColumn))
-		{
-			UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a team column"));
-		}
-		else
-		{
-			UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a column"));
-		}
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Actor hit was not a team column"));
 	}
 }
 
@@ -218,14 +234,11 @@ void AMM_GameViewPawn::EndGrab()
 	}
 
 	// TODO: Improve binding
-	// Clear existing turn ended binding
-	if (CurrentColumnDelegateHandle.IsValid())
-	{
-		CurrentColumnDelegateHandle.Reset();
-	}
+	// Clear existing binding from turn ended 
+	CurrentColumnDelegateHandle.Reset();
 
 	// Bind new delegate for column movement
-	CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::ColumnAdjusted);
+	CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::ProcessMovedColumn);
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on adjustment complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 	// Tell the current column it has been released
@@ -249,7 +262,7 @@ void AMM_GameViewPawn::UpdateColumnInteractionCount()
 		return;
 	}
 
-	int CurrentColumnIndex = CurrentColumn->GetColumnIndex();
+	const int CurrentColumnIndex = CurrentColumn->GetColumnIndex();
 
 	// If the column moved was not the same as the last
 	if (CurrentColumnIndex != LastMovedColumn)
@@ -268,7 +281,7 @@ void AMM_GameViewPawn::UpdateColumnInteractionCount()
 
 void AMM_GameViewPawn::HandleGrab()
 {
-	// Needs current column to move, and the control to project the cursor to world space
+	// Needs current column to move, and the controller to project the cursor to world space
 	if (!CurrentColumn || !MMPlayerController)
 	{
 		return;
@@ -282,9 +295,12 @@ void AMM_GameViewPawn::HandleGrab()
 		return;
 	}
 
-	float T;
+	const FVector StartingLocation = WorldLocation;
+	const FVector EndLocation = StartingLocation + WorldDirection * InteractTraceDistance;
+	
+	float IntersectDistance;
 	FVector IntersectionLocation;
-	if (!UKismetMathLibrary::LinePlaneIntersection_OriginNormal(WorldLocation, WorldLocation + WorldDirection * InteractTraceDistance, CurrentColumn->GetActorLocation(), CurrentColumn->GetActorForwardVector() * -1, T, IntersectionLocation))
+	if (!UKismetMathLibrary::LinePlaneIntersection_OriginNormal(StartingLocation, EndLocation, CurrentColumn->GetActorLocation(), CurrentColumn->GetActorForwardVector() * -1, IntersectDistance, IntersectionLocation))
 	{
 		// Failed to intersect the plane
 		return;
@@ -296,12 +312,13 @@ void AMM_GameViewPawn::HandleGrab()
 	CurrentColumn->UpdatePreviewLocation(NewLocation);
 }
 
-void AMM_GameViewPawn::ColumnAdjusted(bool _TurnComplete)
+void AMM_GameViewPawn::ProcessMovedColumn(bool _TurnComplete)
 {
 	if (_TurnComplete)
 	{
 		TurnEnded();
 	}
+	// If column was not moved, turn is not complete
 	else
 	{
 		bTurnActive = true;
@@ -312,7 +329,7 @@ void AMM_GameViewPawn::TurnEnded()
 {
 	bTurnActive = false;
 
-	// Hide all columns grabbable highlights
+	// Hide all column grabbable highlights
 	for (AMM_ColumnControl* Column : CurrentColumnControls)
 	{
 		if (Column)
@@ -328,20 +345,26 @@ void AMM_GameViewPawn::TurnEnded()
 AMM_GridManager* AMM_GameViewPawn::GetGridManager()
 {
 	if (IsValid(GridManager))
+	{
 		return GridManager;
+	}
 
-	if (!GetGamemode())
+	if (!GetMMGamemode())
+	{
 		return nullptr;
+	}
 
 	GridManager = MMGameMode->GetGridManager();
 
 	return GridManager;
 }
 
-AMM_GameMode* AMM_GameViewPawn::GetGamemode()
+AMM_GameMode* AMM_GameViewPawn::GetMMGamemode()
 {
 	if (MMGameMode)
+	{
 		return MMGameMode;
+	}
 
 	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
 

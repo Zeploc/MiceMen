@@ -275,7 +275,7 @@ void AMM_GridManager::PopulateTeams(int _MicePerTeam)
 TArray<FVector> AMM_GridManager::PathFromCoordToWorld(TArray<FIntVector2D> _CoordPath) const
 {
 	TArray<FVector> NewWorldPath;
-	for (FIntVector2D Coord : _CoordPath)
+	for (const FIntVector2D Coord : _CoordPath)
 	{
 		const FVector WorldLocation = GetWorldTransformFromCoord(Coord).GetLocation();
 		NewWorldPath.Add(WorldLocation);

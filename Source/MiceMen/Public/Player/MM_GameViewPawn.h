@@ -83,7 +83,7 @@ protected:
 	void UpdateColumnInteractionCount();
 
 	/** Called once a column has been moved, and passed in true if the column had changed, completing the turn */
-	void ColumnAdjusted(bool _TurnComplete);
+	void ProcessMovedColumn(bool _TurnComplete);
 
 #pragma endregion
 
@@ -108,7 +108,7 @@ protected:
 	AMM_GridManager* GetGridManager();
 
 	UFUNCTION(BlueprintPure)
-	AMM_GameMode* GetGamemode();
+	AMM_GameMode* GetMMGamemode();
 
 #pragma endregion
 
