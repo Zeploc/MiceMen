@@ -123,6 +123,11 @@ void AMM_GameViewPawn::BeginTurn()
 
 void AMM_GameViewPawn::TakeRandomTurn()
 {
+	if (!GetGridManager())
+	{
+		return;
+	}
+	
 	// Find random column
 	const int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
 	CurrentColumn = CurrentColumnControls[RandomIndex];

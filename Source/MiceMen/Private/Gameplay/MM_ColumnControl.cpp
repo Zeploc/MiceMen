@@ -47,8 +47,6 @@ void AMM_ColumnControl::BeginPlay()
 void AMM_ColumnControl::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::Tick | TICK YOU BUGGER %i with name %s and lerp is %s"), ControllingIndex, *GetName(), bLerp ? TEXT("true") : TEXT("false"));
 	
 	// Grabbed or lerping
 	if (bGrabbed || bLerp)
@@ -57,7 +55,6 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 		const float LerpAlpha = FMath::Clamp(LerpSpeed * DeltaTime, 0.0f, 1.0f);
 		const FVector NewLocation = FMath::Lerp(GetActorLocation(), PreviewLocation, LerpAlpha);
 		SetActorLocation(NewLocation);
-		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::Tick | Lerping column %i"), ControllingIndex);
 	}
 	
 	// If column has been released but is still lerping, check if close enough to snap

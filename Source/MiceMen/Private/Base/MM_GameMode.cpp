@@ -108,6 +108,11 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 			continue;
 		}
 		PlayerController->ClearAI();
+		if (PlayerController->GetPawn())
+		{
+			PlayerController->GetPawn()->Destroy();
+		}
+		PlayerController->UnPossess();
 		RestartPlayer(PlayerController);
 	}
 
