@@ -6,8 +6,6 @@ Naming
 
 
 Todo Gameplay:
-
-- AI modes occasional do not start (column doesn't complete move)
 - When all mice get stuck at the middle (no way to pass)
 
 Todo Formatting:
