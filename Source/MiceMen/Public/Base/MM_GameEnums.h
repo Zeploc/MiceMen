@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/UserDefinedEnum.h"
-#include "MM_Enums.generated.h"
+#include "MM_GameEnums.generated.h"
 
 
 /** Gameplay mode to choose how it players */
@@ -72,14 +72,12 @@ FORCEINLINE ETeam operator++(ETeam& Team, int)
 
 /** TODO */
 UENUM(BlueprintType)
-enum class EDirection : uint8
+enum class EAIDifficulty : uint8
 {
 	E_NONE			UMETA(DisplayName = "None"),
 
-	E_RIGHT			UMETA(DisplayName = "Right"),
-	E_LEFT			UMETA(DisplayName = "Left"),
-	E_UP			UMETA(DisplayName = "Up"),
-	E_DOWN			UMETA(DisplayName = "Down"),
+	E_BASIC			UMETA(DisplayName = "Basic"),
+	E_ADVANCED		UMETA(DisplayName = "Advanced"),
 
 	E_MAX			UMETA(DisplayName = "Max"),
 };

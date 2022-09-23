@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Grid/MM_GridElement.h"
-#include "Base/MM_Enums.h"
+#include "Base/MM_GameEnums.h"
 #include "MM_Mouse.generated.h"
 
 /**

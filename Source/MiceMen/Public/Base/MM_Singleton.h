@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "MM_Enums.h"
+#include "MM_GameEnums.h"
 #include "MM_Singleton.generated.h"
 
 /**

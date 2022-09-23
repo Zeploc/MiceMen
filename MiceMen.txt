@@ -6,7 +6,7 @@ Naming
 
 
 Todo Gameplay:
-- When all mice get stuck at the middle (no way to pass)
+- When all mice get stuck at the middle (no way to pass) (Game end)
 
 Todo Formatting:
 - const reference function parameters

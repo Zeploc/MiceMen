@@ -59,7 +59,7 @@ void AMM_GameMode::RestartGame()
 
 	BI_OnGameRestarted();
 
-	BeginGame(CurrentGameType);
+	BeginGame(CurrentGameType, CurrentAIDifficulty);
 }
 
 void AMM_GameMode::CleanupGame()
@@ -86,7 +86,7 @@ void AMM_GameMode::GameReady()
 	BI_OnGameReady();
 }
 
-void AMM_GameMode::BeginGame(EGameType _GameType)
+void AMM_GameMode::BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty)
 {
 	// Not all players joined, cannot begin
 	if (AllPlayers.Num() < 2)
@@ -122,6 +122,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType)
 
 	// Setup game type
 	CurrentGameType = _GameType;
+	CurrentAIDifficulty = _AIDifficulty;
 	switch (CurrentGameType)
 	{
 	case EGameType::E_PVP:

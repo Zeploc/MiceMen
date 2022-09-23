@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "IntVector2D.h"
-#include "Base/MM_Enums.h"
+#include "Base/MM_GridEnums.h"
 #include "MM_GridObject.generated.h"
 
 class AMM_GridElement;

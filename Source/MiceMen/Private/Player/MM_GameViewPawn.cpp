@@ -39,6 +39,11 @@ void AMM_GameViewPawn::PossessedBy(AController* _NewController)
 	Super::PossessedBy(_NewController);
 
 	MMPlayerController = Cast<AMM_PlayerController>(_NewController);
+	if (MMPlayerController)
+	{
+		// Link AI complete event
+		MMPlayerController->OnAITurnComplete.AddDynamic(this, &AMM_GameViewPawn::AITurnComplete);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -115,48 +120,15 @@ void AMM_GameViewPawn::BeginTurn()
 	}
 
 	// If player is AI, auto take the turn
-	if (MMPlayerController->IsAI())
-	{
-		TakeRandomTurn();
-	}
+	MMPlayerController->TakeAITurn();
 }
 
-void AMM_GameViewPawn::TakeRandomTurn()
+void AMM_GameViewPawn::AITurnComplete(AMM_ColumnControl* _ColumnControl)
 {
-	if (!GetGridManager())
-	{
-		return;
-	}
+	CurrentColumn = _ColumnControl;
 	
-	// Find random column
-	const int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
-	CurrentColumn = CurrentColumnControls[RandomIndex];
-	
-	// Find random direction
-	const int RandomDirection = FMath::RandBool() ? 1 : -1;
-	
-	if (CurrentColumn)
-	{
-		// Get new location of column
-		FVector NewLocation = CurrentColumn->GetActorLocation();
-		NewLocation.Z += RandomDirection * GridManager->GridElementHeight;
-
-		// Grab and move to determined location
-		// Note: Don't use pawn grab since its not based on mouse/input
-		CurrentColumn->BeginGrab();
-		
-		UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomTurn | Chosen direction %i for column %i"), RandomDirection, RandomIndex);
-		CurrentColumn->UpdatePreviewLocation(NewLocation);
-		
-		// If testing mode, instantly move column
-		if (GetMMGamemode() && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
-		{
-			CurrentColumn->SetActorLocation(NewLocation);
-		}
-		
-		// Release the column to apply change
-		EndGrab();
-	}
+	// Release the column to apply change
+	EndGrab();
 }
 
 void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)

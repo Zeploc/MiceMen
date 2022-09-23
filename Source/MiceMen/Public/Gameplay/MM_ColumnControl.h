@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Base/MM_Enums.h"
+#include "Base/MM_GameEnums.h"
+#include "Base/MM_GridEnums.h"
 #include "MM_ColumnControl.generated.h"
 
 /**

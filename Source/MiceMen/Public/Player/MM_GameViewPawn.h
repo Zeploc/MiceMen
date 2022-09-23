@@ -54,10 +54,7 @@ protected:
 
 public:
 	/** Called on the beginning of the players turn, stores available columns to interact with */
-	void BeginTurn();
-
-	/** Used by AI to select a random column to move */
-	void TakeRandomTurn();
+	void BeginTurn();	
 
 	UFUNCTION(BlueprintPure)
 	bool IsTurnActive() const { return bTurnActive; };
@@ -65,6 +62,9 @@ public:
 protected:
 	/** Called when the turn ends, cleans up columns information */
 	void TurnEnded();
+
+	UFUNCTION()
+	void AITurnComplete(AMM_ColumnControl* _ColumnControl);
 
 #pragma endregion
 

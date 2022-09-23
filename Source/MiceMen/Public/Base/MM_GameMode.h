@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Grid/IntVector2D.h"
-#include "Base/MM_Enums.h"
+#include "Base/MM_GameEnums.h"
 #include "MM_GameMode.generated.h"
 
 class APlayerController;
@@ -42,7 +42,7 @@ protected:
 public:
 	/** Starts game with a certain game play type */
 	UFUNCTION(BlueprintCallable)
-	void BeginGame(EGameType _GameType);
+	void BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty);
 
 	/** Clean up grid and restore to starting state */
 	void CleanupGame();
@@ -61,6 +61,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	EGameType GetCurrentGameType() const { return CurrentGameType; }
+	
+	UFUNCTION(BlueprintPure)
+	EAIDifficulty GetCurrentAIDifficulty() const { return CurrentAIDifficulty; }
 
 protected:
 	/** Called when the game is ready and game play mode can be chosen */
@@ -187,6 +190,11 @@ protected:
 	/** The current game play type */
 	UPROPERTY(BlueprintReadOnly)
 	EGameType CurrentGameType = EGameType::E_NONE;
+	
+	/** The current difficulty of the AI */
+	UPROPERTY(BlueprintReadOnly)
+	EAIDifficulty CurrentAIDifficulty = EAIDifficulty::E_NONE;
+	
 
 	/** The current team points, Team ID to number of points */
 	UPROPERTY(BlueprintReadOnly)

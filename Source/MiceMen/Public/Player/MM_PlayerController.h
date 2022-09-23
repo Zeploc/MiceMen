@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "Base/MM_Enums.h"
+#include "Base/MM_GameEnums.h"
 #include "MM_PlayerController.generated.h"
-
 
 class AMM_GameViewPawn;
 class AMM_GameMode;
+class AMM_ColumnControl;
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAITurnComplete, AMM_ColumnControl*, ColumnControl);
 
 /**
  * The main player controller for a playable user, as well as an AI player
@@ -50,9 +53,19 @@ public:
 public:
 	/** Turn has begun, start interaction */
 	virtual void BeginTurn();
+	
+	/** If the player is an AI, perform AI turn */
+	virtual bool TakeAITurn();
 
 	/** Turn has ended */
 	virtual void TurnEnded();
+
+protected:
+	/** Perform AI turn by selecting a random column to move */
+	bool TakeRandomAITurn();
+	
+	/** Perform AI turn by looking for the next opening a mouse can go to and move a column towards that */
+	bool TakeAdvancedAITurn();
 
 #pragma endregion
 
@@ -82,6 +95,11 @@ protected:
 
 #pragma region Gameloop Variables
 
+public:
+	/** Called once the AI has performed their turn */
+	UPROPERTY(BlueprintAssignable)
+	FAITurnComplete OnAITurnComplete;
+	
 protected:
 	/** The team this player is on */
 	UPROPERTY(BlueprintReadOnly)
