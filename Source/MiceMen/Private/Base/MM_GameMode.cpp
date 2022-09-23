@@ -361,6 +361,12 @@ ETeam AMM_GameMode::GetWinningStalemateTeam() const
 	return ETeam::E_NONE;
 }
 
+void AMM_GameMode::ForceEndNoMoves()
+{
+	// TODO: Check who has the most points, if even then tie
+	TeamWon(ETeam::E_NONE);
+}
+
 void AMM_GameMode::AddScore(ETeam _Team)
 {
 	// Increment score by 1, will set score if the team's score doesn't exists

@@ -51,6 +51,7 @@ public:
 	/** When a stalemate win condition occurs, get the further ahead mouse as the winning team */
 	ETeam GetWinningStalemateTeam() const;
 
+	bool CheckNoValidMoves();
 
 #pragma endregion
 

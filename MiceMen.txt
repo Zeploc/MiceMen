@@ -31,6 +31,7 @@ Todo Additional:
 - const in for loops
 
 
+- Mark AI label on hud for teams
 - Display how team won (by how many points or stalemate by how far)
 - Players UI gets larger/more colour/outline when its their turn
 - Visual/Gameplay

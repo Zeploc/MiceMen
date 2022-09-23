@@ -503,8 +503,15 @@ void AMM_GridManager::ProcessMiceComplete()
 	if (MMGameMode)
 	{
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::ProcessMiceComplete | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
-
-		MMGameMode->ProcessTurnComplete(MMGameMode->GetCurrentPlayer());
+		
+		if (CheckNoValidMoves())
+		{
+			MMGameMode->ForceEndNoMoves();
+		}
+		else
+		{
+			MMGameMode->ProcessTurnComplete(MMGameMode->GetCurrentPlayer());
+		}		
 	}
 	else
 	{
@@ -807,6 +814,69 @@ ETeam AMM_GridManager::GetWinningStalemateTeam() const
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::GetWinningStalemateTeam | Failed to get winning stalemate team, returned E_MAX!"));
 
 	return ETeam::E_MAX;
+}
+
+bool AMM_GridManager::CheckNoValidMoves()
+{
+	ETeam CurrentTeam = ETeam::E_NONE;
+	ETeam NextTeam = CurrentTeam;
+	NextTeam++;
+	for (const TPair<int, AMM_ColumnControl*> Column: ColumnControls)
+	{
+		// TODO: Refactor and comment
+		
+		bool bCurrentColumnFull = true;
+		const int x = Column.Key;
+		for (int y = 0; y < GridSize.Y; y++)
+		{
+			const AMM_GridElement* CurrentGridElement = GridObject->GetGridElement({x, y});
+			if (!CurrentGridElement)
+			{
+				bCurrentColumnFull = false;
+				break;
+			}
+		}
+		if (bCurrentColumnFull)
+		{
+			bool bSuccessColumn = true;
+			for (const AMM_Mouse* CurrentMouse : MiceColumns[x])
+			{
+				if (!CurrentMouse)
+				{
+					continue;
+				}
+				if (CurrentMouse->GetTeam() != CurrentTeam && CurrentMouse->GetTeam() != NextTeam)
+				{
+					bSuccessColumn = false;
+					break;
+				}
+			}
+			if (bSuccessColumn)
+			{
+				CurrentTeam++;
+				NextTeam = CurrentTeam;
+				NextTeam++;
+			}
+			else
+			{
+				CurrentTeam = ETeam::E_NONE;
+				NextTeam = CurrentTeam;
+				NextTeam++;
+			}
+		}
+		else
+		{
+			CurrentTeam = ETeam::E_NONE;
+			NextTeam = CurrentTeam;
+			NextTeam++;
+		}
+		
+		if (bCurrentColumnFull && CurrentTeam == ETeam::E_TEAM_B)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 // ################################ Grid Debugging ################################

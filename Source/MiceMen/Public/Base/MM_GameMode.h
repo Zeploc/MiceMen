@@ -171,6 +171,8 @@ public:
 	/**  Find winning team in a stalemate situation */
 	ETeam GetWinningStalemateTeam() const;
 
+	void ForceEndNoMoves();
+
 #pragma endregion
 
 //-------------------------------------------------------
