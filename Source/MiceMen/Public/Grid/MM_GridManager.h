@@ -248,6 +248,12 @@ protected:
 	*/
 	UPROPERTY()
 	TArray<AMM_Mouse*> Mice;
+	
+	/**
+	* List of mice that have reached their goal.
+	*/
+	UPROPERTY()
+	TArray<AMM_Mouse*> CompletedMice;
 
 	/** Current Mice to process movement from a column change. */
 	TArray<AMM_Mouse*> MiceToProcessMovement;

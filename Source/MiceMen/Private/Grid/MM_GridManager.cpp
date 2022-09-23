@@ -110,6 +110,14 @@ void AMM_GridManager::GridCleanUp()
 		}
 	}
 	Mice.Empty();
+	for (AMM_Mouse* Mouse : CompletedMice)
+	{
+		if (Mouse)
+		{
+			Mouse->Destroy();
+		}
+	}
+	CompletedMice.Empty();	
 
 	// Empty Remaining containers
 	MiceTeams.Empty();
@@ -454,6 +462,7 @@ void AMM_GridManager::ProcessCompletedMouseMovement(AMM_Mouse* _Mouse)
 		const ETeam MouseTeam = _Mouse->GetTeam();
 
 		MMGameMode->AddScore(MouseTeam);
+		CompletedMice.Add(_Mouse);
 
 		if (MMGameMode->HasTeamWon(MouseTeam))
 		{
