@@ -42,10 +42,12 @@ void AMM_GridManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+#if !UE_BUILD_SHIPPING
 	if (bDisplayDebugGrid)
 	{
 		DisplayDebugGrid();
 	}
+#endif	
 }
 
 void AMM_GridManager::SetupGridVariables(const FIntVector2D& _GridSize, AMM_GameMode* _MMGameMode)
@@ -324,9 +326,14 @@ EDirection AMM_GridManager::GetDirectionFromTeam(ETeam _Team)
 
 void AMM_GridManager::BeginProcessMice()
 {
+	// Keeps a reference to the player to keep a link to who's turn is being processed as a safety
+	// If the turn is somehow switched while this is processing, it will then be ignored by
+	// the game mode once complete
+	CurrentPlayerProcessing = MMGameMode->GetCurrentPlayer();
+	
 	// Save all mice in the correct order based on the current team as the starting mice
 	StoreOrderedMiceToProcess();
-
+	
 	// Check test mode
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
@@ -346,10 +353,10 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 {
 	TArray<ETeam> OrderedTeamsToProcess;
 
-	if (MMGameMode && MMGameMode->GetCurrentPlayer())
+	if (MMGameMode && CurrentPlayerProcessing)
 	{
 		// Order the process of mice, starting with the current player's team
-		const ETeam CurrentPlayerTeam = MMGameMode->GetCurrentPlayer()->GetCurrentTeam();
+		const ETeam CurrentPlayerTeam = CurrentPlayerProcessing->GetCurrentTeam();
 		OrderedTeamsToProcess.Add(CurrentPlayerTeam);
 		
 		// Add other team
@@ -378,7 +385,6 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 
 		TArray<AMM_Mouse*> CurrentTeamMiceToProcess;
 
-		// TODO: Improve Logic
 		// NOTE: Storing the Mice and checking/inserting in order, is more efficient than iterating through the whole grid
 		for (AMM_Mouse* TeamMouse : MiceTeams[CurrentTeam])
 		{
@@ -391,10 +397,6 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 
 			// Add mouse based on position
 			InsertMouseByOrder(TeamMouse, CurrentTeamMiceToProcess);
-
-			// TODO: Breaks processing of mice
-			//// Set up delegate for when movement is complete
-			//TeamMouse->MouseMovementEndDelegate.AddDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);
 		}
 
 		MiceToProcessMovement.Append(CurrentTeamMiceToProcess);
@@ -441,6 +443,34 @@ void AMM_GridManager::InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse
 	
 	// Add to end (if not already) to ensure they are added to process
 	_CurrentTeamMiceToProcess.AddUnique(_TeamMouse);
+}
+
+void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
+{
+	// Check the mouse is valid to process
+	if (!CheckMouse(_Mouse))
+	{
+		return;
+	}
+
+	// Set up delegate for when movement is complete
+	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);
+
+	// Attempt to move the mouse
+	const bool bMovementSuccesful = _Mouse->AttemptPerformMovement();
+	if (!bMovementSuccesful)
+	{
+		return;
+	}
+
+	// A mice successfully moved
+	CurrentProcessedMovedMiceCount++;
+
+	// If test mode go straight to movement complete, as move delegate is not fired on mouse 
+	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
+	{
+		HandleCompletedMouseMovement(_Mouse);
+	}
 }
 
 void AMM_GridManager::HandleCompletedMouseMovement(AMM_Mouse* _Mouse)
@@ -494,10 +524,6 @@ void AMM_GridManager::HandleMiceComplete()
 	}
 	
 	// Reached end, all mice processed
-	// TODO: Loses direct link to player that was taking the turn,
-	// if the turn is somehow switched while this is processing, it will end the wrong players turn
-	// could store a pointer to the player it was processing as a safety, which would then be ignored by
-	// the game mode if incorrect
 	if (MMGameMode)
 	{
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::HandleMiceComplete | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
@@ -510,7 +536,7 @@ void AMM_GridManager::HandleMiceComplete()
 		else
 		{
 			// Next player's turn
-			MMGameMode->ProcessTurnComplete(MMGameMode->GetCurrentPlayer());
+			MMGameMode->ProcessTurnComplete(CurrentPlayerProcessing);
 		}		
 	}
 	else
@@ -525,34 +551,6 @@ void AMM_GridManager::CleanupProcessedMouse(AMM_Mouse* _Mouse)
 	{
 		MiceToProcessMovement.Remove(_Mouse);
 		_Mouse->MovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);			
-	}
-}
-
-void AMM_GridManager::ProcessMouse(AMM_Mouse* _Mouse)
-{
-	// Check the mouse is valid to process
-	if (!CheckMouse(_Mouse))
-	{
-		return;
-	}
-
-	// Set up delegate for when movement is complete
-	_Mouse->MovementEndDelegate.AddDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);
-
-	// Attempt to move the mouse
-	const bool bMovementSuccesful = _Mouse->AttemptPerformMovement();
-	if (!bMovementSuccesful)
-	{
-		return;
-	}
-
-	// A mice successfully moved
-	CurrentProcessedMovedMiceCount++;
-
-	// If test mode go straight to movement complete, as move delegate is not fired on mouse 
-	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
-	{
-		HandleCompletedMouseMovement(_Mouse);
 	}
 }
 
@@ -595,23 +593,24 @@ void AMM_GridManager::RemoveMouse(AMM_Mouse* _Mouse)
 
 void AMM_GridManager::SetMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewCoord)
 {
-	const FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
-
-	// Check if coordinates have changed
-	if (OriginalCoordinates == _NewCoord)
+	const bool bSuccessfullyMoved = MoveGridElement(_Mouse, _NewCoord);
+	if (!bSuccessfullyMoved)
 	{
 		return;
 	}
+	const FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
 
-	// TODO: Add MoveGridElement() in grid object?
-	
-	// Remove mouse from previous location
-	GridObject->SetGridElement(OriginalCoordinates, nullptr);
+	// Move mouse to new column
 	RemoveMouseFromColumn(OriginalCoordinates.X, _Mouse);
-
-	// Add mouse to new location
-	GridObject->SetGridElement(_NewCoord, _Mouse);
 	AddMouseToColumn(_NewCoord.X, _Mouse);
+}
+
+bool AMM_GridManager::MoveGridElement(AMM_GridElement* _GridElement, const FIntVector2D& _NewCoord) const
+{	
+	// Remove element from previous location and add to new location
+	const bool bSuccessfullyMoved = GridObject->MoveGridElement(_NewCoord, _GridElement);
+	
+	return bSuccessfullyMoved;
 }
 
 void AMM_GridManager::RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse)

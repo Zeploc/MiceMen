@@ -80,8 +80,6 @@ bool AMM_Mouse::BeginMove(FIntVector2D& _FinalPosition)
 	DisplayDebugPath(ValidPath);
 #endif
 
-	// TODO: Need to account for a second team movement then opens movement for the previously moved team?
-
 	// If test mode, instantly move mouse
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{

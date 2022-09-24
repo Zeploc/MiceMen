@@ -193,7 +193,12 @@ bool AMM_PlayerController::TakeAdvancedAITurn() const
 		}
 	}
 
-	// TODO: Check if BestColumn is -1 meaning no optimal solution (could prioritise further back ones)
+	// No column movement was found
+	if (BestColumn < 0)
+	{
+		// Default to random movement
+		return TakeRandomAITurn();
+	}
 
 	// Apply column movement
 	AMM_ColumnControl* CurrentColumn = MMGameMode->GetGridManager()->GetColumnControls()[BestColumn];

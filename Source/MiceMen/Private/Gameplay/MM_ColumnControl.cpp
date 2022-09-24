@@ -108,7 +108,6 @@ void AMM_ColumnControl::UpdatePreviewLocation(const FVector& _NewLocation)
 		NewDirectionChange = EDirection::E_UP;
 	}
 	// Snap downwards
-	// TODO Check it should be plus SnapSize and not minus
 	else if (_NewLocation.Z < MinVerticalLocation + SnapSize)
 	{
 		PreviewLocation.Z = MinVerticalLocation;

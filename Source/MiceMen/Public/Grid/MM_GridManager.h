@@ -6,7 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "Grid/IntVector2D.h"
 #include "Base/MM_GameEnums.h"
+#include "Base/MM_GameMode.h"
 #include "Base/MM_GridEnums.h"
+#include "Player/MM_PlayerController.h"
 #include "MM_GridManager.generated.h"
 
 class AMM_ColumnControl;
@@ -99,6 +101,9 @@ public:
 
 	/** Moves a mouse to a new location, clearing the old location */
 	void SetMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewCoord);
+	
+	/** Attempts to move a grid element to a new coordinate, returns true if successful */
+	bool MoveGridElement(AMM_GridElement* _GridElement, const FIntVector2D& _NewCoord) const;
 
 	TMap<ETeam, TArray<AMM_Mouse*>> GetMiceTeams() { return MiceTeams; }
 
@@ -315,6 +320,8 @@ protected:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	AMM_GameMode* MMGameMode;
+
+	AMM_PlayerController* CurrentPlayerProcessing;
 
 #pragma endregion
 

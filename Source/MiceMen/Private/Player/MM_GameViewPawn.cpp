@@ -212,7 +212,6 @@ void AMM_GameViewPawn::EndGrab()
 		return;
 	}
 
-	// TODO: Improve binding
 	// Clear existing binding from turn ended 
 	CurrentColumnDelegateHandle.Reset();
 

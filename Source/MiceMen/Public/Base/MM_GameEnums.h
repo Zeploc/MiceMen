@@ -7,7 +7,7 @@
 #include "MM_GameEnums.generated.h"
 
 
-/** Gameplay mode to choose how it players */
+/** Gameplay mode to choose how the game plays, and which are AI or Players */
 UENUM(BlueprintType)
 enum class EGameType : uint8
 {
@@ -28,7 +28,7 @@ enum class EGameType : uint8
 	E_MAX		UMETA(DisplayName = "MAX")
 };
 
-/** TODO */
+/** The team a mice is in that a player controls */
 UENUM(BlueprintType)
 enum class ETeam : uint8
 {
@@ -70,7 +70,7 @@ FORCEINLINE ETeam operator++(ETeam& Team, int)
 	return Result;
 }
 
-/** TODO */
+/** The difficulty for the AI determining how well they play */
 UENUM(BlueprintType)
 enum class EAIDifficulty : uint8
 {

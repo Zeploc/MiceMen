@@ -38,6 +38,8 @@ public:
 
 	/** Sets a grid element in the grid array */
 	bool SetGridElement(const FIntVector2D& _Coord, AMM_GridElement* _GridElement);
+	
+	bool MoveGridElement(const FIntVector2D& _NewCoord, AMM_GridElement* _GridElement);
 
 	/** Moves the column up or down by 1 and returns the last element */
 	AMM_GridElement* MoveColumnElements(int _Column, EDirection _Direction);

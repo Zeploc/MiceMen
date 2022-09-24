@@ -18,13 +18,13 @@ Move static functions to helper utils?
 Go through todo comments
 
 Todo Additional:
-- HARD AI
-
+- AI Advanced turn column instantly moves instead of lerp
 - Performance
 - Add test to see if all mice that completed were correctly scored
 - Ratio blocks so there are enough empty ones?
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 
+- Turns completed in [number]
 - Mark AI label on hud for teams
 - Display how team won (by how many points or stalemate by how far)
 - Players UI gets larger/more colour/outline when its their turn
@@ -34,14 +34,19 @@ Todo Additional:
 
 -----------------------------------------------------------------------
 To put in readme:
-- Controls
+- Controls (+ debug grid - Not in shipping)
 - Logging system
 - Debug methods
 - Controller/local player setup
 - Further decisions for if networked
 - Pragma Region explanation (collapse/expand)
-- Unique situations found and solved (stalemate, non falling mouse)
-
+- Unique situations found and solved (stalemate, non falling mouse, blocked columns)
+- Things not addressed
+- AI advanced could account for when no direct good moves occur
+- AI advanced could account for other players to not move them, or to block them
+- Possibly testing situations
+- Things I would have done further
+- Future Plans
 
 Gamemode
 - Handles turns
