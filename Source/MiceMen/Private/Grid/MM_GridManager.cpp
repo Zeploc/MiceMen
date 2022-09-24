@@ -833,13 +833,10 @@ ETeam AMM_GridManager::GetWinningStalemateTeam(int& _DistanceWonBy) const
 bool AMM_GridManager::CheckNoValidMoves()
 {
 	ETeam CurrentTeam = ETeam::E_NONE;
-	ETeam NextTeam = CurrentTeam;
-	NextTeam++;
+	// NOTE: Assumes columns were added in correct order from left to right
 	for (const TPair<int, AMM_ColumnControl*>& Column: ColumnControls)
 	{
-		// TODO: Refactor and comment
-		// TODO: Doesn't properly check Team B
-		
+		// Check all elements in column
 		bool bCurrentColumnFull = true;
 		const int x = Column.Key;
 		for (int y = 0; y < GridSize.Y; y++)
@@ -847,49 +844,49 @@ bool AMM_GridManager::CheckNoValidMoves()
 			const AMM_GridElement* CurrentGridElement = GridObject->GetGridElement({x, y});
 			if (!CurrentGridElement)
 			{
+				// Found empty slot, reset
 				bCurrentColumnFull = false;
+				CurrentTeam = ETeam::E_NONE;
 				break;
 			}
 		}
-		if (bCurrentColumnFull)
+		// Column was not full, go to next
+		if (!bCurrentColumnFull)
 		{
-			bool bSuccessColumn = true;
-			for (const AMM_Mouse* CurrentMouse : MiceColumns[x])
-			{
-				if (!CurrentMouse)
-				{
-					continue;
-				}
-				if (CurrentMouse->GetTeam() != CurrentTeam && CurrentMouse->GetTeam() != NextTeam)
-				{
-					bSuccessColumn = false;
-					break;
-				}
-			}
-			if (bSuccessColumn)
-			{
-				CurrentTeam++;
-				NextTeam = CurrentTeam;
-				NextTeam++;
-			}
-			else
-			{
-				CurrentTeam = ETeam::E_NONE;
-				NextTeam = CurrentTeam;
-				NextTeam++;
-			}
+			continue;
 		}
-		else
+
+		// Check for next team
+		ETeam NextTeam = CurrentTeam;
+		NextTeam++;
+		bool bSuccessColumn = true;
+		for (const AMM_Mouse* CurrentMouse : MiceColumns[x])
 		{
-			CurrentTeam = ETeam::E_NONE;
-			NextTeam = CurrentTeam;
-			NextTeam++;
+			if (!CurrentMouse)
+			{
+				continue;
+			}
+			// Check all mice are the team being looked for
+			if (CurrentMouse->GetTeam() != NextTeam)
+			{
+				// One mouse was not the next team
+				bSuccessColumn = false;
+				break;
+			}
 		}
 		
-		if (bCurrentColumnFull && CurrentTeam == ETeam::E_TEAM_B)
+		// All mice were the next team, advance
+		if (bSuccessColumn)
 		{
-			return true;
-		}
+			// Store next team as current as it was successful
+			CurrentTeam = NextTeam;
+			
+			// Found full column of Team B after full team A
+			if (CurrentTeam == ETeam::E_TEAM_B)
+			{
+				return true;
+			}
+		}		
 	}
 	return false;
 }

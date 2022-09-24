@@ -382,7 +382,7 @@ void AMM_GameMode::ForceEndNoMoves()
 		{
 			WinningTeam = ETeam::E_TEAM_B;
 		}
-		WinningReason = "No more moves remaining, team has more completed mice";
+		WinningReason = "No more mice can complete, winning team has more completed mice";
 	}
 
 	TeamWon(WinningTeam, WinningReason);

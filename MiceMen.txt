@@ -4,8 +4,9 @@ Naming
 - MM_UI
 - BP_MM_UI
 
-
 Todo Formatting:
+- Replace all function parameters with no underlines (risky to do now? but better represents my coding style (now))
+
 - Comments above ifs explaining what they are checking
 - Functions returning bool that are confusing bool return
 - Commenting clear
@@ -13,14 +14,13 @@ Functions
 -Does it tell me what it actually does
 -Does it do just that, or is there other things it is doing as well
 Move static functions to helper utils?
-Go through todo comments
 
 Todo:
-- AI Advanced turn column instantly moves instead of lerp
-- Performance
-- Add test to see if all mice that completed were correctly scored
+- Advanced AI defaults up (AI vs AI causes infinite loop of moving columns up)
+- AI Advanced turn column instantly moves instead of lerp (not in shipping?)
 - Ratio blocks so there are enough empty ones?
-- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
+- Add test to see if all mice that completed were correctly scored
+- Performance
 
 - Turns completed in [number]
 - UI control starting mice in gameplay
@@ -39,7 +39,7 @@ Visual/Gameplay
 -----------------------------------------------------------------------
 To put in readme:
 - Controls (+ debug grid - Not in shipping)
-- Logging system
+- Logging system (could cause editor lag)
 - Debug methods
 - Controller/local player setup
 - Further decisions for if networked
@@ -49,6 +49,9 @@ To put in readme:
 - AI advanced could account for when no direct good moves occur
 - AI advanced could account for other players to not move them, or to block them
 - Possibly testing situations
+- Had AI delay times for thinking and moving
+- Seperated AI logic into grid cheaper instance and process in separate thread to have more complicated AI
+- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 - Things I would have done further
 - Future Plans
 
