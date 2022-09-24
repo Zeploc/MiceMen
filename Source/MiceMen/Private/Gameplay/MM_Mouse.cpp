@@ -187,6 +187,11 @@ void AMM_Mouse::GoalReached()
 
 void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const
 {
+	if (!bDisplayDebugPath)
+	{
+		return;
+	}
+	
 	const FLinearColor Colour = FLinearColor::MakeRandomColor();
 	for (int i = 0; i < _ValidPath.Num(); i++)
 	{

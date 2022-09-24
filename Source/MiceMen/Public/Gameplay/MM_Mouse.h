@@ -115,6 +115,9 @@ public:
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FMouseMovementEndDelegate MovementEndDelegate;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bDisplayDebugPath = false;
+
 #pragma endregion
 
 #pragma region Goal Variables
