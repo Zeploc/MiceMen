@@ -83,7 +83,7 @@ bool AMM_ColumnControl::BeginGrab()
 	return true;
 }
 
-void AMM_ColumnControl::UpdatePreviewLocation(FVector _NewLocation)
+void AMM_ColumnControl::UpdatePreviewLocation(const FVector& _NewLocation)
 {
 	PreviewLocation = _NewLocation;
 

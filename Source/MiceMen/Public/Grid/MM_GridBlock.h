@@ -15,15 +15,12 @@ class MICEMEN_API AMM_GridBlock : public AMM_GridElement
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMM_GridBlock();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 };

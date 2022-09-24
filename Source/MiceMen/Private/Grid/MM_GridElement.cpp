@@ -13,14 +13,14 @@ AMM_GridElement::AMM_GridElement()
 
 }
 
-void AMM_GridElement::SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates)
+void AMM_GridElement::SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, const FIntVector2D& _GridCoordinates)
 {
 	GridManager = _GridManager;
 	Coordinates = _GridCoordinates;
 	MMGameMode = _MMGameMode;
 }
 
-void AMM_GridElement::UpdateGridPosition(FIntVector2D _NewGridCoordiantes)
+void AMM_GridElement::UpdateGridPosition(const FIntVector2D& _NewGridCoordiantes)
 {
 	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *_NewGridCoordiantes.ToString());
 

@@ -6,7 +6,7 @@
 #include "Grid/MM_GridElement.h"
 #include "MiceMen.h"
 
-void UMM_GridObject::SetupGrid(FIntVector2D _GridSize)
+void UMM_GridObject::SetupGrid(const FIntVector2D& _GridSize)
 {
 	GridSize = _GridSize;
 	Grid.SetNumZeroed(GridSize.X * GridSize.Y);
@@ -231,7 +231,7 @@ bool UMM_GridObject::IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _
 	return (bWithinX && bWithinY);
 }
 
-bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, FIntVector2D _Direction) const
+bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D& _Direction) const
 {
 	// Test against next coordinates
 	FIntVector2D TestCoords = _CurrentPosition;

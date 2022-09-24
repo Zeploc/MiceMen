@@ -11,7 +11,6 @@ class AMM_GameViewPawn;
 class AMM_GameMode;
 class AMM_ColumnControl;
 
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAITurnComplete, AMM_ColumnControl*, ColumnControl);
 
 /**
@@ -38,7 +37,7 @@ protected:
 #pragma region Setup
 
 public:
-	void SetupPlayer(ETeam _Team);
+	virtual void SetupPlayer(ETeam _Team);
 
 	/** Changes player to AI */
 	virtual void SetAsAI();

@@ -42,18 +42,15 @@ protected:
 public:
 	/** Starts game with a certain game play type */
 	UFUNCTION(BlueprintCallable)
-	void BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty);
-
-	/** Clean up grid and restore to starting state */
-	void CleanupGame();
+	virtual void BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty);
 
 	/** Completes the game, and cleans up all grid systems */
 	UFUNCTION(BlueprintCallable)
-	void EndGame();
+	virtual void EndGame();
 
 	/**  Resets the board and players */
 	UFUNCTION(BlueprintCallable)
-	void RestartGame();
+	virtual void RestartGame();
 
 	/** Changes current mode to test and switches players to AI */
 	UFUNCTION(BlueprintCallable)
@@ -67,7 +64,10 @@ public:
 
 protected:
 	/** Called when the game is ready and game play mode can be chosen */
-	void GameReady();
+	virtual void GameReady();
+	
+	/** Clean up grid and restore to starting state */
+	void CleanupGame();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnGameReady();
@@ -103,7 +103,7 @@ public:
 	* Will either complete the game or go to the next player.
 	* @param _Player the player who's turn just ended
 	*/
-	void ProcessTurnComplete(AMM_PlayerController* _Player);
+	virtual void ProcessTurnComplete(AMM_PlayerController* _Player);
 
 	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
@@ -111,7 +111,7 @@ public:
 
 protected:
 	/** Will change the current turn to a different player */
-	void SwitchTurnToPlayer(AMM_PlayerController* _Player);
+	virtual void SwitchTurnToPlayer(AMM_PlayerController* _Player);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
@@ -132,11 +132,12 @@ public:
 	 * Checks if a team has completed all their mice.
 	 * @return true if a team has won and the game should end
 	 */
-	bool HasTeamWon(ETeam _TeamToCheck) const;
+	UFUNCTION(BlueprintPure)
+	virtual bool HasTeamWon(ETeam _TeamToCheck) const;
 
 protected:
 	/** Called when a team has completed in getting all their mice to the other side of the grid */
-	void TeamWon(ETeam _Team);
+	virtual void TeamWon(ETeam _Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnTeamWon(ETeam _Team);
@@ -155,7 +156,7 @@ public:
 		* @param _Mouse - the mouse that completed
 		* @return true if the game has reached a win condition
 		*/
-	void AddScore(ETeam _Team);
+	virtual void AddScore(ETeam _Team);
 
 #pragma endregion
 
@@ -166,9 +167,10 @@ public:
 	* Will check if should be in stalemate, and if so switch
 	* Stalemate is when only 1 mouse exists per team
 	*/
-	void CheckForStalemate();
+	virtual void CheckForStalemate();
 
 	/**  Find winning team in a stalemate situation */
+	UFUNCTION(BlueprintPure)
 	ETeam GetWinningStalemateTeam() const;
 
 	void ForceEndNoMoves();
@@ -236,7 +238,7 @@ public:
 
 protected:
 	/** The main manager for the grid elements and systems */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, BlueprintGetter=GetGridManager)
 	AMM_GridManager* GridManager;
 
 	/** The grid size if no AMM_WorldGrid exists in the level */

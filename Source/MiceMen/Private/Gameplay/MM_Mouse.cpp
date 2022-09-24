@@ -85,12 +85,12 @@ bool AMM_Mouse::BeginMove(FIntVector2D& _FinalPosition)
 	// If test mode, instantly move mouse
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
-		SetActorLocation(GridManager->GetWorldTransformFromCoord(_FinalPosition).GetLocation());
+		SetActorLocation(GridManager->CoordToWorldTransform(_FinalPosition).GetLocation());
 	}
 	else
 	{
 		// Begin movement (should fire delegate on complete)
-		BN_StartMovement(GridManager->PathFromCoordToWorld(ValidPath));
+		BN_StartMovement(GridManager->PathCoordToWorld(ValidPath));
 	}
 
 	return true;
@@ -187,20 +187,20 @@ void AMM_Mouse::GoalReached()
 
 // ################################ Debugging ################################
 
-void AMM_Mouse::DisplayDebugPath(TArray<FIntVector2D> ValidPath) const
+void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const
 {
 	const FLinearColor Colour = FLinearColor::MakeRandomColor();
-	for (int i = 0; i < ValidPath.Num(); i++)
+	for (int i = 0; i < _ValidPath.Num(); i++)
 	{
-		FVector BoxLocation = GridManager->GetWorldTransformFromCoord(ValidPath[i]).GetLocation();
+		FVector BoxLocation = GridManager->CoordToWorldTransform(_ValidPath[i]).GetLocation();
 		// Add half height to be in center of griid
 		BoxLocation.Z += GridManager->GridElementHeight / 2.0;
-		const float StartingSize = 5.0f;
+		constexpr float StartingSize = 5.0f;
 		// Arbitrary visual size increase up to 10 movements
 		const float AmountThroughPath = static_cast<float>(i) / static_cast<float>(10);
 		const FVector BoxBounds = FVector(StartingSize + AmountThroughPath * 40.0f);
 
 		UKismetSystemLibrary::DrawDebugBox(GetWorld(), BoxLocation, BoxBounds, Colour, FRotator::ZeroRotator, 5, 3);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::DisplayDebugPath | Current path %i: %s"), i, *ValidPath[i].ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::DisplayDebugPath | Current path %i: %s"), i, *_ValidPath[i].ToString());
 	}
 }

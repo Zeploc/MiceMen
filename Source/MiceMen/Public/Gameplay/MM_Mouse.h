@@ -22,17 +22,14 @@ class MICEMEN_API AMM_Mouse : public AMM_GridElement
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMM_Mouse();
 
 #pragma region Core
 
 public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 #pragma endregion
@@ -40,9 +37,10 @@ protected:
 #pragma region Team
 
 public:
-	/** Stores team */
-	void SetupMouse(ETeam _Team, FIntVector2D& _FinalGridCoordinates);
+	/** Stores team and coordinates to start at */
+	virtual void SetupMouse(ETeam _Team, FIntVector2D& _FinalGridCoordinates);
 
+	UFUNCTION(BlueprintPure)
 	ETeam GetTeam() const { return CurrentTeam; };
 
 #pragma endregion
@@ -50,6 +48,17 @@ public:
 #pragma region Movement
 
 public:
+	/** Attempt to move the mouse, return true is movement successful */
+	bool AttemptPerformMovement();
+
+	/** Gets a valid path for this mouse, horizontal direction based on the team to move towards */
+	UFUNCTION(BlueprintCallable)
+	virtual TArray<FIntVector2D> GetMovementPath() const;
+
+protected:
+	/** Move mouse to next valid position, returns true if mouse moved */
+	virtual bool BeginMove(FIntVector2D& _NewPosition);
+	
 	/**
 	 * Override for visual movement,
 	 * call MouseMovementEndDelegate once complete, or game will halt.
@@ -59,30 +68,20 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void BN_StartMovement(const TArray<FVector>& _Path);
 
-	/** Attempt to move the mouse, return true is movement successful */
-	bool AttemptPerformMovement();
-
-	/** Gets a valid path for this mouse, horizontal direction based on the team to move towards */
-	TArray<FIntVector2D> GetMovementPath() const;
-
-protected:
-	/** Move mouse to next valid position, returns true if mouse moved */
-	bool BeginMove(FIntVector2D& _NewPosition);
-
 	/** Update the grid based on the new position */
 	void ProcessUpdatedPosition(const FIntVector2D& _NewPosition);
-
 
 #pragma endregion
 
 #pragma region Goal
 
 public:
+	UFUNCTION(BlueprintPure)
 	bool HasReachedEnd() const { return bGoalReached; };
 
 protected:
 	/** When a mouse has reached the end of the grid for their team */
-	void GoalReached();
+	virtual void GoalReached();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_OnGoalReached();
@@ -91,9 +90,10 @@ protected:
 
 #pragma region Debug
 
-protected:
+public:
 	/** Displays a path in world space using colored boxes, increasing in size down the path */
-	void DisplayDebugPath(TArray<FIntVector2D> ValidPath) const;
+	UFUNCTION(BlueprintCallable)
+	void DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const;
 
 #pragma endregion
 

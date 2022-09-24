@@ -7,7 +7,6 @@
 #include "IntVector2D.h"
 #include "MM_GridElement.generated.h"
 
-
 class AMM_ColumnControl;
 class AMM_GridManager;
 class AMM_GameMode;
@@ -27,13 +26,13 @@ public:
 
 public:
 	/** Stores initial information for the grid element */
-	virtual void SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, FIntVector2D _GridCoordinates);
+	virtual void SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, const FIntVector2D& _GridCoordinates);
 
 	/** Changes the grid position, updating the column this element is linked to */
-	virtual void UpdateGridPosition(FIntVector2D _NewGridCoordiantes);
+	virtual void UpdateGridPosition(const FIntVector2D& _NewGridCoordiantes);
 
 	UFUNCTION(BlueprintPure)
-	FIntVector2D GetCoordinates() const {	return Coordinates; }
+	FIntVector2D GetCoordinates() const { return Coordinates; }
 
 	UFUNCTION(BlueprintPure)
 	AMM_GridManager* GetGridManager();
@@ -57,7 +56,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	FIntVector2D Coordinates;
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, BlueprintGetter=GetGridManager)
 	AMM_GridManager* GridManager;
 
 	UPROPERTY(BlueprintReadOnly)

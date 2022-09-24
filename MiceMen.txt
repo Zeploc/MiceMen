@@ -6,12 +6,8 @@ Naming
 
 
 Todo Gameplay:
-- When all mice get stuck at the middle (no way to pass) (Game end)
 
 Todo Formatting:
-- const reference function parameters
-- Check UPROPERTY and UFUNCTIONS are relevant
-- For loops map use TPair<>&
 - Comments above ifs explaining what they are checking
 - Functions returning bool that are confusing bool return
 - Commenting clear

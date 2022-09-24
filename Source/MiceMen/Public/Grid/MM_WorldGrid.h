@@ -17,19 +17,16 @@ class MICEMEN_API AMM_WorldGrid : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMM_WorldGrid();
 
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
 	/** The amount of elements on the x and y axis for the grid */
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FIntVector2D GridSize = FIntVector2D(19, 13);;
 
 };

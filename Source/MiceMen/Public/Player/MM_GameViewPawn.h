@@ -23,7 +23,6 @@ class MICEMEN_API AMM_GameViewPawn : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
 	AMM_GameViewPawn();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -46,7 +45,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/** Called when the pawn is possessed by a controller, stores MM controller */
-	virtual void PossessedBy(AController* _NewController);
+	virtual void PossessedBy(AController* _NewController) override;
 
 #pragma endregion
 
@@ -54,14 +53,14 @@ protected:
 
 public:
 	/** Called on the beginning of the players turn, stores available columns to interact with */
-	void BeginTurn();	
+	virtual void BeginTurn();	
 
 	UFUNCTION(BlueprintPure)
 	bool IsTurnActive() const { return bTurnActive; };
 
 protected:
 	/** Called when the turn ends, cleans up columns information */
-	void TurnEnded();
+	virtual void TurnEnded();
 
 	UFUNCTION()
 	void AITurnComplete(AMM_ColumnControl* _ColumnControl);
@@ -72,18 +71,18 @@ protected:
 
 public:
 	/** Stores a column as grabbable to interact with during the player's current turn */
-	void AddColumnAsGrabbable(int Column);
+	virtual void AddColumnAsGrabbable(int _Column);
 
 	/** Gets the current interactable columns for this player */
 	UFUNCTION(BlueprintPure)
-	TArray<AMM_ColumnControl*> GetCurrentColumnControls() const { return CurrentColumnControls; };
+	virtual TArray<AMM_ColumnControl*> GetCurrentColumnControls() const { return CurrentColumnControls; };
 
 protected:
 	/** Updates column interaction count, and last interacted column */
 	void UpdateColumnInteractionCount();
 
 	/** Called once a column has been moved, and passed in true if the column had changed, completing the turn */
-	void ProcessMovedColumn(bool _TurnComplete);
+	virtual void ProcessMovedColumn(bool _TurnComplete);
 
 #pragma endregion
 
@@ -91,13 +90,13 @@ protected:
 
 protected:
 	/** Handles the player interaction for initial grabbing of a column */
-	void BeginGrab();
+	virtual void BeginGrab();
 
 	/** Called from tick, updates the columns projected position based on the cursor position  */
-	void HandleGrab();
+	virtual void HandleGrab();
 
 	/** Released the current column */
-	void EndGrab();
+	virtual void EndGrab();
 	
 #pragma endregion
 
@@ -153,16 +152,18 @@ protected:
 	AMM_ColumnControl* CurrentColumn;
 
 	/** The available columns for this player to interact with */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<AMM_ColumnControl*> CurrentColumnControls;
 
 	/** Linked to the current column on release, for when the column slots into place */
 	FDelegateHandle CurrentColumnDelegateHandle;
 
 	/** The last column that was moved by this player */
+	UPROPERTY(BlueprintReadOnly)
 	int LastMovedColumn = -1;
 
 	/** The amount of times the LastMovedColumn has been moved in a row */
+	UPROPERTY(BlueprintReadOnly)
 	int SameMovedColumnCount = 0;
 
 #pragma endregion
@@ -173,7 +174,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	AMM_PlayerController* MMPlayerController;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	AMM_GameMode* MMGameMode;
 
 	UPROPERTY()

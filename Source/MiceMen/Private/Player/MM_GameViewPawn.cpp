@@ -82,7 +82,7 @@ void AMM_GameViewPawn::BeginTurn()
 	{
 		// Add all columns as interactable
 		TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
-		for (const TPair<int, AMM_ColumnControl*> Column : AllColumnControls)
+		for (const TPair<int, AMM_ColumnControl*>& Column : AllColumnControls)
 		{
 			CurrentColumnControls.Add(Column.Value);
 		}
@@ -131,15 +131,15 @@ void AMM_GameViewPawn::AITurnComplete(AMM_ColumnControl* _ColumnControl)
 	EndGrab();
 }
 
-void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)
+void AMM_GameViewPawn::AddColumnAsGrabbable(int _Column)
 {
 	// Get all columns in grid
 	TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
 
 	// Check column controls has the index and that it is a valid pointer
-	if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
+	if (AllColumnControls.Contains(_Column) && AllColumnControls[_Column])
 	{
-		AMM_ColumnControl* ColumnControl = AllColumnControls[Column];
+		AMM_ColumnControl* ColumnControl = AllColumnControls[_Column];
 		// Display column as grabbable with a highlight and store
 		ColumnControl->DisplayAsGrabbable(true, MMPlayerController->GetCurrentTeam());
 		CurrentColumnControls.Add(ColumnControl);
@@ -260,7 +260,7 @@ void AMM_GameViewPawn::UpdateColumnInteractionCount()
 
 void AMM_GameViewPawn::HandleGrab()
 {
-	// Needs current column to move, and the controller to project the cursor to world space
+	// Check current column to move, and the controller to project the cursor to world space
 	if (!CurrentColumn || !MMPlayerController)
 	{
 		return;

@@ -22,7 +22,7 @@ class MICEMEN_API UMM_GridObject : public UObject
 
 public:
 	/** Setups up initial grid sizes */
-	void SetupGrid(FIntVector2D _GridSize);
+	void SetupGrid(const FIntVector2D& _GridSize);
 
 	/** Empties grid objects and elements */
 	void CleanUp();
@@ -33,6 +33,7 @@ public:
 
 public:
 	/** Returns a grid element at given coordinates, returns null if no element */
+	UFUNCTION(BlueprintPure)
 	AMM_GridElement* GetGridElement(const FIntVector2D& _Coord) const;
 
 	/** Sets a grid element in the grid array */
@@ -47,15 +48,15 @@ public:
 
 public:
 	/** Checks if the given coordinates are valid */
+	UFUNCTION(BlueprintPure)
 	bool IsValidCoord(const FIntVector2D& _Coord) const;
 
-	/** Converts a coordinate to the index in the grid array */
-	int CoordToIndex(int _X, int _Y) const;
-
 	/** Gets random coordinate in grid, optional search for free slot */
+	UFUNCTION(BlueprintPure)
 	FIntVector2D GetRandomGridCoord(bool _bFreeSlot = true) const;
 
 	/** Gets random coordinate in grid based on a given column (x axis) range */
+	UFUNCTION(BlueprintPure)
 	FIntVector2D GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot = true) const;
 
 	/**
@@ -67,10 +68,16 @@ public:
 	* @param _bFreeSlot if a free slot needs to be found, default true
 	* @return random coordinate in range, (-1, -1) if failed
 	*/
+	UFUNCTION(BlueprintPure)
 	FIntVector2D GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot = true) const;
 
 	/** Returns true if the given coordinate is with in the X and Y range on the grid */
+	UFUNCTION(BlueprintPure)
 	static bool IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY);
+
+protected:
+	/** Converts a coordinate to the index in the grid array */
+	int CoordToIndex(int _X, int _Y) const;
 
 #pragma endregion
 
@@ -78,21 +85,20 @@ public:
 
 public:
 	/** Will check one slot in a given direction, and return true if its free, setting CurrentPosition */
-	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D _Direction) const;
+	UFUNCTION(BlueprintPure)
+	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D& _Direction) const;
 
 	/** Will check for the lowest possible free slot below without passing through a taken element, and return true if its free, setting CurrentPosition */
+	UFUNCTION(BlueprintPure)
 	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const;
 
 	/** Will check one slot ahead horizontally, based on the given direction, and return true if its free, setting CurrentPosition */
+	UFUNCTION(BlueprintPure)
 	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const;
 
+	/** Lists the active free slots in the grid*/
+	UFUNCTION(BlueprintPure)
 	TArray<FIntVector2D> GetFreeSlots() const { return FreeSlots; }
-
-#pragma endregion
-
-#pragma region Debug
-
-protected:
 
 #pragma endregion
 
@@ -107,6 +113,7 @@ protected:
 	TArray<AMM_GridElement*> Grid;
 
 	/** The size of the grid */
+	UPROPERTY(BlueprintReadOnly)
 	FIntVector2D GridSize;
 
 #pragma endregion
