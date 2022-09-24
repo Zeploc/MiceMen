@@ -28,20 +28,20 @@ void AMM_Mouse::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMM_Mouse::SetupMouse(ETeam _Team, FIntVector2D& _FinalGridCoordinates)
+void AMM_Mouse::SetupMouse(const ETeam InTeam, FIntVector2D& FinalGridCoordinates)
 {
-	CurrentTeam = _Team;
+	CurrentTeam = InTeam;
 
 	TArray<FIntVector2D> ValidPath = GetMovementPath();
-	_FinalGridCoordinates = ValidPath.Last();
-	Coordinates = _FinalGridCoordinates;
+	FinalGridCoordinates = ValidPath.Last();
+	Coordinates = FinalGridCoordinates;
 }
 
-void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& _Path)
+void AMM_Mouse::BN_StartMovement_Implementation(const TArray<FVector>& Path)
 {
 	// Default behavior, should be overridden
 	MovementEndDelegate.Broadcast(this);
-	SetActorLocation(_Path.Last());
+	SetActorLocation(Path.Last());
 }
 
 bool AMM_Mouse::AttemptPerformMovement()
@@ -94,19 +94,19 @@ bool AMM_Mouse::BeginMove(FIntVector2D& _FinalPosition)
 	return true;
 }
 
-void AMM_Mouse::ProcessUpdatedPosition(const FIntVector2D& _NewPosition)
+void AMM_Mouse::ProcessUpdatedPosition(const FIntVector2D& NewPosition)
 {
 	// Check if this mouse has reached the goal
 	bool bReachedGoal = false;
 	if (CurrentTeam == ETeam::E_TEAM_A)
 	{
 		// Team A reach right side of grid
-		bReachedGoal = _NewPosition.X >= GridManager->GetGridSize().X - 1;
+		bReachedGoal = NewPosition.X >= GridManager->GetGridSize().X - 1;
 	}
 	else
 	{
 		// Team B left side of grid
-		bReachedGoal = _NewPosition.X <= 0;
+		bReachedGoal = NewPosition.X <= 0;
 	}
 
 	// If the mouse is at the end of the grid for their team
@@ -118,8 +118,8 @@ void AMM_Mouse::ProcessUpdatedPosition(const FIntVector2D& _NewPosition)
 	// Not at the end, set coordinates to end path position
 	else
 	{
-		GridManager->SetMousePosition(this, _NewPosition);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::ProcessUpdatedPosition | Mouse New position for team %i at %s"), CurrentTeam, *_NewPosition.ToString());
+		GridManager->SetMousePosition(this, NewPosition);
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::ProcessUpdatedPosition | Mouse New position for team %i at %s"), CurrentTeam, *NewPosition.ToString());
 	}
 }
 
@@ -185,7 +185,7 @@ void AMM_Mouse::GoalReached()
 
 // ################################ Debugging ################################
 
-void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const
+void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& ValidPath) const
 {
 	if (!bDisplayDebugPath)
 	{
@@ -193,9 +193,9 @@ void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const
 	}
 	
 	const FLinearColor Colour = FLinearColor::MakeRandomColor();
-	for (int i = 0; i < _ValidPath.Num(); i++)
+	for (int i = 0; i < ValidPath.Num(); i++)
 	{
-		FVector BoxLocation = GridManager->CoordToWorldTransform(_ValidPath[i]).GetLocation();
+		FVector BoxLocation = GridManager->CoordToWorldTransform(ValidPath[i]).GetLocation();
 		// Add half height to be in center of griid
 		BoxLocation.Z += GridManager->GridElementHeight / 2.0;
 		constexpr float StartingSize = 5.0f;
@@ -204,6 +204,6 @@ void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const
 		const FVector BoxBounds = FVector(StartingSize + AmountThroughPath * 40.0f);
 
 		UKismetSystemLibrary::DrawDebugBox(GetWorld(), BoxLocation, BoxBounds, Colour, FRotator::ZeroRotator, 5, 3);
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::DisplayDebugPath | Current path %i: %s"), i, *_ValidPath[i].ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_Mouse::DisplayDebugPath | Current path %i: %s"), i, *ValidPath[i].ToString());
 	}
 }

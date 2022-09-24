@@ -37,7 +37,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 #pragma endregion
 
@@ -51,7 +51,7 @@ public:
 
 	/** When a stalemate win condition occurs, get the further ahead mouse as the winning team */
 	UFUNCTION(BlueprintPure)
-	ETeam GetWinningStalemateTeam(int& _DistanceWonBy) const;
+	ETeam GetWinningStalemateTeam(int& DistanceWonBy) const;
 
 	/** Check if mice have taken up opposite columns resulting in no way to get passed, so no moves to finish the game */
 	UFUNCTION(BlueprintPure)
@@ -63,13 +63,13 @@ public:
 
 public:
 	/** Stores initial information */
-	void SetupGridVariables(const FIntVector2D& _GridSize, AMM_GameMode* _MMGameMode);
+	void SetupGridVariables(const FIntVector2D& InGridSize, AMM_GameMode* InMMGameMode);
 
 	/** Sets up grid object and initial sizes */
 	void CreateGrid();
 
 	/** Cleans up grid and recreates it */
-	void RebuildGrid(const int _InitialMiceCount);
+	void RebuildGrid(const int InitialMiceCount);
 
 	UFUNCTION(BlueprintPure)
 	FIntVector2D GetGridSize() const { return GridSize; }
@@ -83,10 +83,10 @@ protected:
 	void PopulateGrid();
 
 	/** Decides what element to place, either block or empty */
-	void PlaceGridElement(const FIntVector2D& _NewCoord, AMM_ColumnControl* _ColumnControl);
+	void PlaceGridElement(const FIntVector2D& NewCoord, AMM_ColumnControl* ColumnControl);
 
-	/** Places initial mice for each team, based on _MicePerTeam */
-	void PopulateTeams(int _MicePerTeam);
+	/** Places initial mice for each team, based on MicePerTeam */
+	void PopulateTeams(int MicePerTeam);
 
 #pragma endregion
 
@@ -97,13 +97,13 @@ public:
 	void BeginProcessMice();
 	
 	/** Removes a mouse from the active list and teams */
-	void RemoveMouse(AMM_Mouse* _Mouse);
+	void RemoveMouse(AMM_Mouse* Mouse);
 
 	/** Moves a mouse to a new location, clearing the old location */
-	void SetMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewCoord);
+	void SetMousePosition(AMM_Mouse* Mouse, const FIntVector2D& NewCoord);
 	
 	/** Attempts to move a grid element to a new coordinate, returns true if successful */
-	bool MoveGridElement(AMM_GridElement* _GridElement, const FIntVector2D& _NewCoord) const;
+	bool MoveGridElement(AMM_GridElement* GridElement, const FIntVector2D& NewCoord) const;
 
 	TMap<ETeam, TArray<AMM_Mouse*>> GetMiceTeams() { return MiceTeams; }
 
@@ -112,23 +112,23 @@ protected:
 	void StoreOrderedMiceToProcess();
 
 	/* Add mouse to array based on positioning so lower forward mice go first */
-	void InsertMouseByOrder(AMM_Mouse* _TeamMouse, TArray<AMM_Mouse*>& _CurrentTeamMiceToProcess);
+	void InsertMouseByOrder(AMM_Mouse* TeamMouse, TArray<AMM_Mouse*>& CurrentTeamMiceToProcess);
 	
 	/** Ends the players turn when there are no more mice to process. */
 	void HandleMiceComplete();
 
 	/** Handles moving mouse and updating grid */
-	void ProcessMouse(AMM_Mouse* _Mouse);
+	void ProcessMouse(AMM_Mouse* Mouse);
 
 	/** Checks mouse is valid to process, will continue to next mouse if it is not */
-	bool CheckMouse(AMM_Mouse* _Mouse);
+	bool CheckMouse(AMM_Mouse* Mouse);
 
 	/** Called once a mouse has been processed */
 	UFUNCTION()
-	void HandleCompletedMouseMovement(AMM_Mouse* _Mouse);
+	void HandleCompletedMouseMovement(AMM_Mouse* Mouse);
 
 	/** Clears Mouse from processing and unbinds delegates. */
-	void CleanupProcessedMouse(AMM_Mouse* _Mouse);	
+	void CleanupProcessedMouse(AMM_Mouse* Mouse);	
 
 #pragma endregion
 
@@ -136,26 +136,26 @@ protected:
 
 public:
 	/** Moves the specified column in a direction, either up or down (1 or -1) */
-	void AdjustColumn(int _Column, EDirection _Direction);
+	void AdjustColumn(int Column, EDirection Direction);
 
 	/** Attempts to adjust the column in the grid object, updating the grid elements */
-	bool AdjustColumnInGridObject(int _Column, EDirection _Direction, AMM_GridElement*& LastElement) const;
+	bool AdjustColumnInGridObject(int Column, EDirection Direction, AMM_GridElement*& LastElement) const;
 
 	UFUNCTION(BlueprintPure)
-	bool IsTeamInColumn(int _Column, ETeam _Team) const;
+	bool IsTeamInColumn(int Column, ETeam Team) const;
 
 	UFUNCTION(BlueprintPure)
-	TArray<int> GetTeamColumns(ETeam _Team) const;
+	TArray<int> GetTeamColumns(ETeam Team) const;
 
 	UFUNCTION(BlueprintPure)
 	TMap<int, AMM_ColumnControl*> GetColumnControls() const {	return ColumnControls; }
 
 protected:
 	/** Removes mouse from specified column, updating team/mouse variables */
-	void RemoveMouseFromColumn(int _Column, AMM_Mouse* _Mouse);
+	void RemoveMouseFromColumn(int Column, AMM_Mouse* Mouse);
 
 	/** Adds mouse to a specified column, updating team/mouse variables */
-	void AddMouseToColumn(int _Column, AMM_Mouse* _Mouse);
+	void AddMouseToColumn(int Column, AMM_Mouse* Mouse);
 
 #pragma endregion
 
@@ -164,27 +164,27 @@ protected:
 public:
 	/** Helper for converting coordinates path to world space */
 	UFUNCTION(BlueprintPure)
-	TArray<FVector> PathCoordToWorld(const TArray<FIntVector2D>& _CoordPath) const;
+	TArray<FVector> PathCoordToWorld(const TArray<FIntVector2D>& CoordPath) const;
 
 	/** Helper for converting coordinates to world space */
 	UFUNCTION(BlueprintPure)
-	FTransform CoordToWorldTransform(const FIntVector2D& _Coords) const;
+	FTransform CoordToWorldTransform(const FIntVector2D& Coords) const;
 
 	/** Direction along the grid the team goes */
 	UFUNCTION(BlueprintPure)
-	static EDirection GetDirectionFromTeam(ETeam _Team);
+	static EDirection GetDirectionFromTeam(ETeam Team);
 
 	/** Will check one slot in a given direction, and return true if its free, setting CurrentPosition */
 	UFUNCTION(BlueprintPure)
-	bool FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D& _Direction) const;
+	bool FindFreeSlotInDirection(FIntVector2D& CurrentPosition, const FIntVector2D& Direction) const;
 
 	/** Will check for the lowest possible free slot below without passing through a taken element, and return true if its free, setting CurrentPosition */
 	UFUNCTION(BlueprintPure)
-	bool FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const;
+	bool FindFreeSlotBelow(FIntVector2D& CurrentPosition) const;
 
 	/** Will check one slot ahead horizontally, based on the given direction, and return true if its free, setting CurrentPosition */
 	UFUNCTION(BlueprintPure)
-	bool FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const;
+	bool FindFreeSlotAhead(FIntVector2D& CurrentPosition, EDirection Direction) const;
 
 #pragma endregion
 
@@ -194,7 +194,7 @@ public:
 	
 	/** Shows a visual for the all the grid elements stored in the grid object */
 	UFUNCTION(BlueprintCallable)
-	void SetDebugVisualGrid(bool _bEnabled);
+	void SetDebugVisualGrid(bool bEnabled);
 
 	/** Toggles the grid visual */
 	UFUNCTION(BlueprintCallable)
@@ -321,6 +321,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	AMM_GameMode* MMGameMode;
 
+	UPROPERTY()
 	AMM_PlayerController* CurrentPlayerProcessing;
 
 #pragma endregion

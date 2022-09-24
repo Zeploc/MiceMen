@@ -33,12 +33,12 @@ void AMM_GameMode::BeginPlay()
 	SecondLocalPlayerController = UGameplayStatics::CreatePlayer(GetWorld());
 }
 
-void AMM_GameMode::EndPlay(EEndPlayReason::Type _EndPlayReason)
+void AMM_GameMode::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(_EndPlayReason);
+	Super::EndPlay(EndPlayReason);
 
 	// Not concerned with cleanup if the application/process is ending as that is handled internally
-	if (_EndPlayReason == EEndPlayReason::EndPlayInEditor || _EndPlayReason == EEndPlayReason::Quit)
+	if (EndPlayReason == EEndPlayReason::EndPlayInEditor || EndPlayReason == EEndPlayReason::Quit)
 	{
 		return;
 	}
@@ -86,7 +86,7 @@ void AMM_GameMode::GameReady()
 	BI_OnGameReady();
 }
 
-void AMM_GameMode::BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty)
+void AMM_GameMode::BeginGame(EGameType InGameType, EAIDifficulty InAIDifficulty)
 {
 	// Not all players joined, cannot begin
 	if (AllPlayers.Num() < 2)
@@ -94,7 +94,7 @@ void AMM_GameMode::BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty)
 		return;
 	}
 	// No valid game type set, cannot begin
-	if (_GameType == EGameType::E_NONE || _GameType == EGameType::E_MAX)
+	if (InGameType == EGameType::E_NONE || InGameType == EGameType::E_MAX)
 	{
 		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::BeginGame | No gametype selected!"));
 		return;
@@ -121,8 +121,8 @@ void AMM_GameMode::BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty)
 	CheckForStalemate();
 
 	// Setup game type
-	CurrentGameType = _GameType;
-	CurrentAIDifficulty = _AIDifficulty;
+	CurrentGameType = InGameType;
+	CurrentAIDifficulty = InAIDifficulty;
 	switch (CurrentGameType)
 	{
 	case EGameType::E_PVP:
@@ -226,16 +226,16 @@ void AMM_GameMode::EndGame()
 	BI_OnGameEnded();
 }
 
-void AMM_GameMode::AddTeam(ETeam _Team)
+void AMM_GameMode::AddTeam(ETeam Team)
 {
-	TeamPoints.Add(_Team, 0);
+	TeamPoints.Add(Team, 0);
 }
 
-void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
+void AMM_GameMode::PostLogin(APlayerController* NewPlayer)
 {
-	Super::PostLogin(_NewPlayer);
+	Super::PostLogin(NewPlayer);
 
-	AMM_PlayerController* MMController = Cast<AMM_PlayerController>(_NewPlayer);
+	AMM_PlayerController* MMController = Cast<AMM_PlayerController>(NewPlayer);
 	// Check player controller is valid and correct type
 	if (!MMController)
 	{
@@ -269,15 +269,15 @@ void AMM_GameMode::PostLogin(APlayerController* _NewPlayer)
 	}
 }
 
-void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* _Player)
+void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* Player)
 {
-	if (!_Player)
+	if (!Player)
 	{
 		return;
 	}
 	
 	// Store new player as current
-	CurrentPlayerController = _Player;
+	CurrentPlayerController = Player;
 	
 	// Since this is local, set the first local player to the new player to enable input
 	// Note: In a network or split-screen situation, this would not be necessary as each client has their own input
@@ -294,12 +294,12 @@ void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* _Player)
 	BI_OnSwitchTurns(CurrentPlayerController);
 }
 
-void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* _Player)
+void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* Player)
 {
 	// Was not the player's current turn
-	if (_Player != CurrentPlayerController)
+	if (Player != CurrentPlayerController)
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameMode::ProcessTurnComplete | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), _Player->GetCurrentTeam(), *_Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameMode::ProcessTurnComplete | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), Player->GetCurrentTeam(), *Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
 		return;
 	}
 
@@ -330,7 +330,7 @@ void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* _Player)
 	}
 
 	// Get next player, wrap around if at the end
-	int NextPlayer = AllPlayers.Find(_Player);
+	int NextPlayer = AllPlayers.Find(Player);
 	NextPlayer++;
 	if (NextPlayer > AllPlayers.Num() - 1)
 	{
@@ -357,11 +357,11 @@ void AMM_GameMode::CheckForStalemate()
 	}	
 }
 
-ETeam AMM_GameMode::GetWinningStalemateTeam(int& _DistanceWonBy) const
+ETeam AMM_GameMode::GetWinningStalemateTeam(int& DistanceWonBy) const
 {
 	if (GridManager)
 	{
-		return GridManager->GetWinningStalemateTeam(_DistanceWonBy);
+		return GridManager->GetWinningStalemateTeam(DistanceWonBy);
 	}
 
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::GetWinningStalemateTeam | Failed to get winning stalemate team, GridManager not valid!"));
@@ -388,32 +388,32 @@ void AMM_GameMode::ForceEndNoMoves()
 	TeamWon(WinningTeam, WinningReason);
 }
 
-void AMM_GameMode::AddScore(ETeam _Team)
+void AMM_GameMode::AddScore(ETeam Team)
 {
 	// Increment score by 1, will set score if the team's score doesn't exists
-	TeamPoints.Add(_Team, GetTeamScore(_Team) + 1);
+	TeamPoints.Add(Team, GetTeamScore(Team) + 1);
 
 	// If a team has the winning number of points
-	if (HasTeamWon(_Team))
+	if (HasTeamWon(Team))
 	{
-		TeamWon(_Team, "Completed all mice");
+		TeamWon(Team, "Completed all mice");
 	}
 }
 
-int AMM_GameMode::GetTeamScore(ETeam _Team) const
+int AMM_GameMode::GetTeamScore(const ETeam Team) const
 {
 	int CurrentScore = 0;
-	if (const int* FoundScore = TeamPoints.Find(_Team))
+	if (const int* FoundScore = TeamPoints.Find(Team))
 	{
 		CurrentScore = *FoundScore;
 	}
 	return CurrentScore;
 }
 
-bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
+bool AMM_GameMode::HasTeamWon(ETeam TeamToCheck) const
 {
 	// If a team has scored all their mice
-	if (TeamPoints[_TeamToCheck] >= InitialMiceCount)
+	if (TeamPoints[TeamToCheck] >= InitialMiceCount)
 	{
 		return true;
 	}
@@ -422,14 +422,14 @@ bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
 	return false;
 }
 
-void AMM_GameMode::TeamWon(ETeam _Team, const FString& _Reason)
+void AMM_GameMode::TeamWon(ETeam Team, const FString& Reason)
 {
 	// Check valid team
-	if (_Team == ETeam::E_MAX)
+	if (Team == ETeam::E_MAX)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Valid Team won!"));
 		return;
 	}
 	
-	BI_OnTeamWon(_Team, _Reason);
+	BI_OnTeamWon(Team, Reason);
 }

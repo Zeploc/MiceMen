@@ -26,10 +26,10 @@ public:
 
 public:
 	/** Stores initial information for the grid element */
-	virtual void SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, const FIntVector2D& _GridCoordinates);
+	virtual void SetupGridVariables(AMM_GridManager* InGridManager, AMM_GameMode* InMMGameMode, const FIntVector2D& InGridCoordinates);
 
 	/** Changes the grid position, updating the column this element is linked to */
-	virtual void UpdateGridPosition(const FIntVector2D& _NewGridCoordiantes);
+	virtual void UpdateGridPosition(const FIntVector2D& NewGridCoordiantes);
 
 	UFUNCTION(BlueprintPure)
 	FIntVector2D GetCoordinates() const { return Coordinates; }

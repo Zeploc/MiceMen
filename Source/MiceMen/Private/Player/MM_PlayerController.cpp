@@ -21,16 +21,16 @@ void AMM_PlayerController::BeginPlay()
 	MMGameMode = GetWorld()->GetAuthGameMode<AMM_GameMode>();
 }
 
-void AMM_PlayerController::OnPossess(APawn* _Pawn)
+void AMM_PlayerController::OnPossess(APawn* InPawn)
 {
-	Super::OnPossess(_Pawn);
+	Super::OnPossess(InPawn);
 
-	MMPawn = Cast<AMM_GameViewPawn>(_Pawn);
+	MMPawn = Cast<AMM_GameViewPawn>(InPawn);
 }
 
-void AMM_PlayerController::SetupPlayer(ETeam _Team)
+void AMM_PlayerController::SetupPlayer(const ETeam InTeam)
 {
-	CurrentTeam = _Team;
+	CurrentTeam = InTeam;
 }
 
 void AMM_PlayerController::SetAsAI()
@@ -76,32 +76,32 @@ bool AMM_PlayerController::TakeAITurn()
 	return bTurnSuccess;
 }
 
-bool AMM_PlayerController::PerformColumnAIMovement(AMM_ColumnControl* _Column, const int _Direction) const
+bool AMM_PlayerController::PerformColumnAIMovement(AMM_ColumnControl* Column, const int Direction) const
 {
-	if (!_Column)
+	if (!Column)
 	{
 		return false;
 	}
 	
 	// Get new location of column
-	FVector NewLocation = _Column->GetActorLocation();
-	NewLocation.Z += _Direction * MMGameMode->GetGridManager()->GridElementHeight;
+	FVector NewLocation = Column->GetActorLocation();
+	NewLocation.Z += Direction * MMGameMode->GetGridManager()->GridElementHeight;
 
 	// Grab and move to determined location
 	// Note: Don't use pawn grab since its not based on mouse/input
-	if (!_Column->BeginGrab())
+	if (!Column->BeginGrab())
 	{
 		return false;
 	}
 
 	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomAITurn | Chosen direction %i for column %i"),
-		   _Direction, _Column->GetColumnIndex());
-	_Column->UpdatePreviewLocation(NewLocation);
+		   Direction, Column->GetColumnIndex());
+	Column->UpdatePreviewLocation(NewLocation);
 
 	// If testing mode, instantly move column
 	if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
-		_Column->SetActorLocation(NewLocation);
+		Column->SetActorLocation(NewLocation);
 	}
 
 	return true;

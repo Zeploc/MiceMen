@@ -45,7 +45,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/** Called when the pawn is possessed by a controller, stores MM controller */
-	virtual void PossessedBy(AController* _NewController) override;
+	virtual void PossessedBy(AController* NewController) override;
 
 #pragma endregion
 
@@ -63,7 +63,7 @@ protected:
 	virtual void TurnEnded();
 
 	UFUNCTION()
-	void AITurnComplete(AMM_ColumnControl* _ColumnControl);
+	void AITurnComplete(AMM_ColumnControl* ColumnControl);
 
 #pragma endregion
 
@@ -71,7 +71,7 @@ protected:
 
 public:
 	/** Stores a column as grabbable to interact with during the player's current turn */
-	virtual void AddColumnAsGrabbable(int _Column);
+	virtual void AddColumnAsGrabbable(int Column);
 
 	/** Gets the current interactable columns for this player */
 	UFUNCTION(BlueprintPure)
@@ -82,7 +82,7 @@ protected:
 	void UpdateColumnInteractionCount();
 
 	/** Called once a column has been moved, and passed in true if the column had changed, completing the turn */
-	virtual void ProcessMovedColumn(bool _TurnComplete);
+	virtual void ProcessMovedColumn(bool bTurnComplete);
 
 #pragma endregion
 

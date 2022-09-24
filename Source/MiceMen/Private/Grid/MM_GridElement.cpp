@@ -13,19 +13,19 @@ AMM_GridElement::AMM_GridElement()
 
 }
 
-void AMM_GridElement::SetupGridVariables(AMM_GridManager* _GridManager, AMM_GameMode* _MMGameMode, const FIntVector2D& _GridCoordinates)
+void AMM_GridElement::SetupGridVariables(AMM_GridManager* InGridManager, AMM_GameMode* InMMGameMode, const FIntVector2D& InGridCoordinates)
 {
-	GridManager = _GridManager;
-	Coordinates = _GridCoordinates;
-	MMGameMode = _MMGameMode;
+	GridManager = InGridManager;
+	Coordinates = InGridCoordinates;
+	MMGameMode = InMMGameMode;
 }
 
-void AMM_GridElement::UpdateGridPosition(const FIntVector2D& _NewGridCoordiantes)
+void AMM_GridElement::UpdateGridPosition(const FIntVector2D& NewGridCoordiantes)
 {
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *_NewGridCoordiantes.ToString());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *NewGridCoordiantes.ToString());
 
 	// Set new position
-	Coordinates = _NewGridCoordiantes;
+	Coordinates = NewGridCoordiantes;
 
 	// Checks grid manager is valid, should be set in SetupGridVariables()
 	if (!GetGridManager())

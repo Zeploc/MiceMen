@@ -30,10 +30,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void EndPlay(EEndPlayReason::Type _EndPlayReason) override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	/** When a new player joins, will store and check if the game is ready to start */
-	virtual void PostLogin(APlayerController* _NewPlayer) override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 #pragma endregion
 
@@ -42,7 +42,7 @@ protected:
 public:
 	/** Starts game with a certain game play type */
 	UFUNCTION(BlueprintCallable)
-	virtual void BeginGame(EGameType _GameType, EAIDifficulty _AIDifficulty);
+	virtual void BeginGame(EGameType InGameType, EAIDifficulty InAIDifficulty);
 
 	/** Completes the game, and cleans up all grid systems */
 	UFUNCTION(BlueprintCallable)
@@ -101,9 +101,9 @@ public:
 	/**
 	* Once a player's turn is complete, performs checks
 	* Will either complete the game or go to the next player.
-	* @param _Player the player who's turn just ended
+	* @param Player the player who's turn just ended
 	*/
-	virtual void ProcessTurnComplete(AMM_PlayerController* _Player);
+	virtual void ProcessTurnComplete(AMM_PlayerController* Player);
 
 	/** Get the player who's current turn it is */
 	UFUNCTION(BlueprintPure)
@@ -111,10 +111,10 @@ public:
 
 protected:
 	/** Will change the current turn to a different player */
-	virtual void SwitchTurnToPlayer(AMM_PlayerController* _Player);
+	virtual void SwitchTurnToPlayer(AMM_PlayerController* Player);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_OnSwitchTurns(AMM_PlayerController* _Player);
+	void BI_OnSwitchTurns(AMM_PlayerController* Player);
 
 #pragma endregion
 
@@ -124,23 +124,23 @@ public:
 	/**
 	 * Sets up team information in the game mode
 	 * such as initial points.
-	 * @param _iTeam - team to setup
+	 * @param Team - team to setup
 	 */
-	void AddTeam(ETeam _Team);
+	void AddTeam(ETeam Team);
 
 	/**
 	 * Checks if a team has completed all their mice.
 	 * @return true if a team has won and the game should end
 	 */
 	UFUNCTION(BlueprintPure)
-	virtual bool HasTeamWon(ETeam _TeamToCheck) const;
+	virtual bool HasTeamWon(ETeam TeamToCheck) const;
 
 protected:
 	/** Called when a team has completed in getting all their mice to the other side of the grid */
-	virtual void TeamWon(ETeam _Team, const FString& _Reason);
+	virtual void TeamWon(ETeam Team, const FString& Reason);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_OnTeamWon(ETeam _Team, const FString& _Reason);
+	void BI_OnTeamWon(ETeam Team, const FString& Reason);
 
 #pragma endregion
 
@@ -149,14 +149,13 @@ protected:
 public:
 	/** Get the current score from a given team */
 	UFUNCTION(BlueprintPure)
-	int GetTeamScore(ETeam _Team) const;
+	int GetTeamScore(ETeam Team) const;
 
 	/**
-		* When a mouse reaches the end and should score a point.
-		* @param _Mouse - the mouse that completed
-		* @return true if the game has reached a win condition
-		*/
-	virtual void AddScore(ETeam _Team);
+	* When a mouse reaches the end and should score a point.
+	* @param Team - the team that completed a mouse
+	*/
+	virtual void AddScore(ETeam Team);
 
 #pragma endregion
 
@@ -171,7 +170,7 @@ public:
 
 	/**  Find winning team in a stalemate situation */
 	UFUNCTION(BlueprintPure)
-	ETeam GetWinningStalemateTeam(int& _DistanceWonBy) const;
+	ETeam GetWinningStalemateTeam(int& DistanceWonBy) const;
 
 	void ForceEndNoMoves();
 

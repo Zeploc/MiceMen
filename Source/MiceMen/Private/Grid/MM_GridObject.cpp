@@ -29,23 +29,23 @@ void UMM_GridObject::CleanUp()
 
 // ################################ Grid Management ################################
 
-AMM_GridElement* UMM_GridObject::GetGridElement(const FIntVector2D& _Coord) const
+AMM_GridElement* UMM_GridObject::GetGridElement(const FIntVector2D& Coord) const
 {
-	if (!IsValidCoord(_Coord))
+	if (!IsValidCoord(Coord))
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | %s not valid coordinate"), *_Coord.ToString());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::GetGridElement | %s not valid coordinate"), *Coord.ToString());
 		return nullptr;
 	}
 
-	return Grid[CoordToIndex(_Coord.X, _Coord.Y)];
+	return Grid[CoordToIndex(Coord.X, Coord.Y)];
 }
 
-bool UMM_GridObject::IsValidCoord(const FIntVector2D& _Coord) const
+bool UMM_GridObject::IsValidCoord(const FIntVector2D& Coord) const
 {
 	// Not in grid range
-	if (!IsCoordInRange(_Coord, 0, GridSize.X - 1, 0, GridSize.Y - 1))
+	if (!IsCoordInRange(Coord, 0, GridSize.X - 1, 0, GridSize.Y - 1))
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::IsValidCoord | %s not in range of %s"), *_Coord.ToString(), *GridSize.ToString());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::IsValidCoord | %s not in range of %s"), *Coord.ToString(), *GridSize.ToString());
 		return false;
 	}
 
@@ -60,110 +60,110 @@ bool UMM_GridObject::IsValidCoord(const FIntVector2D& _Coord) const
 	return true;
 }
 
-int UMM_GridObject::CoordToIndex(int _X, int _Y) const
+int UMM_GridObject::CoordToIndex(int X, int Y) const
 {
-	return _X * GridSize.Y + _Y;
+	return X * GridSize.Y + Y;
 }
 
-bool UMM_GridObject::SetGridElement(const FIntVector2D& _Coord, AMM_GridElement* _GridElement)
+bool UMM_GridObject::SetGridElement(const FIntVector2D& Coord, AMM_GridElement* GridElement)
 {
-	if (!IsValidCoord(_Coord))
+	if (!IsValidCoord(Coord))
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::SetGridElement | %s not valid coordinate"), *_Coord.ToString());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::SetGridElement | %s not valid coordinate"), *Coord.ToString());
 		return false;
 	}
 
 #if !UE_BUILD_SHIPPING
 	FString ElementDisplay = "none";
-	if (_GridElement)
+	if (GridElement)
 	{
-		ElementDisplay = _GridElement->GetName();
+		ElementDisplay = GridElement->GetName();
 	}
-	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | %s to %s"), *_Coord.ToString(), *ElementDisplay);
+	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | %s to %s"), *Coord.ToString(), *ElementDisplay);
 #endif
 
-	Grid[CoordToIndex(_Coord.X, _Coord.Y)] = _GridElement;
+	Grid[CoordToIndex(Coord.X, Coord.Y)] = GridElement;
 
 	// Update grid element if valid/not empty
-	if (_GridElement)
+	if (GridElement)
 	{
 		// Only update if a change in coordinates occurred
-		if (_GridElement->GetCoordinates() != _Coord)
+		if (GridElement->GetCoordinates() != Coord)
 		{
-			_GridElement->UpdateGridPosition(_Coord);
+			GridElement->UpdateGridPosition(Coord);
 		}
 
 		// Update Free slots to no longer have this element
-		FreeSlots.Remove(_Coord);
+		FreeSlots.Remove(Coord);
 
-		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot removed at %s"), *_Coord.ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot removed at %s"), *Coord.ToString());
 	}
 	else
 	{
 		// No element (nullptr), add these coordinates to free slots
 		// Note: Add unique is more expensive (but safe), could be improved
-		FreeSlots.AddUnique(_Coord);
+		FreeSlots.AddUnique(Coord);
 
-		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot added at %s"), *_Coord.ToString());
+		UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::SetGridElement | Free slot added at %s"), *Coord.ToString());
 	}
 
 	return true;
 }
 
-bool UMM_GridObject::MoveGridElement(const FIntVector2D& _NewCoord, AMM_GridElement* _GridElement)
+bool UMM_GridObject::MoveGridElement(const FIntVector2D& NewCoord, AMM_GridElement* GridElement)
 {
-	if (!_GridElement)
+	if (!GridElement)
 	{
 		return false;
 	}
 
-	if (!IsValidCoord(_NewCoord))
+	if (!IsValidCoord(NewCoord))
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::MoveGridElement | %s not valid coordinate"), *_NewCoord.ToString());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("UMM_GridObject::MoveGridElement | %s not valid coordinate"), *NewCoord.ToString());
 		return false;
 	}
 
 	// Get original location to move from
-	const FIntVector2D OriginalCoordinate = _GridElement->GetCoordinates();
+	const FIntVector2D OriginalCoordinate = GridElement->GetCoordinates();
 
 	// Check the new coordinates aren't the same as the current
-	if (OriginalCoordinate == _NewCoord)
+	if (OriginalCoordinate == NewCoord)
 	{
 		return false;
 	}
 	
-	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::MoveGridElement | Moving %s to %s"), *_GridElement->GetName(), *_NewCoord.ToString());
+	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::MoveGridElement | Moving %s to %s"), *GridElement->GetName(), *NewCoord.ToString());
 
 	Grid[CoordToIndex(OriginalCoordinate.X, OriginalCoordinate.Y)] = nullptr;
-	Grid[CoordToIndex(_NewCoord.X, _NewCoord.Y)] = _GridElement;
+	Grid[CoordToIndex(NewCoord.X, NewCoord.Y)] = GridElement;
 
-	_GridElement->UpdateGridPosition(_NewCoord);
+	GridElement->UpdateGridPosition(NewCoord);
 
 	// Update FreeSlots to have the old position as free
 	// Note: Add unique is more expensive (but safe), could be improved
 	FreeSlots.AddUnique(OriginalCoordinate);
 	
 	// Remove the new space as free as there is now an element there
-	FreeSlots.Remove(_NewCoord);	
+	FreeSlots.Remove(NewCoord);	
 
 	return true;
 }
 
 // ################################ Grid Helpers ################################
 
-AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Direction)
+AMM_GridElement* UMM_GridObject::MoveColumnElements(int Column, EDirection Direction)
 {
 	// TODO: Add tests
 
 	// Get initial values
-	const int StartingGridIndex = CoordToIndex(_Column, 0);	
+	const int StartingGridIndex = CoordToIndex(Column, 0);	
 	AMM_GridElement* WrappingElement = nullptr;
 
 	const int BottomBlockIndex = StartingGridIndex;
 	const int TopBlockIndex = StartingGridIndex + GridSize.Y - 1;
 
 	// Downwards means bottom element wrapping
-	if (_Direction == EDirection::E_DOWN)
+	if (Direction == EDirection::E_DOWN)
 	{
 		WrappingElement = Grid[BottomBlockIndex];
 		// Remove bottom element
@@ -172,7 +172,7 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Dir
 		Grid.Insert(WrappingElement, TopBlockIndex);
 	}
 	// Upwards means the top element wrapping
-	else if (_Direction == EDirection::E_UP)
+	else if (Direction == EDirection::E_UP)
 	{
 		WrappingElement = Grid[TopBlockIndex];
 		// Remove top element
@@ -184,7 +184,7 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Dir
 	// Update each element with its new position and store new free slots
 	for (int y = 0; y < GridSize.Y; y++)
 	{
-		const FIntVector2D ElementCoord = { _Column, y };
+		const FIntVector2D ElementCoord = { Column, y };
 		AMM_GridElement* CurrentElement = GetGridElement(ElementCoord);
 
 		// Assign element to new coordinate
@@ -199,29 +199,29 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int _Column, EDirection _Dir
 	return WrappingElement;
 }
 
-FIntVector2D UMM_GridObject::GetRandomGridCoord(bool _bFreeSlot /*= true*/) const
+FIntVector2D UMM_GridObject::GetRandomGridCoord(bool bFreeSlot /*= true*/) const
 {
-	return GetRandomGridCoordInRange(0, GridSize.X, 0, GridSize.Y, _bFreeSlot);
+	return GetRandomGridCoordInRange(0, GridSize.X, 0, GridSize.Y, bFreeSlot);
 }
 
-FIntVector2D UMM_GridObject::GetRandomGridCoordInColumnRange(int _MinX, int _MaxX, bool _bFreeSlot /*= true*/) const
+FIntVector2D UMM_GridObject::GetRandomGridCoordInColumnRange(int MinX, int MaxX, bool bFreeSlot /*= true*/) const
 {
-	return GetRandomGridCoordInRange(_MinX, _MaxX, 0, GridSize.Y, _bFreeSlot);
+	return GetRandomGridCoordInRange(MinX, MaxX, 0, GridSize.Y, bFreeSlot);
 }
 
-FIntVector2D UMM_GridObject::GetRandomGridCoordInRange(int _MinX, int _MaxX, int _MinY, int _MaxY, bool _bFreeSlot /*= true*/) const
+FIntVector2D UMM_GridObject::GetRandomGridCoordInRange(int MinX, int MaxX, int MinY, int MaxY, bool bFreeSlot /*= true*/) const
 {
 	// Clamp ranges
-	const int ClampedMinX = FMath::Clamp(_MinX, 0, GridSize.X);
-	const int ClampedMaxX = FMath::Clamp(_MaxX, 0, GridSize.X);
-	const int ClampedMinY = FMath::Clamp(_MinY, 0, GridSize.Y);
-	const int ClampedMaxY = FMath::Clamp(_MaxY, 0, GridSize.Y);
+	const int ClampedMinX = FMath::Clamp(MinX, 0, GridSize.X);
+	const int ClampedMaxX = FMath::Clamp(MaxX, 0, GridSize.X);
+	const int ClampedMinY = FMath::Clamp(MinY, 0, GridSize.Y);
+	const int ClampedMaxY = FMath::Clamp(MaxY, 0, GridSize.Y);
 
 	int RandX = -1;
 	int RandY = -1;
 
 	// If looking for a free slot
-	if (_bFreeSlot)
+	if (bFreeSlot)
 	{
 		// Try each free slot randomly
 		TArray<FIntVector2D> AvailableFreeSlots = FreeSlots;
@@ -260,21 +260,21 @@ FIntVector2D UMM_GridObject::GetRandomGridCoordInRange(int _MinX, int _MaxX, int
 	return FIntVector2D(RandX, RandY);
 }
 
-bool UMM_GridObject::IsCoordInRange(const FIntVector2D& _Coord, int _MinX, int _MaxX, int _MinY, int _MaxY)
+bool UMM_GridObject::IsCoordInRange(const FIntVector2D& Coord, int MinX, int MaxX, int MinY, int MaxY)
 {
 	// Check within X range
-	const bool bWithinX = _Coord.X >= _MinX && _Coord.X <= _MaxX;
+	const bool bWithinX = Coord.X >= MinX && Coord.X <= MaxX;
 	// Check within Y Range
-	const bool bWithinY = _Coord.Y >= _MinY && _Coord.Y <= _MaxY;
+	const bool bWithinY = Coord.Y >= MinY && Coord.Y <= MaxY;
 
 	return (bWithinX && bWithinY);
 }
 
-bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D& _Direction) const
+bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& CurrentPosition, const FIntVector2D& Direction) const
 {
 	// Test against next coordinates
-	FIntVector2D TestCoords = _CurrentPosition;
-	TestCoords += _Direction;
+	FIntVector2D TestCoords = CurrentPosition;
+	TestCoords += Direction;
 
 	// Checks if there is no free slot
 	if (!FreeSlots.Contains(TestCoords))
@@ -284,20 +284,20 @@ bool UMM_GridObject::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, con
 	}
 
 	// Next slot is available, set to new coordinates
-	_CurrentPosition = TestCoords;
+	CurrentPosition = TestCoords;
 
 	return true;
 }
 
-bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const
+bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& CurrentPosition) const
 {
 	bool bFoundFreeSlot = false;
 
 	// If not currently on lowest slot
-	while (_CurrentPosition.Y > 0)
+	while (CurrentPosition.Y > 0)
 	{
-		// Check if free slot below, will update _CurrentPosition 
-		if (FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(0, -1)))
+		// Check if free slot below, will update CurrentPosition 
+		if (FindFreeSlotInDirection(CurrentPosition, FIntVector2D(0, -1)))
 		{
 			bFoundFreeSlot = true;
 		}
@@ -311,8 +311,8 @@ bool UMM_GridObject::FindFreeSlotBelow(FIntVector2D& _CurrentPosition) const
 	return bFoundFreeSlot;
 }
 
-bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& _CurrentPosition, EDirection _Direction) const
+bool UMM_GridObject::FindFreeSlotAhead(FIntVector2D& CurrentPosition, EDirection Direction) const
 {
-	const int HorizontalDirection = _Direction == EDirection::E_RIGHT ? 1 : -1;
-	return FindFreeSlotInDirection(_CurrentPosition, FIntVector2D(HorizontalDirection, 0));
+	const int HorizontalDirection = Direction == EDirection::E_RIGHT ? 1 : -1;
+	return FindFreeSlotInDirection(CurrentPosition, FIntVector2D(HorizontalDirection, 0));
 }

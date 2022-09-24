@@ -53,7 +53,7 @@ protected:
 
 public:
 	/** Sets initial values and sizes for the column */
-	virtual void SetupColumn(int _ColumnID, AMM_GridManager* _GridManager);
+	virtual void SetupColumn(int InColumnID, AMM_GridManager* InGridManager);
 
 	UFUNCTION(BlueprintPure)
 	int GetColumnIndex() const { return ControllingIndex; }
@@ -70,9 +70,9 @@ public:
 	/**
 	* Called when the grabbed location has been moved by the player,
 	* used to visually update the position of the column. 
-	* @param _NewLocation the goal location of the column
+	* @param NewLocation the goal location of the column
 	*/
-	virtual void UpdatePreviewLocation(const FVector& _NewLocation);
+	virtual void UpdatePreviewLocation(const FVector& NewLocation);
 
 	UFUNCTION(BlueprintPure)
 	FVector GetOriginalLocation() const { return OriginalLocation; }
@@ -82,7 +82,7 @@ public:
 
 protected:
 	UFUNCTION(BlueprintNativeEvent)
-	void BN_DirectionChanged(EDirection _NewDirection);
+	void BN_DirectionChanged(EDirection NewDirection);
 
 	/**
 	* Moves column position to the original position relative to the grid.
@@ -102,11 +102,11 @@ public:
 	virtual void EndGrab();
 
 	/** Toggles whether the column should display as interactable, and for which team */
-	void DisplayAsGrabbable(bool _bGrabbable, ETeam _Team = ETeam::E_NONE);
+	void DisplayAsGrabbable(bool bGrabbable, ETeam Team = ETeam::E_NONE);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_OnDisplayAsGrabbable(bool _bGrabbable, ETeam _Team);
+	void BI_OnDisplayAsGrabbable(bool bGrabbable, ETeam Team);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BI_BeginGrab();

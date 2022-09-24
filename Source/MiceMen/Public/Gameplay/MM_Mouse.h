@@ -38,7 +38,7 @@ protected:
 
 public:
 	/** Stores team and coordinates to start at */
-	virtual void SetupMouse(ETeam _Team, FIntVector2D& _FinalGridCoordinates);
+	virtual void SetupMouse(const ETeam InTeam, FIntVector2D& FinalGridCoordinates);
 
 	UFUNCTION(BlueprintPure)
 	ETeam GetTeam() const { return CurrentTeam; };
@@ -57,19 +57,19 @@ public:
 
 protected:
 	/** Move mouse to next valid position, returns true if mouse moved */
-	virtual bool BeginMove(FIntVector2D& _NewPosition);
+	virtual bool BeginMove(FIntVector2D& NewPosition);
 	
 	/**
 	 * Override for visual movement,
 	 * call MouseMovementEndDelegate once complete, or game will halt.
 	 *
-	 * @param _Path - The movements to make
+	 * @param Path - The movements to make
 	 */
 	UFUNCTION(BlueprintNativeEvent)
-	void BN_StartMovement(const TArray<FVector>& _Path);
+	void BN_StartMovement(const TArray<FVector>& Path);
 
 	/** Update the grid based on the new position */
-	void ProcessUpdatedPosition(const FIntVector2D& _NewPosition);
+	void ProcessUpdatedPosition(const FIntVector2D& NewPosition);
 
 #pragma endregion
 
@@ -93,7 +93,7 @@ protected:
 public:
 	/** Displays a path in world space using colored boxes, increasing in size down the path */
 	UFUNCTION(BlueprintCallable)
-	void DisplayDebugPath(const TArray<FIntVector2D>& _ValidPath) const;
+	void DisplayDebugPath(const TArray<FIntVector2D>& ValidPath) const;
 
 #pragma endregion
 

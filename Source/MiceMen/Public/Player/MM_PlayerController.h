@@ -26,7 +26,7 @@ public:
 
 #pragma region Core
 
-	virtual void OnPossess(APawn* _Pawn) override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,7 +37,7 @@ protected:
 #pragma region Setup
 
 public:
-	virtual void SetupPlayer(ETeam _Team);
+	virtual void SetupPlayer(const ETeam InTeam);
 
 	/** Changes player to AI */
 	virtual void SetAsAI();
@@ -61,7 +61,7 @@ public:
 
 protected:
 	/** Move the column a chosen direction on behalf of the AI player*/
-	bool PerformColumnAIMovement(AMM_ColumnControl* _Column, int _Direction) const;
+	bool PerformColumnAIMovement(AMM_ColumnControl* Column, int Direction) const;
 	
 	/** Perform AI turn by selecting a random column to move */
 	bool TakeRandomAITurn() const;

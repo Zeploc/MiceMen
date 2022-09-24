@@ -23,16 +23,16 @@ AMM_ColumnControl::AMM_ColumnControl()
 	GrabbableBox->SetCollisionProfileName(FName("GridColumn"));
 }
 
-void AMM_ColumnControl::SetupColumn(int _ColumnID, AMM_GridManager* _GridManager)
+void AMM_ColumnControl::SetupColumn(int InColumnID, AMM_GridManager* InGridManager)
 {
 	// Store variables
-	ControllingIndex = _ColumnID;
-	GridManager = _GridManager;
+	ControllingIndex = InColumnID;
+	GridManager = InGridManager;
 	GridElementHeight = GridManager->GridElementHeight;
 
 	// Calculate sizes
-	ColumnHeight = GridElementHeight * _GridManager->GetGridSize().Y;
-	const FVector BoxSize = FVector(50, _GridManager->GridElementWidth / 2.0f, ColumnHeight / 2.0);
+	ColumnHeight = GridElementHeight * InGridManager->GetGridSize().Y;
+	const FVector BoxSize = FVector(50, InGridManager->GridElementWidth / 2.0f, ColumnHeight / 2.0);
 	
 	// Apply sizes
 	GrabbableBox->SetBoxExtent(BoxSize);
@@ -83,9 +83,9 @@ bool AMM_ColumnControl::BeginGrab()
 	return true;
 }
 
-void AMM_ColumnControl::UpdatePreviewLocation(const FVector& _NewLocation)
+void AMM_ColumnControl::UpdatePreviewLocation(const FVector& NewLocation)
 {
-	PreviewLocation = _NewLocation;
+	PreviewLocation = NewLocation;
 
 	EDirection NewDirectionChange = EDirection::E_NONE;
 
@@ -96,19 +96,19 @@ void AMM_ColumnControl::UpdatePreviewLocation(const FVector& _NewLocation)
 	PreviewLocation.Z = FMath::Clamp(PreviewLocation.Z, MinVerticalLocation, MaxVerticalLocation);
 
 	// Snap when close to grid slot
-	if (abs(_NewLocation.Z - OriginalLocation.Z) < SnapSize)
+	if (abs(NewLocation.Z - OriginalLocation.Z) < SnapSize)
 	{
 		PreviewLocation.Z = OriginalLocation.Z;
 		NewDirectionChange = EDirection::E_NONE;
 	}
 	// Snap upwards
-	else if (_NewLocation.Z > MaxVerticalLocation - SnapSize)
+	else if (NewLocation.Z > MaxVerticalLocation - SnapSize)
 	{
 		PreviewLocation.Z = MaxVerticalLocation;
 		NewDirectionChange = EDirection::E_UP;
 	}
 	// Snap downwards
-	else if (_NewLocation.Z < MinVerticalLocation + SnapSize)
+	else if (NewLocation.Z < MinVerticalLocation + SnapSize)
 	{
 		PreviewLocation.Z = MinVerticalLocation;
 		NewDirectionChange = EDirection::E_DOWN;
@@ -198,12 +198,12 @@ void AMM_ColumnControl::ResetToDefaultPosition()
 	}
 }
 
-void AMM_ColumnControl::DisplayAsGrabbable(bool _bGrabbable, ETeam _Team /* = ETeam::E_NONE*/)
+void AMM_ColumnControl::DisplayAsGrabbable(bool bGrabbable, ETeam Team /* = ETeam::E_NONE*/)
 {
-	BI_OnDisplayAsGrabbable(_bGrabbable, _Team);
+	BI_OnDisplayAsGrabbable(bGrabbable, Team);
 }
 
-void AMM_ColumnControl::BN_DirectionChanged_Implementation(EDirection _NewDirection)
+void AMM_ColumnControl::BN_DirectionChanged_Implementation(EDirection NewDirection)
 {
 
 }

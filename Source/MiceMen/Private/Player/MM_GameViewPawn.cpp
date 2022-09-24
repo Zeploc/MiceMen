@@ -34,11 +34,11 @@ void AMM_GameViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Grab"), IE_Released, this, &AMM_GameViewPawn::EndGrab);
 
 }
-void AMM_GameViewPawn::PossessedBy(AController* _NewController)
+void AMM_GameViewPawn::PossessedBy(AController* NewController)
 {
-	Super::PossessedBy(_NewController);
+	Super::PossessedBy(NewController);
 
-	MMPlayerController = Cast<AMM_PlayerController>(_NewController);
+	MMPlayerController = Cast<AMM_PlayerController>(NewController);
 	if (MMPlayerController)
 	{
 		// Link AI complete event
@@ -123,23 +123,23 @@ void AMM_GameViewPawn::BeginTurn()
 	MMPlayerController->TakeAITurn();
 }
 
-void AMM_GameViewPawn::AITurnComplete(AMM_ColumnControl* _ColumnControl)
+void AMM_GameViewPawn::AITurnComplete(AMM_ColumnControl* ColumnControl)
 {
-	CurrentColumn = _ColumnControl;
+	CurrentColumn = ColumnControl;
 	
 	// Release the column to apply change
 	EndGrab();
 }
 
-void AMM_GameViewPawn::AddColumnAsGrabbable(int _Column)
+void AMM_GameViewPawn::AddColumnAsGrabbable(int Column)
 {
 	// Get all columns in grid
 	TMap<int, AMM_ColumnControl*> AllColumnControls = GridManager->GetColumnControls();
 
 	// Check column controls has the index and that it is a valid pointer
-	if (AllColumnControls.Contains(_Column) && AllColumnControls[_Column])
+	if (AllColumnControls.Contains(Column) && AllColumnControls[Column])
 	{
-		AMM_ColumnControl* ColumnControl = AllColumnControls[_Column];
+		AMM_ColumnControl* ColumnControl = AllColumnControls[Column];
 		// Display column as grabbable with a highlight and store
 		ColumnControl->DisplayAsGrabbable(true, MMPlayerController->GetCurrentTeam());
 		CurrentColumnControls.Add(ColumnControl);
@@ -290,9 +290,9 @@ void AMM_GameViewPawn::HandleGrab()
 	CurrentColumn->UpdatePreviewLocation(NewLocation);
 }
 
-void AMM_GameViewPawn::ProcessMovedColumn(bool _TurnComplete)
+void AMM_GameViewPawn::ProcessMovedColumn(bool bTurnComplete)
 {
-	if (_TurnComplete)
+	if (bTurnComplete)
 	{
 		TurnEnded();
 	}
