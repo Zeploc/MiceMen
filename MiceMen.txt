@@ -5,8 +5,6 @@ Naming
 - BP_MM_UI
 
 
-Todo Gameplay:
-
 Todo Formatting:
 - Comments above ifs explaining what they are checking
 - Functions returning bool that are confusing bool return
@@ -17,7 +15,7 @@ Functions
 Move static functions to helper utils?
 Go through todo comments
 
-Todo Additional:
+Todo:
 - AI Advanced turn column instantly moves instead of lerp
 - Performance
 - Add test to see if all mice that completed were correctly scored
@@ -25,12 +23,18 @@ Todo Additional:
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
 
 - Turns completed in [number]
-- Mark AI label on hud for teams
-- Display how team won (by how many points or stalemate by how far)
-- Players UI gets larger/more colour/outline when its their turn
-- Visual/Gameplay
 - UI control starting mice in gameplay
 - UI control grid size in game
+- Set gameplay modes info in singleton, with display name and description
+
+Visual/Gameplay
+- Need visuals for columns that can't be moved, ie same column moved or 6 times in a row
+- Mouse move faster but leave trail
+- Arrows on top and bottom show when hover
+- Arrows change when snapping to new position (hide/ only show other direction)
+- When dragging visualise element that wraps around
+- Bounce visual jumping on another mouses head
+- Improve snapping
 
 -----------------------------------------------------------------------
 To put in readme:
@@ -80,16 +84,6 @@ Player Controller
 UI
 - Base in code, bind widgets
 
-Visual/Gameplay
-- Need visuals for columns that can't be moved, ie same column moved or 6 times in a row
-- Green when held/once in valid slot?
-- Arrows on top and bottom show when hover
-- Arrows change when snapping to new position (hide/ only show other direction)
-- Platform that the mouse falls through when getting a point (overlay with physics based visual)
-- When dragging visualise element that wraps around
-- Bounce visual jumping on another mouses head
-- Move faster but leave trail
-- Improve snapping
 
 UI/Game loop
 - Difficulty - easy/hard
