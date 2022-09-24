@@ -316,8 +316,15 @@ void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* _Player)
 		// Check if stalemate turn count reached
 		if (StalemateCount >= StalemateTurns)
 		{
+			int DistanceWonBy = 0;
+			const ETeam WinningTeam = GetWinningStalemateTeam(DistanceWonBy);
+			FString WinningMessage = "Stalemate reached";
+			if (WinningTeam != ETeam::E_NONE)
+			{
+				WinningMessage = FString::Printf(TEXT("Stalemate reached with remaining mouse more ahead by %i"), DistanceWonBy);
+			}
 			// Find winning stalemate team and end the game
-			TeamWon(GetWinningStalemateTeam());
+			TeamWon(WinningTeam, WinningMessage);
 			return;
 		}
 	}
@@ -350,11 +357,11 @@ void AMM_GameMode::CheckForStalemate()
 	}	
 }
 
-ETeam AMM_GameMode::GetWinningStalemateTeam() const
+ETeam AMM_GameMode::GetWinningStalemateTeam(int& _DistanceWonBy) const
 {
 	if (GridManager)
 	{
-		return GridManager->GetWinningStalemateTeam();
+		return GridManager->GetWinningStalemateTeam(_DistanceWonBy);
 	}
 
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GameMode::GetWinningStalemateTeam | Failed to get winning stalemate team, GridManager not valid!"));
@@ -364,6 +371,7 @@ ETeam AMM_GameMode::GetWinningStalemateTeam() const
 void AMM_GameMode::ForceEndNoMoves()
 {
 	ETeam WinningTeam = ETeam::E_NONE;
+	FString WinningReason = "No more moves remaining";
 	if (TeamPoints[ETeam::E_TEAM_A] != TeamPoints[ETeam::E_TEAM_B])
 	{
 		if (TeamPoints[ETeam::E_TEAM_A] > TeamPoints[ETeam::E_TEAM_B])
@@ -374,9 +382,10 @@ void AMM_GameMode::ForceEndNoMoves()
 		{
 			WinningTeam = ETeam::E_TEAM_B;
 		}
+		WinningReason = "No more moves remaining, team has more completed mice";
 	}
 
-	TeamWon(WinningTeam);
+	TeamWon(WinningTeam, WinningReason);
 }
 
 void AMM_GameMode::AddScore(ETeam _Team)
@@ -387,7 +396,7 @@ void AMM_GameMode::AddScore(ETeam _Team)
 	// If a team has the winning number of points
 	if (HasTeamWon(_Team))
 	{
-		TeamWon(_Team);
+		TeamWon(_Team, "Completed all mice");
 	}
 }
 
@@ -413,7 +422,7 @@ bool AMM_GameMode::HasTeamWon(ETeam _TeamToCheck) const
 	return false;
 }
 
-void AMM_GameMode::TeamWon(ETeam _Team)
+void AMM_GameMode::TeamWon(ETeam _Team, const FString& _Reason)
 {
 	// Check valid team
 	if (_Team == ETeam::E_MAX)
@@ -422,5 +431,5 @@ void AMM_GameMode::TeamWon(ETeam _Team)
 		return;
 	}
 	
-	BI_OnTeamWon(_Team);
+	BI_OnTeamWon(_Team, _Reason);
 }

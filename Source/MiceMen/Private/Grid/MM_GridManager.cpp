@@ -763,7 +763,7 @@ bool AMM_GridManager::IsStalemate() const
 	return true;
 }
 
-ETeam AMM_GridManager::GetWinningStalemateTeam() const
+ETeam AMM_GridManager::GetWinningStalemateTeam(int& _DistanceWonBy) const
 {
 	TMap<ETeam, int> TeamDistances;
 	TArray<ETeam> MiceTeamsArray;
@@ -798,14 +798,21 @@ ETeam AMM_GridManager::GetWinningStalemateTeam() const
 		// Check if same distance, tie situation
 		if (TeamDistances[ETeam::E_TEAM_A] == TeamDistances[ETeam::E_TEAM_B])
 		{
+			_DistanceWonBy = 0;
 			// E_NONE meaning tie, ie no winner
 			return ETeam::E_NONE;
 		}
 
 		// Check winning team based on further distance
-		ETeam WinningTeam = ETeam::E_TEAM_A;
-		if (TeamDistances[ETeam::E_TEAM_B] > TeamDistances[ETeam::E_TEAM_A])
+		ETeam WinningTeam = ETeam::E_NONE;
+		if (TeamDistances[ETeam::E_TEAM_A] > TeamDistances[ETeam::E_TEAM_B])
 		{
+			_DistanceWonBy = TeamDistances[ETeam::E_TEAM_A] - TeamDistances[ETeam::E_TEAM_B];
+			WinningTeam = ETeam::E_TEAM_A;
+		}
+		else
+		{
+			_DistanceWonBy = TeamDistances[ETeam::E_TEAM_B] - TeamDistances[ETeam::E_TEAM_A];
 			WinningTeam = ETeam::E_TEAM_B;
 		}
 		return WinningTeam;
@@ -824,6 +831,7 @@ bool AMM_GridManager::CheckNoValidMoves()
 	for (const TPair<int, AMM_ColumnControl*>& Column: ColumnControls)
 	{
 		// TODO: Refactor and comment
+		// TODO: Doesn't properly check Team B
 		
 		bool bCurrentColumnFull = true;
 		const int x = Column.Key;

@@ -137,10 +137,10 @@ public:
 
 protected:
 	/** Called when a team has completed in getting all their mice to the other side of the grid */
-	virtual void TeamWon(ETeam _Team);
+	virtual void TeamWon(ETeam _Team, const FString& _Reason);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void BI_OnTeamWon(ETeam _Team);
+	void BI_OnTeamWon(ETeam _Team, const FString& _Reason);
 
 #pragma endregion
 
@@ -171,7 +171,7 @@ public:
 
 	/**  Find winning team in a stalemate situation */
 	UFUNCTION(BlueprintPure)
-	ETeam GetWinningStalemateTeam() const;
+	ETeam GetWinningStalemateTeam(int& _DistanceWonBy) const;
 
 	void ForceEndNoMoves();
 

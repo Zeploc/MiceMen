@@ -132,6 +132,8 @@ bool AMM_PlayerController::TakeAdvancedAITurn()
 	{
 		return false;
 	}
+
+	
 	
 	TArray<AMM_ColumnControl*> CurrentColumnControls = MMPawn->GetCurrentColumnControls();
 

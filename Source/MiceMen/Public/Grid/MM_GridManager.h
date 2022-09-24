@@ -49,7 +49,7 @@ public:
 
 	/** When a stalemate win condition occurs, get the further ahead mouse as the winning team */
 	UFUNCTION(BlueprintPure)
-	ETeam GetWinningStalemateTeam() const;
+	ETeam GetWinningStalemateTeam(int& _DistanceWonBy) const;
 
 	/** Check if mice have taken up opposite columns resulting in no way to get passed, so no moves to finish the game */
 	UFUNCTION(BlueprintPure)

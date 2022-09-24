@@ -24,8 +24,6 @@ Todo Additional:
 - Add test to see if all mice that completed were correctly scored
 - Ratio blocks so there are enough empty ones?
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
-- const in for loops
-
 
 - Mark AI label on hud for teams
 - Display how team won (by how many points or stalemate by how far)
