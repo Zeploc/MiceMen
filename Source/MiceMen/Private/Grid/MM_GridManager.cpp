@@ -593,12 +593,13 @@ void AMM_GridManager::RemoveMouse(AMM_Mouse* _Mouse)
 
 void AMM_GridManager::SetMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewCoord)
 {
+	const FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
+	
 	const bool bSuccessfullyMoved = MoveGridElement(_Mouse, _NewCoord);
 	if (!bSuccessfullyMoved)
 	{
 		return;
 	}
-	const FIntVector2D OriginalCoordinates = _Mouse->GetCoordinates();
 
 	// Move mouse to new column
 	RemoveMouseFromColumn(OriginalCoordinates.X, _Mouse);
