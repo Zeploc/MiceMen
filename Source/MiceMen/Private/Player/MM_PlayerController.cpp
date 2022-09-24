@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Player/MM_PlayerController.h"
 
 #include "Player/MM_GameViewPawn.h"
@@ -8,6 +7,7 @@
 #include "Gameplay/MM_ColumnControl.h"
 #include "Grid/MM_GridManager.h"
 #include "MiceMen.h"
+#include "Gameplay/MM_Mouse.h"
 
 AMM_PlayerController::AMM_PlayerController()
 {
@@ -76,75 +76,138 @@ bool AMM_PlayerController::TakeAITurn()
 	return bTurnSuccess;
 }
 
-bool AMM_PlayerController::TakeRandomAITurn()
+bool AMM_PlayerController::PerformColumnAIMovement(AMM_ColumnControl* _Column, const int _Direction) const
 {
-	if (!MMPawn)
-	{
-		return false;
-	}	
-	if (!MMGameMode->GetGridManager())
-	{
-		return false;
-	}
-	
-	TArray<AMM_ColumnControl*> CurrentColumnControls = MMPawn->GetCurrentColumnControls();
-	
-	// Find random column
-	const int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
-	AMM_ColumnControl* CurrentColumn = CurrentColumnControls[RandomIndex];
-	
-	// Find random direction
-	const int RandomDirection = FMath::RandBool() ? 1 : -1;
-	
-	if (!CurrentColumn)
+	if (!_Column)
 	{
 		return false;
 	}
 	
 	// Get new location of column
-	FVector NewLocation = CurrentColumn->GetActorLocation();
-	NewLocation.Z += RandomDirection * MMGameMode->GetGridManager()->GridElementHeight;
+	FVector NewLocation = _Column->GetActorLocation();
+	NewLocation.Z += _Direction * MMGameMode->GetGridManager()->GridElementHeight;
 
 	// Grab and move to determined location
 	// Note: Don't use pawn grab since its not based on mouse/input
-	CurrentColumn->BeginGrab();
-	
-	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomAITurn | Chosen direction %i for column %i"), RandomDirection, RandomIndex);
-	CurrentColumn->UpdatePreviewLocation(NewLocation);
-	
+	if (!_Column->BeginGrab())
+	{
+		return false;
+	}
+
+	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomAITurn | Chosen direction %i for column %i"),
+		   _Direction, _Column->GetColumnIndex());
+	_Column->UpdatePreviewLocation(NewLocation);
+
 	// If testing mode, instantly move column
 	if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
-		CurrentColumn->SetActorLocation(NewLocation);
+		_Column->SetActorLocation(NewLocation);
 	}
 
-	OnAITurnComplete.Broadcast(CurrentColumn);
-	return true;	
+	return true;
 }
 
-bool AMM_PlayerController::TakeAdvancedAITurn()
+bool AMM_PlayerController::TakeRandomAITurn() const
 {
 	if (!MMPawn)
 	{
 		return false;
-	}	
+	}
 	if (!MMGameMode->GetGridManager())
 	{
 		return false;
 	}
 
-	
-	
 	TArray<AMM_ColumnControl*> CurrentColumnControls = MMPawn->GetCurrentColumnControls();
 
+	// Find random column
+	const int RandomIndex = FMath::RandRange(0, CurrentColumnControls.Num() - 1);
+	AMM_ColumnControl* CurrentColumn = CurrentColumnControls[RandomIndex];
+
+	// Find random direction
+	const int RandomDirection = FMath::RandBool() ? 1 : -1;
+
+	if (!PerformColumnAIMovement(CurrentColumn, RandomDirection))
+	{
+		return false;
+	}
+
+	OnAITurnComplete.Broadcast(CurrentColumn);
+	return true;
+}
+
+bool AMM_PlayerController::TakeAdvancedAITurn() const
+{
+	if (!MMPawn)
+	{
+		return false;
+	}
+	if (!MMGameMode->GetGridManager())
+	{
+		return false;
+	}
 	
-	AMM_ColumnControl* CurrentColumn = CurrentColumnControls[0];
+	TArray<AMM_ColumnControl*> CurrentColumnControls = MMPawn->GetCurrentColumnControls();
+	TArray<AMM_Mouse*> TeamMice = MMGameMode->GetGridManager()->GetMiceTeams()[CurrentTeam];
 	
-	// OnAITurnComplete.Broadcast(CurrentColumn);
-	return true;	
+	int HighestScore = 0;
+	int BestColumn = -1;
+	// Having up first means the default state when no optimal moves exist will be to move the column upwards
+	EDirection BestColumnDirection = EDirection::E_UP;
+
+	for (const AMM_ColumnControl* ColumnControl : CurrentColumnControls)
+	{
+		const int ColumnIndex = ColumnControl->GetColumnIndex();
+		TArray<EDirection> Directions = { EDirection::E_UP, EDirection::E_DOWN };
+		for (const EDirection Direction : Directions)
+		{
+			int CurrentScore = 0;
+
+			// Find direction to move back column
+			EDirection OppositeDirection = EDirection::E_UP;
+			if (Direction == EDirection::E_UP)
+			{
+				OppositeDirection = EDirection::E_DOWN;
+			}
+
+			// Move column to test for score
+			AMM_GridElement* LastGridElement;
+			MMGameMode->GetGridManager()->AdjustColumnInGridObject(ColumnIndex, Direction, LastGridElement);
+
+			// Find out score ie amount of movement for all mice
+			for (const AMM_Mouse* Mouse : TeamMice)
+			{
+				CurrentScore += Mouse->GetMovementPath().Num();
+			}
+
+			// Return the column back
+			MMGameMode->GetGridManager()->AdjustColumnInGridObject(ColumnIndex, OppositeDirection, LastGridElement);
+
+			// Compare score
+			if (CurrentScore > HighestScore)
+			{
+				HighestScore = CurrentScore;
+				BestColumn = ColumnIndex;
+				BestColumnDirection = Direction;
+			}
+		}
+	}
+
+	// TODO: Check if BestColumn is -1 meaning no optimal solution (could prioritise further back ones)
+
+	// Apply column movement
+	AMM_ColumnControl* CurrentColumn = MMGameMode->GetGridManager()->GetColumnControls()[BestColumn];
+	const int Direction = BestColumnDirection == EDirection::E_UP ? 1 : -1;
+
+	if (!PerformColumnAIMovement(CurrentColumn, Direction))
+	{
+		return false;
+	}
+
+	OnAITurnComplete.Broadcast(CurrentColumn);
+	return true;
 }
 
 void AMM_PlayerController::TurnEnded()
 {
-
 }

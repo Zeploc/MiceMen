@@ -52,7 +52,7 @@ public:
 public:
 	/** Turn has begun, start interaction */
 	virtual void BeginTurn();
-	
+
 	/** If the player is an AI, perform AI turn */
 	virtual bool TakeAITurn();
 
@@ -60,11 +60,14 @@ public:
 	virtual void TurnEnded();
 
 protected:
-	/** Perform AI turn by selecting a random column to move */
-	bool TakeRandomAITurn();
+	/** Move the column a chosen direction on behalf of the AI player*/
+	bool PerformColumnAIMovement(AMM_ColumnControl* _Column, int _Direction) const;
 	
+	/** Perform AI turn by selecting a random column to move */
+	bool TakeRandomAITurn() const;
+
 	/** Perform AI turn by looking for the next opening a mouse can go to and move a column towards that */
-	bool TakeAdvancedAITurn();
+	bool TakeAdvancedAITurn() const;
 
 #pragma endregion
 
@@ -98,7 +101,7 @@ public:
 	/** Called once the AI has performed their turn */
 	UPROPERTY(BlueprintAssignable)
 	FAITurnComplete OnAITurnComplete;
-	
+
 protected:
 	/** The team this player is on */
 	UPROPERTY(BlueprintReadOnly)
@@ -109,5 +112,4 @@ protected:
 	bool bIsAI = false;
 
 #pragma endregion
-
 };

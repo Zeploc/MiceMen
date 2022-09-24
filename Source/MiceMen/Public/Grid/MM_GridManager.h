@@ -91,17 +91,18 @@ protected:
 #pragma region Mouse Processing
 
 public:
+	/** Starts processing all mice, starting with the current players team */
+	void BeginProcessMice();
+	
 	/** Removes a mouse from the active list and teams */
 	void RemoveMouse(AMM_Mouse* _Mouse);
 
 	/** Moves a mouse to a new location, clearing the old location */
 	void SetMousePosition(AMM_Mouse* _Mouse, const FIntVector2D& _NewCoord);
 
-protected:
-		
-	/** Starts processing all mice, starting with the current players team */
-	void BeginProcessMice();
+	TMap<ETeam, TArray<AMM_Mouse*>> GetMiceTeams() { return MiceTeams; }
 
+protected:
 	/** Find all the mice to process and store them in order of position and team */
 	void StoreOrderedMiceToProcess();
 
@@ -122,7 +123,7 @@ protected:
 	void HandleCompletedMouseMovement(AMM_Mouse* _Mouse);
 
 	/** Clears Mouse from processing and unbinds delegates. */
-	void CleanupProcessedMouse(AMM_Mouse* _Mouse);
+	void CleanupProcessedMouse(AMM_Mouse* _Mouse);	
 
 #pragma endregion
 
@@ -131,6 +132,9 @@ protected:
 public:
 	/** Moves the specified column in a direction, either up or down (1 or -1) */
 	void AdjustColumn(int _Column, EDirection _Direction);
+
+	/** Attempts to adjust the column in the grid object, updating the grid elements */
+	bool AdjustColumnInGridObject(int _Column, EDirection _Direction, AMM_GridElement*& LastElement) const;
 
 	UFUNCTION(BlueprintPure)
 	bool IsTeamInColumn(int _Column, ETeam _Team) const;

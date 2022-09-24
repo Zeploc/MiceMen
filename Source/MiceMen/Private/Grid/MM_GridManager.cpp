@@ -646,25 +646,35 @@ void AMM_GridManager::AddMouseToColumn(int _Column, AMM_Mouse* _Mouse)
 	OccupiedTeamsPerColumn[_Column].AddUnique(TeamToAdd);
 }
 
-void AMM_GridManager::AdjustColumn(int _Column, EDirection _Direction)
+bool AMM_GridManager::AdjustColumnInGridObject(int _Column, EDirection _Direction, AMM_GridElement*& LastElement) const
 {
 	// If direction is not up or down, no change will occur
 	if (_Direction != EDirection::E_UP && _Direction != EDirection::E_DOWN)
 	{
-		return;
+		return false;
 	}
-
-	LastMovedColumn = _Column;
-
+	
 	// Check grid object valid
 	if (!IsValid(GridObject))
 	{
 		UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::AdjustColumn | Grid Object not valid!"));
-		return;
+		return false;
 	}
 
-	// Move all elements in column in a direction (up or down) by one unit
-	AMM_GridElement* LastElement = GridObject->MoveColumnElements(_Column, _Direction);
+	LastElement = GridObject->MoveColumnElements(_Column, _Direction);
+	return true;
+}
+
+void AMM_GridManager::AdjustColumn(int _Column, EDirection _Direction)
+{
+	AMM_GridElement* LastElement;
+	const bool bSuccessfulColumnMovement = AdjustColumnInGridObject(_Column, _Direction, LastElement);
+	if (!bSuccessfulColumnMovement)
+	{
+		return;
+	}
+	
+	LastMovedColumn = _Column;
 
 	// Move Last element to correct position in world position
 	if (LastElement)
@@ -683,9 +693,6 @@ void AMM_GridManager::AdjustColumn(int _Column, EDirection _Direction)
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Moving last element %s to %s"), *LastElement->GetName(), *CurrentSlot.ToString());
 	}
-
-	// Start processing mice based on column change
-	BeginProcessMice();
 }
 
 bool AMM_GridManager::FindFreeSlotInDirection(FIntVector2D& _CurrentPosition, const FIntVector2D& _Direction) const

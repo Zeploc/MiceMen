@@ -167,6 +167,8 @@ void AMM_ColumnControl::LockInColumn()
 		if (GridManager)
 		{
 			GridManager->AdjustColumn(ControllingIndex, CurrentDirectionChange);
+			// Start processing mice based on column change
+			GridManager->BeginProcessMice();
 		}
 		else
 		{
