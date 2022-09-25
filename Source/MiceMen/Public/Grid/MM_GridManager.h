@@ -80,6 +80,9 @@ protected:
 	/** Populates initial blocks and empty spaces */
 	void PopulateGrid();
 
+	/** Center blocks with a set pattern either side of the center gap so mice don't initially cross over */
+	bool IsCoordInCenterGroup(const FIntVector2D& NewCoord) const;
+
 	/** Decides what element to place, either block or empty */
 	void PlaceGridElement(const FIntVector2D& NewCoord, AMM_ColumnControl* ColumnControl);
 
@@ -247,6 +250,10 @@ protected:
 	/** The amount of columns for one team when initially spawning the mice */
 	UPROPERTY(BlueprintReadOnly)
 	int TeamSize;
+
+	/** How sparse the block placement should be */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float BlockSparseness = 0.4f;
 
 	/** The main control object for grid elements */
 	UPROPERTY()

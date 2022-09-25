@@ -152,6 +152,7 @@ bool AMM_PlayerController::TakeAdvancedAITurn() const
 
 	int HighestScore = 0;
 	int BestColumn = -1;
+	
 	// Having up first means the default state when no optimal moves exist will be to move the column upwards
 	EDirection BestColumnDirection = EDirection::E_UP;
 
@@ -177,7 +178,8 @@ bool AMM_PlayerController::TakeAdvancedAITurn() const
 			// Find out score ie amount of movement for all mice
 			for (const AMM_Mouse* Mouse : TeamMice)
 			{
-				CurrentScore += Mouse->GetMovementPath().Num();
+				// Minus one as by default the path has the initial position (no movement)
+				CurrentScore += FMath::Max(0, Mouse->GetMovementPath().Num() - 1);
 			}
 
 			// Return the column back

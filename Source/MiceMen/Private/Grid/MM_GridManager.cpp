@@ -168,7 +168,42 @@ void AMM_GridManager::PopulateGrid()
 			// Place random block (or center blocks) or an empty slot
 			PlaceGridElement({x, y}, NewColumnControl);
 		}
+
+		// Remove blocks based on sparseness
+		int BlocksToRemove = static_cast<int>(static_cast<float>(GridSize.Y) * BlockSparseness);
+		// Needs to remove a minimum of one (can't have a column fully taken up)
+		BlocksToRemove = FMath::Max(BlocksToRemove, 1);
+		for (int i = 0; i < BlocksToRemove; i++)
+		{
+			const int RandomY = FMath::RandRange(0, GridSize.Y - 1);
+			FIntVector2D RandomCoord = FIntVector2D(x, RandomY);
+			// Not affect center blocks
+			if (IsCoordInCenterGroup(RandomCoord))
+			{
+				continue;
+			}
+			// Check grid element exists
+			AMM_GridElement* CurrentGridElement = GridObject->GetGridElement(RandomCoord);
+			if (CurrentGridElement)
+			{
+				// Remove grid element
+				UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::PopulateGrid | Removing block in column %i at %i"), x, RandomY);
+				GridObject->SetGridElement(RandomCoord, nullptr);
+				CurrentGridElement->CleanUp();
+				CurrentGridElement->Destroy();
+			}
+		}
 	}
+}
+
+bool AMM_GridManager::IsCoordInCenterGroup(const FIntVector2D& NewCoord) const
+{
+	// If gap size is 1, alternating blocks will be either side
+	// If gap size is 0, will have one side place a block every third y pos, and the other side the opposite
+	
+	const int Start = TeamSize - 1;
+	const int End = TeamSize + GapSize;
+	return NewCoord.X >= Start && NewCoord.X <= End;
 }
 
 void AMM_GridManager::PlaceGridElement(const FIntVector2D& NewCoord, AMM_ColumnControl* ColumnControl)
@@ -177,29 +212,27 @@ void AMM_GridManager::PlaceGridElement(const FIntVector2D& NewCoord, AMM_ColumnC
 	const FTransform GridElementTransform = CoordToWorldTransform(NewCoord);
 
 	// Prepare center pieces, creates blocking center where mice can't cross at the start
-	// If gap size is 1, alternating blocks will be either side
-	// If gap size is 0, will have one side place a block every third y pos, and the other side the opposite
-	const bool bIsPresetCenterBlock = NewCoord.X >= TeamSize - 1 && NewCoord.X <= TeamSize + GapSize;
+	const bool bIsPresetCenterBlock = IsCoordInCenterGroup(NewCoord);
 
 	// Default to not have preset block
-	bool bisPresetBlockFilled = false;
+	bool bIsPresetBlockFilled = false;
 	if (bIsPresetCenterBlock)
 	{
 		// If coord is in the center column
 		if (NewCoord.X == TeamSize)
 		{
 			// If vertical position not dividable by 3, then its not every third block
-			bisPresetBlockFilled = NewCoord.Y % 3 != 0;
+			bIsPresetBlockFilled = NewCoord.Y % 3 != 0;
 		}
 		else
 		{
 			// If vertical position dividable by 3, then its every third block 
-			bisPresetBlockFilled = NewCoord.Y % 3 == 0;
+			bIsPresetBlockFilled = NewCoord.Y % 3 == 0;
 		}
 	}
 
 	// Initial testing random bool for placement unless overridden by center blocks
-	if ((FMath::RandBool() && !bIsPresetCenterBlock) || bisPresetBlockFilled)
+	if ((FMath::RandBool() && !bIsPresetCenterBlock) || bIsPresetBlockFilled)
 	{
 		// Create new Grid block object
 		AMM_GridBlock* NewGridBlock = GetWorld()->SpawnActor<AMM_GridBlock>(GridBlockClass, GridElementTransform);

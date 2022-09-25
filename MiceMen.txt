@@ -14,8 +14,6 @@ Functions
 Move static functions to helper utils?
 
 Todo:
-- Advanced AI defaults up (AI vs AI causes infinite loop of moving columns up) Chance to lower
-- Ratio blocks so there are enough empty ones?
 - AI Advanced turn column instantly moves instead of lerp (not in shipping?)
 
 - Turns completed in [number]
@@ -51,6 +49,7 @@ To put in readme:
 - Add test to see if all mice that completed were correctly scored
 - UI control starting mice in gameplay
 - UI control grid size in game
+- Sparseness explain
 
 Gamemode
 - Handles turns
