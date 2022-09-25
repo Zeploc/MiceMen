@@ -15,9 +15,7 @@ Move static functions to helper utils?
 
 Todo:
 - AI Advanced turn column instantly moves instead of lerp (not in shipping?)
-
 - Turns completed in [number]
-- Set gameplay modes info in singleton, with display name and description
 
 Visual/Gameplay
 - Need visuals for columns that can't be moved, ie same column moved or 6 times in a row
@@ -26,30 +24,42 @@ Visual/Gameplay
 - When dragging visualise element that wraps around
 - Mouse trail link to mouse colour
 - Bounce visual jumping on another mouses head
+- Sound effects
+Stretch:
+- Mouse Characters
+- Jump/walk animations
+- Timeline visuals for blocks moving
+- Idle/fidget animations
 
 -----------------------------------------------------------------------
 To put in readme:
 - Controls (+ debug grid - Not in shipping)
 - Logging system (could cause editor lag)
-- Debug methods
 - Controller/local player setup
-- Further decisions for if networked
-- Pragma Region explanation (collapse/expand)
 - Unique situations found and solved (stalemate, non falling mouse, blocked columns)
-- Things not addressed
+- Pragma Region explanation (collapse/expand)
+- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
+- Sparseness explain
+
+- Singleton
+- Set gameplay modes info in singleton, with display name and description
+
 - AI advanced could account for when no direct good moves occur
 - AI advanced could account for other players to not move them, or to block them
-- Possibly testing situations
 - Had AI delay times for thinking and moving
 - Seperated AI logic into grid cheaper instance and process in separate thread to have more complicated AI
-- Event log for debugging - Log Macro, Add location (place in code called) in macro + object
-- Singleton
-- Things I would have done further
-- Future Plans
+
+- Possible testing situations
 - Add test to see if all mice that completed were correctly scored
+
 - UI control starting mice in gameplay
 - UI control grid size in game
-- Sparseness explain
+
+Todo:
+- Debug methods
+- Further decisions for if networked
+- Things not addressed
+- Things I would have done further
 
 Gamemode
 - Handles turns
@@ -61,7 +71,7 @@ Grid Manager
 - Grid interaction with gameplay elements
 
 Grid object
-- Grid - Array<GridInfo> Collumns by rows (x by y)
+- Grid - Array<GridInfo> Columns by rows (x by y)
 - Handles & Updates Grid
 - Store free slots as map, updated on change (reduce iteration)
 - Grid Cleanup
@@ -90,15 +100,6 @@ UI/Game loop
 - Grid Size (default, custom sliders)
 - Sandbox mode, single player move grid around
 
-To Plan:
-- Environment/Background
-- AI?
-
-Stretch:
-- Mouse Characters
-- Jump/walk animations
-- Timeline visuals for blocks moving
-- Idle/fidget animations
 
 Fun Ides to expand on:
 - Mice/player can have abilities/power ups (like worms) such as
