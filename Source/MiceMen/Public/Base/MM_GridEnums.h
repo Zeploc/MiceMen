@@ -6,7 +6,7 @@
 #include "Engine/UserDefinedEnum.h"
 #include "MM_GridEnums.generated.h"
 
-/** TODO */
+/** Used for mice and columns to indicate movement directions */
 UENUM(BlueprintType)
 enum class EDirection : uint8
 {

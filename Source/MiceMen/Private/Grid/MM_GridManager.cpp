@@ -723,7 +723,6 @@ void AMM_GridManager::AdjustColumn(int Column, EDirection Direction)
 			NewLocation.Z += ColumnControls[Column]->GetActorLocation().Z - GetActorLocation().Z;
 		}
 
-		// TODO: Animate/visual
 		LastElement->SetActorLocation(NewLocation);
 
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::AdjustColumn | Moving last element %s to %s"), *LastElement->GetName(), *CurrentSlot.ToString());

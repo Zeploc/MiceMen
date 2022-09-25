@@ -152,8 +152,6 @@ bool UMM_GridObject::MoveGridElement(const FIntVector2D& NewCoord, AMM_GridEleme
 
 AMM_GridElement* UMM_GridObject::MoveColumnElements(int Column, EDirection Direction)
 {
-	// TODO: Add tests
-
 	// Get initial values
 	const int StartingGridIndex = CoordToIndex(Column, 0);
 	AMM_GridElement* WrappingElement = nullptr;
