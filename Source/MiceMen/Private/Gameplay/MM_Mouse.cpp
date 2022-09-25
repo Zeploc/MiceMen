@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Gameplay/MM_Mouse.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -12,14 +11,14 @@
 // Sets default values
 AMM_Mouse::AMM_Mouse()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called when the game starts or when spawned
 void AMM_Mouse::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
 }
 
 // Called every frame
@@ -49,7 +48,7 @@ bool AMM_Mouse::AttemptPerformMovement()
 	// Move Mouse to next position
 	FIntVector2D FinalPosition;
 	const bool bSuccessfulMovement = BeginMove(FinalPosition);
-	
+
 	if (bSuccessfulMovement)
 	{
 		ProcessUpdatedPosition(FinalPosition);
@@ -126,7 +125,7 @@ void AMM_Mouse::ProcessUpdatedPosition(const FIntVector2D& NewPosition)
 TArray<FIntVector2D> AMM_Mouse::GetMovementPath() const
 {
 	// Setup initial variables
-	TArray<FIntVector2D> Path = { Coordinates };
+	TArray<FIntVector2D> Path = {Coordinates};
 	FIntVector2D LastPosition = Coordinates;
 
 	const EDirection Direction = GridManager->GetDirectionFromTeam(CurrentTeam);
@@ -139,7 +138,7 @@ TArray<FIntVector2D> AMM_Mouse::GetMovementPath() const
 		bHasMove = false;
 		// Start at last position
 		FIntVector2D NewPosition = LastPosition;
-		
+
 		// If valid move down, bHasMove can be set to true
 		if (GridManager->FindFreeSlotBelow(NewPosition))
 		{
@@ -191,7 +190,7 @@ void AMM_Mouse::DisplayDebugPath(const TArray<FIntVector2D>& ValidPath) const
 	{
 		return;
 	}
-	
+
 	const FLinearColor Colour = FLinearColor::MakeRandomColor();
 	for (int i = 0; i < ValidPath.Num(); i++)
 	{

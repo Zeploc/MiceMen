@@ -6,7 +6,6 @@
 #include "Engine/UserDefinedEnum.h"
 #include "MM_GameEnums.generated.h"
 
-
 /** Gameplay mode to choose how the game plays, and which are AI or Players */
 UENUM(BlueprintType)
 enum class EGameType : uint8
@@ -14,18 +13,18 @@ enum class EGameType : uint8
 	E_NONE		UMETA(DisplayName = "None"),
 
 	/** Player versing Player, turn based one screen */
-	E_PVP		UMETA(DisplayName = "Player VS Player"),
+	E_PVP			UMETA(DisplayName = "Player VS Player"),
 	/** Player versing AI, the AI will automatically take a their turn */
-	E_PVAI		UMETA(DisplayName = "Player VS AI"),
+	E_PVAI			UMETA(DisplayName = "Player VS AI"),
 	/**  For visualizing the game, AI's take turns making their moves until the game ends */
-	E_AIVAI		UMETA(DisplayName = "AI VS AI"),
+	E_AIVAI			UMETA(DisplayName = "AI VS AI"),
 	/** No column or turn restrictions, for playing around, testing interactions and movement */
-	E_SANDBOX	UMETA(DisplayName = "Sandbox"),
+	E_SANDBOX		UMETA(DisplayName = "Sandbox"),
 	/** Runs an instant test to look for any problems */
-	E_TEST		UMETA(DisplayName = "Test"),
+	E_TEST			UMETA(DisplayName = "Test"),
 
 
-	E_MAX		UMETA(DisplayName = "MAX")
+	E_MAX			UMETA(DisplayName = "MAX")
 };
 
 /** The team a mice is in that a player controls */
@@ -49,7 +48,7 @@ FORCEINLINE ETeam& operator++(ETeam& Team)
 	}
 
 	// Get integer type
-	using IntType = typename std::underlying_type<ETeam>::type;
+	using IntType = std::underlying_type_t<ETeam>;
 
 	// Convert enum to type
 	int EnumInt = static_cast<IntType>(Team);

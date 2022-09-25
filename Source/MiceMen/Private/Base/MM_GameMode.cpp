@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Base/MM_GameMode.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -14,7 +13,7 @@
 #include "Gameplay/MM_Mouse.h"
 
 AMM_GameMode::AMM_GameMode()
-{	
+{
 	GridManagerClass = AMM_GridManager::StaticClass();
 	PlayerControllerClass = AMM_PlayerController::StaticClass();
 	DefaultPawnClass = AMM_GameViewPawn::StaticClass();
@@ -125,39 +124,39 @@ void AMM_GameMode::BeginGame(EGameType InGameType, EAIDifficulty InAIDifficulty)
 	CurrentAIDifficulty = InAIDifficulty;
 	switch (CurrentGameType)
 	{
-	case EGameType::E_PVP:
-		break;
-	case EGameType::E_TEST:
-	{
-		// Fall through (set players to AI)
-	}
-	case EGameType::E_AIVAI:
-	{
-		if (AllPlayers.IsValidIndex(0))
-		{
-			AllPlayers[0]->SetAsAI();
-		}
-		// Fall through to set second player to AI
-	}
-	case EGameType::E_PVAI:
-	{
-		if (AllPlayers.IsValidIndex(1))
-		{
-			AllPlayers[1]->SetAsAI();
-		}
+		case EGameType::E_PVP:
+			break;
+		case EGameType::E_TEST:
+			{
+				// Fall through (set players to AI)
+			}
+		case EGameType::E_AIVAI:
+			{
+				if (AllPlayers.IsValidIndex(0))
+				{
+					AllPlayers[0]->SetAsAI();
+				}
+				// Fall through to set second player to AI
+			}
+		case EGameType::E_PVAI:
+			{
+				if (AllPlayers.IsValidIndex(1))
+				{
+					AllPlayers[1]->SetAsAI();
+				}
 
-		break;
-	}
-	case EGameType::E_SANDBOX:
-		break;
-	default:
-		break;
+				break;
+			}
+		case EGameType::E_SANDBOX:
+			break;
+		default:
+			break;
 	}
 
 	// Start random players turn
 	const int IntialPlayer = FMath::RandRange(0, AllPlayers.Num() - 1);
 	SwitchTurnToPlayer(AllPlayers[IntialPlayer]);
-	
+
 	BI_OnGameBegun();
 }
 
@@ -167,7 +166,7 @@ bool AMM_GameMode::SetupGridManager()
 	{
 		return false;
 	}
-	
+
 	// Initially set grid size to game mode default
 	FIntVector2D GridSize = DefaultGridSize;
 
@@ -222,7 +221,7 @@ void AMM_GameMode::SwitchToTestMode()
 void AMM_GameMode::EndGame()
 {
 	CleanupGame();
-	
+
 	BI_OnGameEnded();
 }
 
@@ -243,7 +242,7 @@ void AMM_GameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	ETeam NewPlayerTeam;
-	
+
 	// First player is team A
 	if (AllPlayers.Num() == 0)
 	{
@@ -275,20 +274,21 @@ void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* Player)
 	{
 		return;
 	}
-	
+
 	// Store new player as current
 	CurrentPlayerController = Player;
-	
+
 	// Since this is local, set the first local player to the new player to enable input
 	// Note: In a network or split-screen situation, this would not be necessary as each client has their own input
 	// And would send events to the server
 	if (FirstLocalPlayer)
 	{
 		FirstLocalPlayer->SwitchController(CurrentPlayerController);
-	}	
-	
+	}
+
 	// Begin player turn
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurnToPlayer | Switching player to %i as %s"), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::SwitchTurnToPlayer | Switching player to %i as %s"),
+	       CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
 	CurrentPlayerController->BeginTurn();
 
 	BI_OnSwitchTurns(CurrentPlayerController);
@@ -296,17 +296,19 @@ void AMM_GameMode::SwitchTurnToPlayer(AMM_PlayerController* Player)
 
 void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* Player)
 {
-	// Was not the player's current turn
+	// If it is not the given player's turn
 	if (Player != CurrentPlayerController)
 	{
-		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameMode::ProcessTurnComplete | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"), Player->GetCurrentTeam(), *Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
+		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameMode::ProcessTurnComplete | Attempted to end turn for incorrect player %i:%s when current player is %i:%s"),
+			Player->GetCurrentTeam(), *Player->GetName(), CurrentPlayerController->GetCurrentTeam(), *CurrentPlayerController->GetName());
 		return;
 	}
 
 	// End turn for current player
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::ProcessTurnComplete | Completed player's turn %s as %i"), *CurrentPlayerController->GetName(), CurrentPlayerController->GetCurrentTeam());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameMode::ProcessTurnComplete | Completed player's turn %s as %i"),
+	       *CurrentPlayerController->GetName(), CurrentPlayerController->GetCurrentTeam());
 	CurrentPlayerController->TurnEnded();
-	
+
 	// If stalemate is active, increase counter for turn taken
 	if (StalemateCount >= 0)
 	{
@@ -329,9 +331,11 @@ void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* Player)
 		}
 	}
 
-	// Get next player, wrap around if at the end
+	// Get next player
 	int NextPlayer = AllPlayers.Find(Player);
 	NextPlayer++;
+
+	// If at end of player count, wrap around
 	if (NextPlayer > AllPlayers.Num() - 1)
 	{
 		NextPlayer = 0;
@@ -343,7 +347,7 @@ void AMM_GameMode::ProcessTurnComplete(AMM_PlayerController* Player)
 
 void AMM_GameMode::CheckForStalemate()
 {
-	// If more than 0, already in stalemate mode
+	// If more than 0, we are already in stalemate mode
 	if (StalemateCount >= 0)
 	{
 		return;
@@ -354,7 +358,7 @@ void AMM_GameMode::CheckForStalemate()
 	{
 		// Enter stalemate mode and begin counting turns
 		StalemateCount = 0;
-	}	
+	}
 }
 
 ETeam AMM_GameMode::GetWinningStalemateTeam(int& DistanceWonBy) const
@@ -417,7 +421,7 @@ bool AMM_GameMode::HasTeamWon(ETeam TeamToCheck) const
 	{
 		return true;
 	}
-	
+
 	// Team has won yet
 	return false;
 }
@@ -430,6 +434,6 @@ void AMM_GameMode::TeamWon(ETeam Team, const FString& Reason)
 		UE_LOG(LogTemp, Error, TEXT("No Valid Team won!"));
 		return;
 	}
-	
+
 	BI_OnTeamWon(Team, Reason);
 }

@@ -15,7 +15,7 @@ class AMM_ColumnControl;
 class AMM_Mouse;
 class AMM_GridElement;
 class AMM_GridBlock;
-class UMM_GridObject; 
+class UMM_GridObject;
 class AMM_GameMode;
 
 /**
@@ -36,7 +36,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
+
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 #pragma endregion
@@ -44,7 +44,6 @@ protected:
 #pragma region Stalemate
 
 public:
-
 	/** A check for if only one mouse per team exists */
 	UFUNCTION(BlueprintPure)
 	bool IsStalemate() const;
@@ -75,7 +74,6 @@ public:
 	FIntVector2D GetGridSize() const { return GridSize; }
 
 protected:
-
 	/** Handles grid cleanup, removing and clearing objects */
 	void GridCleanUp();
 
@@ -95,13 +93,13 @@ protected:
 public:
 	/** Starts processing all mice, starting with the current players team */
 	void BeginProcessMice();
-	
+
 	/** Removes a mouse from the active list and teams */
 	void RemoveMouse(AMM_Mouse* Mouse);
 
 	/** Moves a mouse to a new location, clearing the old location */
 	void SetMousePosition(AMM_Mouse* Mouse, const FIntVector2D& NewCoord);
-	
+
 	/** Attempts to move a grid element to a new coordinate, returns true if successful */
 	bool MoveGridElement(AMM_GridElement* GridElement, const FIntVector2D& NewCoord) const;
 
@@ -113,7 +111,7 @@ protected:
 
 	/* Add mouse to array based on positioning so lower forward mice go first */
 	void InsertMouseByOrder(AMM_Mouse* TeamMouse, TArray<AMM_Mouse*>& CurrentTeamMiceToProcess);
-	
+
 	/** Ends the players turn when there are no more mice to process. */
 	void HandleMiceComplete();
 
@@ -128,7 +126,7 @@ protected:
 	void HandleCompletedMouseMovement(AMM_Mouse* Mouse);
 
 	/** Clears Mouse from processing and unbinds delegates. */
-	void CleanupProcessedMouse(AMM_Mouse* Mouse);	
+	void CleanupProcessedMouse(AMM_Mouse* Mouse);
 
 #pragma endregion
 
@@ -148,7 +146,7 @@ public:
 	TArray<int> GetTeamColumns(ETeam Team) const;
 
 	UFUNCTION(BlueprintPure)
-	TMap<int, AMM_ColumnControl*> GetColumnControls() const {	return ColumnControls; }
+	TMap<int, AMM_ColumnControl*> GetColumnControls() const { return ColumnControls; }
 
 protected:
 	/** Removes mouse from specified column, updating team/mouse variables */
@@ -191,7 +189,6 @@ public:
 #pragma region Debug
 
 public:
-	
 	/** Shows a visual for the all the grid elements stored in the grid object */
 	UFUNCTION(BlueprintCallable)
 	void SetDebugVisualGrid(bool bEnabled);
@@ -265,7 +262,7 @@ protected:
 	*/
 	UPROPERTY(BlueprintReadOnly)
 	TArray<AMM_Mouse*> Mice;
-	
+
 	/**
 	* List of mice that have reached their goal.
 	*/
@@ -333,5 +330,4 @@ protected:
 	bool bDisplayDebugGrid = false;
 
 #pragma endregion
-
 };

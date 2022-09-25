@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Grid/MM_GridObject.h"
 
 #include "Grid/MM_GridElement.h"
@@ -131,7 +130,7 @@ bool UMM_GridObject::MoveGridElement(const FIntVector2D& NewCoord, AMM_GridEleme
 	{
 		return false;
 	}
-	
+
 	UE_LOG(MiceMenEventLog, Display, TEXT("UMM_GridObject::MoveGridElement | Moving %s to %s"), *GridElement->GetName(), *NewCoord.ToString());
 
 	Grid[CoordToIndex(OriginalCoordinate.X, OriginalCoordinate.Y)] = nullptr;
@@ -142,9 +141,9 @@ bool UMM_GridObject::MoveGridElement(const FIntVector2D& NewCoord, AMM_GridEleme
 	// Update FreeSlots to have the old position as free
 	// Note: Add unique is more expensive (but safe), could be improved
 	FreeSlots.AddUnique(OriginalCoordinate);
-	
+
 	// Remove the new space as free as there is now an element there
-	FreeSlots.Remove(NewCoord);	
+	FreeSlots.Remove(NewCoord);
 
 	return true;
 }
@@ -156,7 +155,7 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int Column, EDirection Direc
 	// TODO: Add tests
 
 	// Get initial values
-	const int StartingGridIndex = CoordToIndex(Column, 0);	
+	const int StartingGridIndex = CoordToIndex(Column, 0);
 	AMM_GridElement* WrappingElement = nullptr;
 
 	const int BottomBlockIndex = StartingGridIndex;
@@ -184,7 +183,7 @@ AMM_GridElement* UMM_GridObject::MoveColumnElements(int Column, EDirection Direc
 	// Update each element with its new position and store new free slots
 	for (int y = 0; y < GridSize.Y; y++)
 	{
-		const FIntVector2D ElementCoord = { Column, y };
+		const FIntVector2D ElementCoord = {Column, y};
 		AMM_GridElement* CurrentElement = GetGridElement(ElementCoord);
 
 		// Assign element to new coordinate

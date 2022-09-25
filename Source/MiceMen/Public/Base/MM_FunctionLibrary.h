@@ -15,7 +15,7 @@ UCLASS()
 class MICEMEN_API UMM_FunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
-	
+
 public:
 	/** Retrieve the MM singleton */
 	UFUNCTION(BlueprintPure)

@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Grid/MM_GridManager.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -18,7 +17,7 @@
 // Sets default values
 AMM_GridManager::AMM_GridManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	GridBlockClass = AMM_GridBlock::StaticClass();
@@ -41,20 +40,21 @@ void AMM_GridManager::EndPlay(EEndPlayReason::Type EndPlayReason)
 void AMM_GridManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 #if !UE_BUILD_SHIPPING
 	if (bDisplayDebugGrid)
 	{
 		DisplayDebugGrid();
 	}
-#endif	
+#endif
 }
 
 void AMM_GridManager::SetupGridVariables(const FIntVector2D& InGridSize, AMM_GameMode* InMMGameMode)
 {
 	GridSize = InGridSize;
 	MMGameMode = InMMGameMode;
-	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGridVariables | Setup grid with size %s and gamemode %s"), *GridSize.ToString(), MMGameMode ? *MMGameMode->GetName() : TEXT("none"));
+	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::SetupGridVariables | Setup grid with size %s and gamemode %s"),
+	       *GridSize.ToString(), MMGameMode ? *MMGameMode->GetName() : TEXT("none"));
 }
 
 void AMM_GridManager::RebuildGrid(const int InitialMiceCount)
@@ -117,7 +117,7 @@ void AMM_GridManager::GridCleanUp()
 			Mouse->Destroy();
 		}
 	}
-	CompletedMice.Empty();	
+	CompletedMice.Empty();
 
 	// Empty Remaining containers
 	MiceTeams.Empty();
@@ -150,7 +150,8 @@ void AMM_GridManager::PopulateGrid()
 
 		// Setup new column
 		FTransform ColumnTransform = CoordToWorldTransform(FIntVector2D(x, 0));
-		AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActorDeferred<AMM_ColumnControl>(ColumnControlClass, ColumnTransform);
+		AMM_ColumnControl* NewColumnControl = GetWorld()->SpawnActorDeferred<AMM_ColumnControl>(
+			ColumnControlClass, ColumnTransform);
 		NewColumnControl->SetupColumn(x, this);
 		UGameplayStatics::FinishSpawningActor(NewColumnControl, ColumnTransform);
 		ColumnControls.Add(x, NewColumnControl);
@@ -165,7 +166,7 @@ void AMM_GridManager::PopulateGrid()
 		for (int y = 0; y < GridSize.Y; y++)
 		{
 			// Place random block (or center blocks) or an empty slot
-			PlaceGridElement({ x, y }, NewColumnControl);
+			PlaceGridElement({x, y}, NewColumnControl);
 		}
 	}
 }
@@ -179,7 +180,7 @@ void AMM_GridManager::PlaceGridElement(const FIntVector2D& NewCoord, AMM_ColumnC
 	// If gap size is 1, alternating blocks will be either side
 	// If gap size is 0, will have one side place a block every third y pos, and the other side the opposite
 	const bool bIsPresetCenterBlock = NewCoord.X >= TeamSize - 1 && NewCoord.X <= TeamSize + GapSize;
-	
+
 	// Default to not have preset block
 	bool bisPresetBlockFilled = false;
 	if (bIsPresetCenterBlock)
@@ -239,7 +240,7 @@ void AMM_GridManager::PopulateTeams(int MicePerTeam)
 	UE_LOG(LogTemp, Display, TEXT("AMM_GridManager::PopulateTeams | Populating mice with team ranges %s and %s"), *TeamRanges[ETeam::E_TEAM_A].ToString(), *TeamRanges[ETeam::E_TEAM_B].ToString());
 
 	// Place mice for each team
-	for (ETeam CurrentTeam = ETeam::E_TEAM_A; CurrentTeam < ETeam::E_MAX; CurrentTeam++)
+	for (ETeam CurrentTeam = ETeam::E_TEAM_A; CurrentTeam < ETeam::E_MAX; ++CurrentTeam)
 	{
 		// Add initial team array and store in game mode
 		MiceTeams.Add(CurrentTeam, TArray<AMM_Mouse*>());
@@ -297,10 +298,10 @@ FTransform AMM_GridManager::CoordToWorldTransform(const FIntVector2D& Coords) co
 	FVector NewRelativeLocation = FVector::Zero();
 
 	// Since X is forward, horizontal axis is Y, and vertical axis is Z
-	
+
 	// Starting Bottom Left
 	NewRelativeLocation.Y -= (GridSize.X / 2) * GridElementWidth;
-	
+
 	// Add coordinate offset based on grid element size
 	NewRelativeLocation.Y += Coords.X * GridElementWidth;
 	NewRelativeLocation.Z += Coords.Y * GridElementHeight;
@@ -330,10 +331,10 @@ void AMM_GridManager::BeginProcessMice()
 	// If the turn is somehow switched while this is processing, it will then be ignored by
 	// the game mode once complete
 	CurrentPlayerProcessing = MMGameMode->GetCurrentPlayer();
-	
+
 	// Save all mice in the correct order based on the current team as the starting mice
 	StoreOrderedMiceToProcess();
-	
+
 	// Check test mode
 	if (MMGameMode->GetCurrentGameType() == EGameType::E_TEST)
 	{
@@ -358,7 +359,7 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 		// Order the process of mice, starting with the current player's team
 		const ETeam CurrentPlayerTeam = CurrentPlayerProcessing->GetCurrentTeam();
 		OrderedTeamsToProcess.Add(CurrentPlayerTeam);
-		
+
 		// Add other team
 		ETeam SecondTeam = ETeam::E_TEAM_B;
 		if (CurrentPlayerTeam == ETeam::E_TEAM_B)
@@ -406,13 +407,13 @@ void AMM_GridManager::StoreOrderedMiceToProcess()
 void AMM_GridManager::InsertMouseByOrder(AMM_Mouse* TeamMouse, TArray<AMM_Mouse*>& CurrentTeamMiceToProcess)
 {
 	const ETeam CurrentTeam = TeamMouse->GetTeam();
-	
+
 	// Check through existing ordered mice
 	const FIntVector2D Coordinates = TeamMouse->GetCoordinates();
 	for (int i = 0; i < CurrentTeamMiceToProcess.Num(); i++)
 	{
 		const AMM_Mouse* OrderedMouse = CurrentTeamMiceToProcess[i];
-				
+
 		// If new mouse is lower than or on the same line current being checked against
 		if (Coordinates.Y <= OrderedMouse->GetCoordinates().Y)
 		{
@@ -440,7 +441,7 @@ void AMM_GridManager::InsertMouseByOrder(AMM_Mouse* TeamMouse, TArray<AMM_Mouse*
 			break;
 		}
 	}
-	
+
 	// Add to end (if not already) to ensure they are added to process
 	CurrentTeamMiceToProcess.AddUnique(TeamMouse);
 }
@@ -522,12 +523,13 @@ void AMM_GridManager::HandleMiceComplete()
 		BeginProcessMice();
 		return;
 	}
-	
+
 	// Reached end, all mice processed
 	if (MMGameMode)
 	{
-		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::HandleMiceComplete | Turn ended for current player %i as %s, all mice processed"), MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
-		
+		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::HandleMiceComplete | Turn ended for current player %i as %s, all mice processed"),
+			MMGameMode->GetCurrentPlayer()->GetCurrentTeam(), *MMGameMode->GetCurrentPlayer()->GetName());
+
 		if (CheckNoValidMoves())
 		{
 			// No more moves can be made, end game and work out winner or tie game
@@ -537,7 +539,7 @@ void AMM_GridManager::HandleMiceComplete()
 		{
 			// Next player's turn
 			MMGameMode->ProcessTurnComplete(CurrentPlayerProcessing);
-		}		
+		}
 	}
 	else
 	{
@@ -550,7 +552,7 @@ void AMM_GridManager::CleanupProcessedMouse(AMM_Mouse* Mouse)
 	if (Mouse)
 	{
 		MiceToProcessMovement.Remove(Mouse);
-		Mouse->MovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);			
+		Mouse->MovementEndDelegate.RemoveDynamic(this, &AMM_GridManager::HandleCompletedMouseMovement);
 	}
 }
 
@@ -594,7 +596,7 @@ void AMM_GridManager::RemoveMouse(AMM_Mouse* Mouse)
 void AMM_GridManager::SetMousePosition(AMM_Mouse* Mouse, const FIntVector2D& NewCoord)
 {
 	const FIntVector2D OriginalCoordinates = Mouse->GetCoordinates();
-	
+
 	const bool bSuccessfullyMoved = MoveGridElement(Mouse, NewCoord);
 	if (!bSuccessfullyMoved)
 	{
@@ -607,17 +609,17 @@ void AMM_GridManager::SetMousePosition(AMM_Mouse* Mouse, const FIntVector2D& New
 }
 
 bool AMM_GridManager::MoveGridElement(AMM_GridElement* GridElement, const FIntVector2D& NewCoord) const
-{	
+{
 	// Remove element from previous location and add to new location
 	const bool bSuccessfullyMoved = GridObject->MoveGridElement(NewCoord, GridElement);
-	
+
 	return bSuccessfullyMoved;
 }
 
 void AMM_GridManager::RemoveMouseFromColumn(int Column, AMM_Mouse* Mouse)
 {
 	MiceColumns[Column].Remove(Mouse);
-	
+
 	// Check the column for this mouse's team
 	const ETeam TeamToCheck = Mouse->GetTeam();
 	// Remove from available list initially
@@ -633,7 +635,7 @@ void AMM_GridManager::RemoveMouseFromColumn(int Column, AMM_Mouse* Mouse)
 			OccupiedTeamsPerColumn[Column].Add(TeamToCheck);
 			break;
 		}
-	}	
+	}
 }
 
 void AMM_GridManager::AddMouseToColumn(int Column, AMM_Mouse* Mouse)
@@ -653,7 +655,7 @@ bool AMM_GridManager::AdjustColumnInGridObject(int Column, EDirection Direction,
 	{
 		return false;
 	}
-	
+
 	// Check grid object valid
 	if (!IsValid(GridObject))
 	{
@@ -673,7 +675,7 @@ void AMM_GridManager::AdjustColumn(int Column, EDirection Direction)
 	{
 		return;
 	}
-	
+
 	LastMovedColumn = Column;
 
 	// Move Last element to correct position in world position
@@ -777,7 +779,7 @@ ETeam AMM_GridManager::GetWinningStalemateTeam(int& DistanceWonBy) const
 	MiceTeams.GenerateKeyArray(MiceTeamsArray);
 
 	// Initalise distances for each team
-	for (ETeam iTeam = ETeam::E_TEAM_A; iTeam < ETeam::E_MAX; iTeam++)
+	for (ETeam iTeam = ETeam::E_TEAM_A; iTeam < ETeam::E_MAX; ++iTeam)
 	{
 		TeamDistances.Add(iTeam, 0);
 	}
@@ -798,7 +800,7 @@ ETeam AMM_GridManager::GetWinningStalemateTeam(int& DistanceWonBy) const
 			TeamDistances[CurrentTeam] = Distance;
 		}
 	}
-	
+
 	// Check both team distances were stored
 	if (TeamDistances.Num() >= 2)
 	{
@@ -823,7 +825,7 @@ ETeam AMM_GridManager::GetWinningStalemateTeam(int& DistanceWonBy) const
 			WinningTeam = ETeam::E_TEAM_B;
 		}
 		return WinningTeam;
-	}	
+	}
 
 	UE_LOG(MiceMenEventLog, Error, TEXT("AMM_GridManager::GetWinningStalemateTeam | Failed to get winning stalemate team, returned E_MAX!"));
 
@@ -834,7 +836,7 @@ bool AMM_GridManager::CheckNoValidMoves()
 {
 	ETeam CurrentTeam = ETeam::E_NONE;
 	// NOTE: Assumes columns were added in correct order from left to right
-	for (const TPair<int, AMM_ColumnControl*>& Column: ColumnControls)
+	for (const TPair<int, AMM_ColumnControl*>& Column : ColumnControls)
 	{
 		// Check all elements in column
 		bool bCurrentColumnFull = true;
@@ -858,7 +860,7 @@ bool AMM_GridManager::CheckNoValidMoves()
 
 		// Check for next team
 		ETeam NextTeam = CurrentTeam;
-		NextTeam++;
+		++NextTeam;
 		bool bSuccessColumn = true;
 		for (const AMM_Mouse* CurrentMouse : MiceColumns[x])
 		{
@@ -874,19 +876,19 @@ bool AMM_GridManager::CheckNoValidMoves()
 				break;
 			}
 		}
-		
+
 		// All mice were the next team, advance
 		if (bSuccessColumn)
 		{
 			// Store next team as current as it was successful
 			CurrentTeam = NextTeam;
-			
+
 			// Found full column of Team B after full team A
 			if (CurrentTeam == ETeam::E_TEAM_B)
 			{
 				return true;
 			}
-		}		
+		}
 	}
 	return false;
 }
@@ -905,7 +907,7 @@ void AMM_GridManager::ToggleDebugVisualGrid()
 
 bool AMM_GridManager::DebugCheckAllMiceProcessed() const
 {
-	for (ETeam CurrentTeam = ETeam::E_TEAM_A; CurrentTeam < ETeam::E_MAX; CurrentTeam++)
+	for (ETeam CurrentTeam = ETeam::E_TEAM_A; CurrentTeam < ETeam::E_MAX; ++CurrentTeam)
 	{
 		UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridManager::DebugCheckAllMiceProcessed | Checking ordered mice team %i"), CurrentTeam);
 		for (const AMM_Mouse* Mouse : MiceTeams[CurrentTeam])
@@ -926,24 +928,30 @@ void AMM_GridManager::DisplayDebugGrid() const
 	// For each column
 	for (int x = 0; x < GridSize.X; x++)
 	{
-
 		// For each row, add to column array
 		for (int y = 0; y < GridSize.Y; y++)
 		{
-			const AMM_GridElement* gridElement = GridObject->GetGridElement({ x, y });
+			const AMM_GridElement* gridElement = GridObject->GetGridElement({x, y});
 			FLinearColor Color = FLinearColor::White;
 			if (gridElement)
 			{
 				// Display yellow for block
 				Color = FLinearColor::Yellow;
-				
+
 				// Display green for mice
 				if (gridElement->IsA(AMM_Mouse::StaticClass()))
 				{
 					Color = FLinearColor::Green;
 				}
 			}
-			UKismetSystemLibrary::DrawDebugSphere(GetWorld(), CoordToWorldTransform({ x, y }).GetLocation() + FVector(-100, 0, 50), 25.0f, 6, Color, 0.5, 3);
+			UKismetSystemLibrary::DrawDebugSphere(
+				GetWorld(),
+				CoordToWorldTransform({x, y}).GetLocation() + FVector(-100, 0, 50),
+				25.0f,
+				6,
+				Color,
+				0.5,
+				3);
 		}
 	}
 }

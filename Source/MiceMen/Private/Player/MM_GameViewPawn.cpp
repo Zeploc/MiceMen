@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Player/MM_GameViewPawn.h"
 
 #include "CineCameraComponent.h"
@@ -15,7 +14,7 @@
 // Sets default values
 AMM_GameViewPawn::AMM_GameViewPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
@@ -32,8 +31,8 @@ void AMM_GameViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction(FName("Grab"), IE_Pressed, this, &AMM_GameViewPawn::BeginGrab);
 	PlayerInputComponent->BindAction(FName("Grab"), IE_Released, this, &AMM_GameViewPawn::EndGrab);
-
 }
+
 void AMM_GameViewPawn::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -50,10 +49,11 @@ void AMM_GameViewPawn::PossessedBy(AController* NewController)
 void AMM_GameViewPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Check game mode is set
 	GetMMGamemode();
 }
+
 // Called every frame
 void AMM_GameViewPawn::Tick(float DeltaTime)
 {
@@ -74,8 +74,9 @@ void AMM_GameViewPawn::BeginTurn()
 	{
 		return;
 	}
-	
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Beginning turn for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginTurn | Beginning turn for %i as %s"),
+		MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 	// Check if sandbox mode
 	if (MMGameMode && MMGameMode->GetCurrentGameType() == EGameType::E_SANDBOX)
@@ -93,7 +94,7 @@ void AMM_GameViewPawn::BeginTurn()
 		// Get available column indexes for this player
 		TArray<int> AvailableColumns = GridManager->GetTeamColumns(MMPlayerController->GetCurrentTeam());
 		int FallbackColumn = -1;
-		
+
 		// For each available column
 		for (const int Column : AvailableColumns)
 		{
@@ -126,7 +127,7 @@ void AMM_GameViewPawn::BeginTurn()
 void AMM_GameViewPawn::AITurnComplete(AMM_ColumnControl* ColumnControl)
 {
 	CurrentColumn = ColumnControl;
-	
+
 	// Release the column to apply change
 	EndGrab();
 }
@@ -165,7 +166,9 @@ void AMM_GameViewPawn::BeginGrab()
 
 	// Get hit at mouse position in world on interactable channel
 	FHitResult InteractHit;
-	if (!GetWorld()->LineTraceSingleByChannel(InteractHit, WorldLocation, WorldLocation + WorldDirection * InteractTraceDistance, ECC_GameTraceChannel1))
+	if (!GetWorld()->LineTraceSingleByChannel(InteractHit, WorldLocation,
+	                                          WorldLocation + WorldDirection * InteractTraceDistance,
+	                                          ECC_GameTraceChannel1))
 	{
 		// Failed hit
 		UE_LOG(MiceMenEventLog, Warning, TEXT("AMM_GameViewPawn::BeginGrab | Did not hit a column"));
@@ -189,13 +192,15 @@ void AMM_GameViewPawn::BeginGrab()
 		if (bGrabSuccessful)
 		{
 			CurrentColumn = NewColumn;
-			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"), CurrentColumn->GetColumnIndex());
+			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Begin grabbing column %i"),
+			       CurrentColumn->GetColumnIndex());
 			// Store offset from grab position to update location correctly
 			HitColumnOffset = CurrentColumn->GetActorLocation() - InteractHit.Location;
 		}
 		else
 		{
-			UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::BeginGrab | Column can't be grabbed, probably in motion"));
+			UE_LOG(MiceMenEventLog, Display,
+			       TEXT("AMM_GameViewPawn::BeginGrab | Column can't be grabbed, probably in motion"));
 		}
 	}
 	else
@@ -216,8 +221,10 @@ void AMM_GameViewPawn::EndGrab()
 	CurrentColumnDelegateHandle.Reset();
 
 	// Bind new delegate for column movement
-	CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(this, &AMM_GameViewPawn::ProcessMovedColumn);
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on adjustment complete for %i as %s"), MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
+	CurrentColumnDelegateHandle = CurrentColumn->AdjustCompleteDelegate.AddUObject(
+		this, &AMM_GameViewPawn::ProcessMovedColumn);
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GameViewPawn::EndGrab | Bind event to column on adjustment complete for %i as %s"),
+	       MMPlayerController->GetCurrentTeam(), *MMPlayerController->GetName());
 
 	// Tell the current column it has been released
 	CurrentColumn->EndGrab();
@@ -275,10 +282,14 @@ void AMM_GameViewPawn::HandleGrab()
 
 	const FVector StartingLocation = WorldLocation;
 	const FVector EndLocation = StartingLocation + WorldDirection * InteractTraceDistance;
-	
+
 	float IntersectDistance;
 	FVector IntersectionLocation;
-	if (!UKismetMathLibrary::LinePlaneIntersection_OriginNormal(StartingLocation, EndLocation, CurrentColumn->GetActorLocation(), CurrentColumn->GetActorForwardVector() * -1, IntersectDistance, IntersectionLocation))
+	if (!UKismetMathLibrary::LinePlaneIntersection_OriginNormal(StartingLocation, EndLocation,
+	                                                            CurrentColumn->GetActorLocation(),
+	                                                            CurrentColumn->GetActorForwardVector() * -1,
+	                                                            IntersectDistance,
+	                                                            IntersectionLocation))
 	{
 		// Failed to intersect the plane
 		return;

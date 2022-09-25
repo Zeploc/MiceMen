@@ -82,7 +82,7 @@ bool AMM_PlayerController::PerformColumnAIMovement(AMM_ColumnControl* Column, co
 	{
 		return false;
 	}
-	
+
 	// Get new location of column
 	FVector NewLocation = Column->GetActorLocation();
 	NewLocation.Z += Direction * MMGameMode->GetGridManager()->GridElementHeight;
@@ -95,7 +95,7 @@ bool AMM_PlayerController::PerformColumnAIMovement(AMM_ColumnControl* Column, co
 	}
 
 	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_GameViewPawn::TakeRandomAITurn | Chosen direction %i for column %i"),
-		   Direction, Column->GetColumnIndex());
+	       Direction, Column->GetColumnIndex());
 	Column->UpdatePreviewLocation(NewLocation);
 
 	// If testing mode, instantly move column
@@ -146,10 +146,10 @@ bool AMM_PlayerController::TakeAdvancedAITurn() const
 	{
 		return false;
 	}
-	
+
 	TArray<AMM_ColumnControl*> CurrentColumnControls = MMPawn->GetCurrentColumnControls();
 	TArray<AMM_Mouse*> TeamMice = MMGameMode->GetGridManager()->GetMiceTeams()[CurrentTeam];
-	
+
 	int HighestScore = 0;
 	int BestColumn = -1;
 	// Having up first means the default state when no optimal moves exist will be to move the column upwards
@@ -158,7 +158,7 @@ bool AMM_PlayerController::TakeAdvancedAITurn() const
 	for (const AMM_ColumnControl* ColumnControl : CurrentColumnControls)
 	{
 		const int ColumnIndex = ColumnControl->GetColumnIndex();
-		TArray<EDirection> Directions = { EDirection::E_UP, EDirection::E_DOWN };
+		TArray<EDirection> Directions = {EDirection::E_UP, EDirection::E_DOWN};
 		for (const EDirection Direction : Directions)
 		{
 			int CurrentScore = 0;

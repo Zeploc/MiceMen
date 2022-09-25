@@ -62,7 +62,7 @@ public:
 protected:
 	/** Move the column a chosen direction on behalf of the AI player*/
 	bool PerformColumnAIMovement(AMM_ColumnControl* Column, int Direction) const;
-	
+
 	/** Perform AI turn by selecting a random column to move */
 	bool TakeRandomAITurn() const;
 

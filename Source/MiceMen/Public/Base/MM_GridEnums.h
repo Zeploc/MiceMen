@@ -6,7 +6,6 @@
 #include "Engine/UserDefinedEnum.h"
 #include "MM_GridEnums.generated.h"
 
-
 /** TODO */
 UENUM(BlueprintType)
 enum class EDirection : uint8

@@ -38,7 +38,7 @@ public:
 
 	/** Sets a grid element in the grid array */
 	bool SetGridElement(const FIntVector2D& Coord, AMM_GridElement* GridElement);
-	
+
 	bool MoveGridElement(const FIntVector2D& NewCoord, AMM_GridElement* GridElement);
 
 	/** Moves the column up or down by 1 and returns the last element */
@@ -130,5 +130,4 @@ protected:
 	TArray<FIntVector2D> FreeSlots;
 
 #pragma endregion
-
 };

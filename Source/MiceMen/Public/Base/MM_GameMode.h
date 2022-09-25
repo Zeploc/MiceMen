@@ -58,14 +58,14 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	EGameType GetCurrentGameType() const { return CurrentGameType; }
-	
+
 	UFUNCTION(BlueprintPure)
 	EAIDifficulty GetCurrentAIDifficulty() const { return CurrentAIDifficulty; }
 
 protected:
 	/** Called when the game is ready and game play mode can be chosen */
 	virtual void GameReady();
-	
+
 	/** Clean up grid and restore to starting state */
 	void CleanupGame();
 
@@ -193,11 +193,10 @@ protected:
 	/** The current game play type */
 	UPROPERTY(BlueprintReadOnly)
 	EGameType CurrentGameType = EGameType::E_NONE;
-	
+
 	/** The current difficulty of the AI */
 	UPROPERTY(BlueprintReadOnly)
 	EAIDifficulty CurrentAIDifficulty = EAIDifficulty::E_NONE;
-	
 
 	/** The current team points, Team ID to number of points */
 	UPROPERTY(BlueprintReadOnly)
@@ -245,6 +244,4 @@ protected:
 	FIntVector2D DefaultGridSize = FIntVector2D(19, 13);
 
 #pragma endregion
-
 };
-

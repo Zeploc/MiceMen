@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Gameplay/MM_ColumnControl.h"
 
 #include "Kismet/KismetSystemLibrary.h"
@@ -12,7 +11,7 @@
 // Sets default values
 AMM_ColumnControl::AMM_ColumnControl()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
@@ -33,7 +32,7 @@ void AMM_ColumnControl::SetupColumn(int InColumnID, AMM_GridManager* InGridManag
 	// Calculate sizes
 	ColumnHeight = GridElementHeight * InGridManager->GetGridSize().Y;
 	const FVector BoxSize = FVector(50, InGridManager->GridElementWidth / 2.0f, ColumnHeight / 2.0);
-	
+
 	// Apply sizes
 	GrabbableBox->SetBoxExtent(BoxSize);
 	GrabbableBox->SetRelativeLocation(FVector(0, 0, ColumnHeight / 2));
@@ -41,13 +40,13 @@ void AMM_ColumnControl::SetupColumn(int InColumnID, AMM_GridManager* InGridManag
 
 void AMM_ColumnControl::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
 }
 
 void AMM_ColumnControl::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	// Grabbed or lerping
 	if (bGrabbed || bLerp)
 	{
@@ -56,7 +55,7 @@ void AMM_ColumnControl::Tick(float DeltaTime)
 		const FVector NewLocation = FMath::Lerp(GetActorLocation(), PreviewLocation, LerpAlpha);
 		SetActorLocation(NewLocation);
 	}
-	
+
 	// If column has been released but is still lerping, check if close enough to snap
 	if (!bGrabbed && bLerp && abs(GetActorLocation().Z - PreviewLocation.Z) < 1.0f)
 	{
@@ -150,7 +149,7 @@ void AMM_ColumnControl::EndGrab()
 void AMM_ColumnControl::LockInColumn()
 {
 	UE_LOG(MiceMenEventLog, Log, TEXT("AMM_ColumnControl::LockInColumn | Locking in column %i"), ControllingIndex);
-	
+
 	// Lock location and stop lerping movement
 	SetActorLocation(PreviewLocation);
 	bLerp = false;
@@ -205,6 +204,4 @@ void AMM_ColumnControl::DisplayAsGrabbable(bool bGrabbable, ETeam Team /* = ETea
 
 void AMM_ColumnControl::BN_DirectionChanged_Implementation(EDirection NewDirection)
 {
-
 }
-

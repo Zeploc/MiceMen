@@ -1,6 +1,5 @@
 // Copyright Alex Coultas, Mice Men Example Project
 
-
 #include "Grid/MM_GridElement.h"
 
 #include "Grid/MM_GridManager.h"
@@ -10,7 +9,6 @@
 
 AMM_GridElement::AMM_GridElement()
 {
-
 }
 
 void AMM_GridElement::SetupGridVariables(AMM_GridManager* InGridManager, AMM_GameMode* InMMGameMode, const FIntVector2D& InGridCoordinates)
@@ -20,12 +18,12 @@ void AMM_GridElement::SetupGridVariables(AMM_GridManager* InGridManager, AMM_Gam
 	MMGameMode = InMMGameMode;
 }
 
-void AMM_GridElement::UpdateGridPosition(const FIntVector2D& NewGridCoordiantes)
+void AMM_GridElement::UpdateGridPosition(const FIntVector2D& NewGridCoordinates)
 {
-	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *NewGridCoordiantes.ToString());
+	UE_LOG(MiceMenEventLog, Display, TEXT("AMM_GridElement::UpdateGridPosition | Updating grid element %s to %s"), *GetName(), *NewGridCoordinates.ToString());
 
 	// Set new position
-	Coordinates = NewGridCoordiantes;
+	Coordinates = NewGridCoordinates;
 
 	// Checks grid manager is valid, should be set in SetupGridVariables()
 	if (!GetGridManager())

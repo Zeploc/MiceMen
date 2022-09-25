@@ -15,8 +15,8 @@ UCLASS()
 class MICEMEN_API AMM_WorldGrid : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AMM_WorldGrid();
 
 	virtual void Tick(float DeltaTime) override;
@@ -24,9 +24,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	/** The amount of elements on the x and y axis for the grid */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FIntVector2D GridSize = FIntVector2D(19, 13);;
-
 };

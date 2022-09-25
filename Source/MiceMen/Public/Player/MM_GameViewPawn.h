@@ -53,7 +53,7 @@ protected:
 
 public:
 	/** Called on the beginning of the players turn, stores available columns to interact with */
-	virtual void BeginTurn();	
+	virtual void BeginTurn();
 
 	UFUNCTION(BlueprintPure)
 	bool IsTurnActive() const { return bTurnActive; };
@@ -97,7 +97,7 @@ protected:
 
 	/** Released the current column */
 	virtual void EndGrab();
-	
+
 #pragma endregion
 
 #pragma region Getters
@@ -181,5 +181,4 @@ protected:
 	AMM_GridManager* GridManager;
 
 #pragma endregion
-
 };

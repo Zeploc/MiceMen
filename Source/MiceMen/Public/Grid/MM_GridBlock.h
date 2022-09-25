@@ -13,14 +13,13 @@ UCLASS()
 class MICEMEN_API AMM_GridBlock : public AMM_GridElement
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AMM_GridBlock();
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	virtual void Tick(float DeltaTime) override;
-
 };

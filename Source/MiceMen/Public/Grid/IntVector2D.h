@@ -45,7 +45,6 @@ struct FIntVector2D
 #pragma region Constructors
 
 public:
-
 	/**
 	 * Default constructor (no initialization).
 	 */
@@ -235,7 +234,6 @@ public:
 	static const FIntVector2D NoneValue;
 
 #pragma endregion
-
 };
 
 FORCEINLINE FIntVector2D::FIntVector2D()
@@ -244,25 +242,25 @@ FORCEINLINE FIntVector2D::FIntVector2D()
 
 FORCEINLINE FIntVector2D::FIntVector2D(int32 InX, int32 InY)
 	: X(InX)
-	, Y(InY)
+	  , Y(InY)
 {
 }
 
 FORCEINLINE FIntVector2D::FIntVector2D(int32 InValue)
 	: X(InValue)
-	, Y(InValue)
+	  , Y(InValue)
 {
 }
 
 FORCEINLINE FIntVector2D::FIntVector2D(FIntVector2 InVector)
 	: X(InVector.X)
-	, Y(InVector.Y)
+	  , Y(InVector.Y)
 {
 }
 
 FORCEINLINE FIntVector2D::FIntVector2D(EForceInit)
 	: X(0)
-	, Y(0)
+	  , Y(0)
 {
 }
 
@@ -353,9 +351,9 @@ FORCEINLINE int32 FIntVector2D::Num()
 
 FORCEINLINE int32 FIntVector2D::Size() const
 {
-	int64 X64 = (int64)X;
-	int64 Y64 = (int64)Y;
-	return int32(FMath::Sqrt(float(X64 * X64 + Y64 * Y64)));
+	int64 X64 = X;
+	int64 Y64 = Y;
+	return static_cast<int32>(FMath::Sqrt(float(X64 * X64 + Y64 * Y64)));
 }
 
 FORCEINLINE bool FIntVector2D::IsZero() const

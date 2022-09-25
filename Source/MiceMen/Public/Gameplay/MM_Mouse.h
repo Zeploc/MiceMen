@@ -20,8 +20,8 @@ UCLASS()
 class MICEMEN_API AMM_Mouse : public AMM_GridElement
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AMM_Mouse();
 
 #pragma region Core
@@ -58,7 +58,7 @@ public:
 protected:
 	/** Move mouse to next valid position, returns true if mouse moved */
 	virtual bool BeginMove(FIntVector2D& NewPosition);
-	
+
 	/**
 	 * Override for visual movement,
 	 * call MouseMovementEndDelegate once complete, or game will halt.
@@ -128,5 +128,4 @@ protected:
 	bool bGoalReached = false;
 
 #pragma endregion
-
 };

@@ -5,8 +5,6 @@ Naming
 - BP_MM_UI
 
 Todo Formatting:
-- Replace all function parameters with no underlines (risky to do now? but better represents my coding style (now))
-
 - Comments above ifs explaining what they are checking
 - Functions returning bool that are confusing bool return
 - Commenting clear
@@ -16,15 +14,11 @@ Functions
 Move static functions to helper utils?
 
 Todo:
-- Advanced AI defaults up (AI vs AI causes infinite loop of moving columns up)
-- AI Advanced turn column instantly moves instead of lerp (not in shipping?)
+- Advanced AI defaults up (AI vs AI causes infinite loop of moving columns up) Chance to lower
 - Ratio blocks so there are enough empty ones?
-- Add test to see if all mice that completed were correctly scored
-- Performance
+- AI Advanced turn column instantly moves instead of lerp (not in shipping?)
 
 - Turns completed in [number]
-- UI control starting mice in gameplay
-- UI control grid size in game
 - Set gameplay modes info in singleton, with display name and description
 
 Visual/Gameplay
@@ -34,7 +28,6 @@ Visual/Gameplay
 - When dragging visualise element that wraps around
 - Mouse trail link to mouse colour
 - Bounce visual jumping on another mouses head
-- Improve snapping
 
 -----------------------------------------------------------------------
 To put in readme:
@@ -52,8 +45,12 @@ To put in readme:
 - Had AI delay times for thinking and moving
 - Seperated AI logic into grid cheaper instance and process in separate thread to have more complicated AI
 - Event log for debugging - Log Macro, Add location (place in code called) in macro + object
+- Singleton
 - Things I would have done further
 - Future Plans
+- Add test to see if all mice that completed were correctly scored
+- UI control starting mice in gameplay
+- UI control grid size in game
 
 Gamemode
 - Handles turns

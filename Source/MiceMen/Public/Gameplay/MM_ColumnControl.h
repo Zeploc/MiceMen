@@ -26,8 +26,8 @@ UCLASS()
 class MICEMEN_API AMM_ColumnControl : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AMM_ColumnControl();
 
@@ -139,7 +139,7 @@ protected:
 	/** The column is actively lerping to the preview position */
 	UPROPERTY(BlueprintReadOnly)
 	bool bLerp = false;
-		
+
 	/** The location the column will lerp towards */
 	UPROPERTY(BlueprintReadOnly)
 	FVector PreviewLocation;
@@ -186,5 +186,4 @@ protected:
 	float GridElementHeight = 100.0f;
 
 #pragma endregion
-
 };
